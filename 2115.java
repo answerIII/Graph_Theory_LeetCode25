@@ -2,42 +2,39 @@ import java.util.*;
 
 class Solution {
     public List<String> findAllRecipes(String[] recipes, List<List<String>> ingredients, String[] supplies) {
-        Map<String, List<String>> graph = new HashMap<>();
-        Map<String, Integer> indegree = new HashMap<>();
+        int n = recipes.length;
+        int[] indegree = new int[n];
         
-        for (String recipe : recipes) {
-            indegree.put(recipe, 0);
+        Map<String, Integer> recipeIndex = new HashMap<>();
+        for (int i = 0; i < n; i++) {
+            recipeIndex.put(recipes[i], i);
         }
         
-        for (int i = 0; i < recipes.length; i++) {
+        Map<String, List<Integer>> graph = new HashMap<>();
+        for (int i = 0; i < n; i++) {
             for (String ing : ingredients.get(i)) {
-                graph.computeIfAbsent(ing, k -> new ArrayList<>()).add(recipes[i]);
-                indegree.put(recipes[i], indegree.get(recipes[i]) + 1);
+                graph.computeIfAbsent(ing, k -> new ArrayList<>()).add(i);
+                indegree[i]++;
             }
         }
         
-        Queue<String> queue = new LinkedList<>();
+        Queue<String> queue = new ArrayDeque<>();
         for (String supply : supplies) {
             queue.offer(supply);
         }
         
         List<String> result = new ArrayList<>();
-        
         while (!queue.isEmpty()) {
             String item = queue.poll();
-            if (!graph.containsKey(item)) {
-                continue;
-            }
-            for (String recipe : graph.get(item)) {
-                indegree.put(recipe, indegree.get(recipe) - 1);
-
-                if (indegree.get(recipe) == 0) {
-                    result.add(recipe);
-                    queue.offer(recipe);
+            List<Integer> dependentRecipes = graph.get(item);
+            if (dependentRecipes == null) continue;
+            for (int idx : dependentRecipes) {
+                if (--indegree[idx] == 0) {
+                    result.add(recipes[idx]);
+                    queue.offer(recipes[idx]);
                 }
             }
         }
-        
         return result;
     }
 }
