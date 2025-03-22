@@ -5,9 +5,18 @@ impl Solution {
         let n = graph.len();
         let mut state: Vec<usize> = vec![0; n];
         let mut safe: Vec<bool> = vec![false; n];
-        fn dfs(node: usize, graph: &Vec<Vec<i32>>, state: &mut Vec<usize>, safe: &mut Vec<bool>) -> bool {
-            if state[node] == 1 { return false; }
-            if state[node] == 2 { return safe[node]; }
+        fn dfs(
+            node: usize,
+            graph: &Vec<Vec<i32>>,
+            state: &mut Vec<usize>,
+            safe: &mut Vec<bool>,
+        ) -> bool {
+            if state[node] == 1 {
+                return false;
+            }
+            if state[node] == 2 {
+                return safe[node];
+            }
             state[node] = 1;
             for &neighboor in &graph[node] {
                 let neighboor = neighboor as usize;
@@ -50,13 +59,7 @@ mod test {
 
     #[test]
     fn test_example_2() {
-        let graph = vec![
-            vec![1, 2, 3, 4],
-            vec![1, 2],
-            vec![3, 4],
-            vec![0, 4],
-            vec![],
-        ];
+        let graph = vec![vec![1, 2, 3, 4], vec![1, 2], vec![3, 4], vec![0, 4], vec![]];
         let result = Solution::eventual_safe_nodes(graph);
         assert_eq!(result, vec![4]);
     }
