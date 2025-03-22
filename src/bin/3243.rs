@@ -36,39 +36,30 @@ impl Solution {
 
 #[cfg(test)]
 mod test {
-    use crate::Solution;
+    use super::*;
 
     #[test]
     fn test_example_1() {
         let n = 5;
         let queries = vec![vec![2, 4], vec![0, 2], vec![0, 4]];
-        let result = vec![3, 2, 1];
-        assert_eq!(
-            result,
-            Solution::shortest_distance_after_queries(n, queries)
-        );
+        let result = Solution::shortest_distance_after_queries(n, queries);
+        assert_eq!(result, vec![3, 2, 1]);
     }
 
     #[test]
     fn test_example_2() {
         let n = 4;
         let queries = vec![vec![0, 3], vec![0, 2]];
-        let result = vec![1, 1];
-        assert_eq!(
-            result,
-            Solution::shortest_distance_after_queries(n, queries)
-        );
+        let result = Solution::shortest_distance_after_queries(n, queries);
+        assert_eq!(result, vec![1, 1]);
     }
 
     #[test]
     fn test_example_3() {
         let n = 6;
         let queries = vec![vec![1, 4], vec![0, 2]];
-        let result = vec![3, 3];
-        assert_eq!(
-            result,
-            Solution::shortest_distance_after_queries(n, queries)
-        );
+        let result = Solution::shortest_distance_after_queries(n, queries);
+        assert_eq!(result, vec![3, 3]);
     }
 }
 
