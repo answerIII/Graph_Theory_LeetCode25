@@ -47,7 +47,8 @@ class Solution {
         for (int u : graph[node]) {
             if (!visited[u]) {
                 dfsHelper(graph, u, visited, path, safe);
-            } else if (path.contains(u)) { //есть ли цикл
+            } else if (path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
+            {
                 for (int p : path) {
                     safe[p] = false;
                 }
