@@ -33,7 +33,7 @@ public:
         if(parent[i] == i){
             return i;
         }
-        return get_parent(parent, parent[i]);
+        return parent[i] = get_parent(parent, parent[i]);
     }
 
     void Union_set(std::vector<int>& parent, int i, int j){
