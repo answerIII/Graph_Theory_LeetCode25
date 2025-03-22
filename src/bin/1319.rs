@@ -5,7 +5,7 @@ struct UnionFind {
 }
 
 impl UnionFind {
-    pub fn new(n: usize) -> Self {
+    fn new(n: usize) -> Self {
         Self {
             parent: (0..n).collect(),
             rank: vec![0; n],
@@ -55,38 +55,38 @@ impl Solution {
 
 #[cfg(test)]
 mod test {
-    use crate::Solution;
+    use super::*;
 
     #[test]
     fn test_example_1() {
         let n = 4;
         let connections = vec![vec![0, 1], vec![0, 2], vec![1, 2]];
-        let result = 1;
-        assert_eq!(result, Solution::make_connected(n, connections))
+        let result = Solution::make_connected(n, connections);
+        assert_eq!(result, 1)
     }
 
     #[test]
     fn test_example_2() {
         let n = 6;
         let connections = vec![vec![0, 1], vec![0, 2], vec![0, 3], vec![1, 2], vec![1, 3]];
-        let result = 2;
-        assert_eq!(result, Solution::make_connected(n, connections))
+        let result = Solution::make_connected(n, connections);
+        assert_eq!(result, 2)
     }
 
     #[test]
     fn test_example_3() {
         let n = 6;
         let connections = vec![vec![0, 1], vec![0, 2], vec![0, 3], vec![1, 2]];
-        let result = -1;
-        assert_eq!(result, Solution::make_connected(n, connections))
+        let result = Solution::make_connected(n, connections);
+        assert_eq!(result, -1)
     }
 
     #[test]
     fn test_example_4() {
         let n = 5;
         let connections = vec![vec![0, 1], vec![0, 2], vec![3, 4], vec![2, 3]];
-        let result = 0;
-        assert_eq!(result, Solution::make_connected(n, connections))
+        let result = Solution::make_connected(n, connections);
+        assert_eq!(result, 0)
     }
 
     #[test]
@@ -107,8 +107,8 @@ mod test {
             vec![0, 3],
             vec![0, 2],
         ];
-        let result = 4;
-        assert_eq!(result, Solution::make_connected(n, connections))
+        let result = Solution::make_connected(n, connections);
+        assert_eq!(result, 4)
     }
 }
 
