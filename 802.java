@@ -34,11 +34,12 @@ class Solution {
 
     private void dfsHelper(int[][] graph, int node, boolean[] visited, Stack<Integer> path, boolean[] safe) {
         if (visited[node]) {
-            if (Arrays.binarySearch(graph, node) >= 0) {
+            /*if(
+             Arrays.binarySearch(graph, node)>=0){
                 for (int p : path) {
                     safe[p] = false;
                 }
-            }
+            }*/
             return;
         }
         visited[node] = true;
@@ -47,7 +48,7 @@ class Solution {
         for (int u : graph[node]) {
             if (!visited[u]) {
                 dfsHelper(graph, u, visited, path, safe);
-            } else if (path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
+            } else if ((path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0 || safe[u] == false)) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
             {
                 for (int p : path) {
                     safe[p] = false;
