@@ -34,6 +34,11 @@ class Solution {
 
     private void dfsHelper(int[][] graph, int node, boolean[] visited, Stack<Integer> path, boolean[] safe) {
         if (visited[node]) {
+            if (Arrays.binarySearch(graph, node) >= 0) {
+                for (int p : path) {
+                    safe[p] = false;
+                }
+            }
             return;
         }
         visited[node] = true;
