@@ -8,15 +8,17 @@ class Solution {
 
     boolean[] visited;
     boolean[] safe;
+    int[][] graph;
 
     public List<Integer> eventualSafeNodes(int[][] graph) {
         visited = new boolean[graph.length];
         safe = new boolean[graph.length];
+        this.graph = graph;
         List<Integer> result = new ArrayList<>();
         Arrays.fill(safe, true);
         for (int i = 0; i < graph.length; ++i) {
             if (!visited[i]) {
-                dfs(graph, i);
+                dfs(i);
             }
         }
 
@@ -32,10 +34,10 @@ class Solution {
 
     public void dfs(int[][] graph, int start) {
         Stack<Integer> path = new Stack<>();
-        dfsHelper(graph, start, path);
+        dfsHelper(start, path);
     }
 
-    private void dfsHelper(int[][] graph, int node, Stack<Integer> path) {
+    private void dfsHelper(int node, Stack<Integer> path) {
         if (visited[node]) {
             return;
         }
@@ -44,7 +46,7 @@ class Solution {
 
         for (int u : graph[node]) {
             if (!visited[u]) {
-                dfsHelper(graph, u, path);
+                dfsHelper(u, path);
             } else if ((path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0 || safe[u] == false)) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
             {
                 for (int p : path) {
