@@ -4,33 +4,36 @@ import java.util.List;
 import java.util.Stack;
 
 class Solution {
+    boolean[] visited;
+    boolean[] safe;
+    int[][] graph;
     public List<Integer> eventualSafeNodes(int[][] graph) {
-        boolean[] visited = new boolean[graph.length];
-        boolean[] safe = new boolean[graph.length];
         List<Integer> result = new ArrayList<>();
+        visited = new boolean[graph.length];
+        safe = new boolean[graph.length];
+        this.graph = graph;
         Arrays.fill(safe, true);
         for (int i = 0; i < graph.length; ++i) {
             if (!visited[i]) {
-                dfs(graph, i, visited, safe);
+                dfs(i);
             }
         }
 
         for (int i = 0; i < graph.length; ++i) {
             if (safe[i]) {
                 result.add(i);
-                System.out.println(i);
             }
         }
 
         return result;
     }
 
-    public void dfs(int[][] graph, int start, boolean[] visited, boolean[] safe) {
+    public void dfs(int start) {
         Stack<Integer> path = new Stack<>();
         dfsHelper(graph, start, visited, path, safe);
     }
 
-    private void dfsHelper(int[][] graph, int node, boolean[] visited, Stack<Integer> path, boolean[] safe) {
+    private void dfsHelper(int node, Stack<Integer> path) {
         if (visited[node]) {
             return;
         }
@@ -39,7 +42,7 @@ class Solution {
 
         for (int u : graph[node]) {
             if (!visited[u]) {
-                dfsHelper(graph, u, visited, path, safe);
+                dfsHelper(u, path);
             } else if ((path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0 || safe[u]==false)) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
             {
                 for (int p : path) {
@@ -52,11 +55,4 @@ class Solution {
         path.pop();
     }
 
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        int[][] graph = {{1, 2}, {2, 3}, {5}, {0}, {5}, {}, {}};
-        List<Integer> safeNodes = solution.eventualSafeNodes(graph);
-
-        System.out.println("Safe nodes: " + safeNodes);
-    }
 }
