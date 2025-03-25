@@ -25,7 +25,6 @@ class Solution {
         for (int i = 0; i < graph.length; ++i) {
             if (safe[i]) {
                 result.add(i);
-                System.out.println(i);
             }
         }
 
