@@ -32,7 +32,7 @@ class Solution {
         return result;
     }
 
-    public void dfs(int[][] graph, int start) {
+    public void dfs(int start) {
         Stack<Integer> path = new Stack<>();
         dfsHelper(start, path);
     }
