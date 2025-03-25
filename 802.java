@@ -57,11 +57,10 @@ class Solution {
         path.pop();
     }
 
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        int[][] graph = {{1, 2}, {2, 3}, {5}, {0}, {5}, {}, {}};
-        List<Integer> safeNodes = solution.eventualSafeNodes(graph);
-
-        System.out.println("Safe nodes: " + safeNodes);
-    }
+    // public static void main(String[] args) {
+    //     Solution solution = new Solution();
+    //     int[][] graph = {{1, 2}, {2, 3}, {5}, {0}, {5}, {}, {}};
+    //     List<Integer> safeNodes = solution.eventualSafeNodes(graph);
+    //     System.out.println("Safe nodes: " + safeNodes);
+    // }
 }
