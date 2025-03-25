@@ -6,14 +6,17 @@ import java.util.Stack;
 
 class Solution {
 
+    boolean[] visited;
+    boolean[] safe;
+
     public List<Integer> eventualSafeNodes(int[][] graph) {
-        boolean[] visited = new boolean[graph.length];
-        boolean[] safe = new boolean[graph.length];
+        visited = new boolean[graph.length];
+        safe = new boolean[graph.length];
         List<Integer> result = new ArrayList<>();
         Arrays.fill(safe, true);
         for (int i = 0; i < graph.length; ++i) {
             if (!visited[i]) {
-                dfs(graph, i, visited, safe);
+                dfs(graph, i);
             }
         }
 
@@ -27,19 +30,13 @@ class Solution {
         return result;
     }
 
-    public void dfs(int[][] graph, int start, boolean[] visited, boolean[] safe) {
+    public void dfs(int[][] graph, int start) {
         Stack<Integer> path = new Stack<>();
-        dfsHelper(graph, start, visited, path, safe);
+        dfsHelper(graph, start, path);
     }
 
-    private void dfsHelper(int[][] graph, int node, boolean[] visited, Stack<Integer> path, boolean[] safe) {
+    private void dfsHelper(int[][] graph, int node, Stack<Integer> path) {
         if (visited[node]) {
-            /*if(
-             Arrays.binarySearch(graph, node)>=0){
-                for (int p : path) {
-                    safe[p] = false;
-                }
-            }*/
             return;
         }
         visited[node] = true;
@@ -47,7 +44,7 @@ class Solution {
 
         for (int u : graph[node]) {
             if (!visited[u]) {
-                dfsHelper(graph, u, visited, path, safe);
+                dfsHelper(graph, u, path);
             } else if ((path.contains(u) || Arrays.binarySearch(graph[u], u) >= 0 || safe[u] == false)) //есть ли цикл или ведет в вершину у которой есть ребро в себя) 
             {
                 for (int p : path) {
