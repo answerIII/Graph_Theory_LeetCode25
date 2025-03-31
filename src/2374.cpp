@@ -2,10 +2,10 @@ class Solution {
 public:
     int edgeScore(vector<int>& edges) {
         int n = edges.size();
-        std::vector score(n, 0);
+        std::vector<long long> score(n, 0);
 
         for(int i=0; i<n; ++i){
-            score[edges[i]] += i;
+            score[edges[i]] += (long long)i;
         }
 
         long long max_score = -1;
