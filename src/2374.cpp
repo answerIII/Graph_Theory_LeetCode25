@@ -7,10 +7,10 @@ public:
         std::vector<long> score(n, 0);
 
         for(int i=0; i<n; ++i){
-            score[edges[i]] += i;
+            score[edges[i]] += (long)i;
         }
 
-        int max_score = -1;
+        long max_score = -1;
         int highest_score = -1;
 
         for(int i=0; i<n; ++i){
