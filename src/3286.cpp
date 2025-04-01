@@ -11,10 +11,10 @@ public:
 
         std::vector<std::pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
         std::queue<std::tuple<int, int, int>> q; // row, col, health
-        std::vector<std::pair<int, int>> visited;
+        std::vector<std::vector<bool>> visited(total_rows, std::vector<bool>(total_cols, false));
 
         q.push({0,0, health});
-        visited.push_back({0, 0});
+        visited[0][0] = true;
 
         while(!q.empty()){
             int x = std::get<0>(q.front());
@@ -34,9 +34,9 @@ public:
                 if(nx >= 0 && nx < total_rows && ny >= 0 && ny < total_cols){
                     int new_health = h - grid[nx][ny];
 
-                    if( new_health >= 1 && std::find(visited.begin(), visited.end(), std::make_pair(nx,ny)) == visited.end()){
+                    if( new_health >= 1 && !visited[nx][ny]){
                         q.push(std::make_tuple(nx, ny, new_health));
-                        visited.push_back(std::make_pair(nx, ny));
+                        visited[nx][ny] = true;
                     }
                 }
             }
