@@ -4,13 +4,13 @@ class Solution {
 public:
     int edgeScore(vector<int>& edges) {
         int n = edges.size();
-        std::vector<long long> score(n, 0);
+        std::vector<int> score(n, 0);
 
         for(int i=0; i<n; ++i){
-            score[edges[i]] += (long long)i;
+            score[edges[i]] += i;
         }
 
-        long long max_score = -1;
+        int max_score = -1;
         int highest_score = -1;
 
         for(int i=0; i<n; ++i){
