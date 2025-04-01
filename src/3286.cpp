@@ -11,10 +11,10 @@ public:
 
         std::vector<std::pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
         std::queue<std::tuple<int, int, int>> q; // row, col, health
-        std::vector<std::vector<bool>> visited(total_rows, std::vector<bool>(total_cols, false));
+        std::vector<std::tuple<int, int, int>> visited;
 
         q.push({0,0, health});
-        visited[0][0] = true;
+        visited.push_back({0, 0, health});
 
         while(!q.empty()){
             int x = std::get<0>(q.front());
@@ -34,14 +34,23 @@ public:
                 if(nx >= 0 && nx < total_rows && ny >= 0 && ny < total_cols){
                     int new_health = h - grid[nx][ny];
 
-                    if( new_health >= 1 && !visited[nx][ny]){
-                        q.push(std::make_tuple(nx, ny, new_health));
-                        visited[nx][ny] = true;
+                    // если здоровье остается положительным и клетка не была посещена
+                    bool is_visited = false;
+                    for (int j = 0; j < visited.size(); ++j) {
+                        if (std::get<0>(visited[j]) == nx && std::get<1>(visited[j]) == ny && std::get<2>(visited[j]) == new_health) {
+                            is_visited = true;
+                            break;
+                        }
+                    }
+
+                    if (new_health > 0 && !is_visited) {
+                        q.push(std::make_tuple(nx, ny, new_health)); 
+                        visited.push_back({nx, ny, new_health}); 
                     }
                 }
             }
         }
-    return false;
 
+        return false; 
     }
 };
