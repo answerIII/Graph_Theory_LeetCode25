@@ -20,12 +20,15 @@ class Solution {
     }
     int edgesUsed = 0;
 
-    public void kruskal(int[][] edges) {
+    public void kruskal(int[][] edges, int limit) {
 
         int mstWeight = 0;
 
         for (int[] edge : edges) {
             int u = edge[0], v = edge[1], weight = edge[2];
+            if(weight>=limit){
+                continue;
+            }
             if (find(u) != find(v)) { // Если вершины в разных компонентах
                 union(u, v);
                 mstWeight += weight;
@@ -75,7 +78,7 @@ for (int i = 0; i < queries.length; ++i) {
                 }
 // Получаем подмассив (от leftIndex до rightIndex-1)
                 int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex);
-                kruskal(subarray);
+                kruskal(subarray, high);
 
             }
             //result[i] = prim(queries[i][0], queries[i][1], queries[i][2]);
