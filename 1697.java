@@ -1,3 +1,4 @@
+
 import java.util.*;
 
 class Solution {
@@ -5,62 +6,83 @@ class Solution {
     private List<int[]>[] graph;
     private int n;
 
-    public boolean prim(int start_vertex, int end_vertex, int limit) {
-        PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
-        boolean[] visited_vertex = new boolean[n];
-        int[][] edges_of_prim = new int[n][2];
-        int edgesUsed = 0;
+    static int[] parent;
 
-        queue.add(new int[] { start_vertex, 0 });
+    static int find(int v) {
+        if (parent[v] == v) {
+            return v;
+        }
+        return parent[v] = find(parent[v]);
+    }
 
-        while (!queue.isEmpty() && edgesUsed < n) {
-            int[] curr = queue.poll();
-            int node = curr[0];
-            int weight = curr[1];
-            if (visited_vertex[node]) {
-                continue;
-            }
-            visited_vertex[node] = true;
-            edges_of_prim[edgesUsed++] = new int[] { node, weight };
-            if (weight >= limit) {
-                return false;
-            }
-            if (node == end_vertex) {
-                return true;
-            }
-            for (int[] neighbor : graph[node]) {
-                if (!visited_vertex[neighbor[0]]) {
-                    queue.add(new int[] { neighbor[0], neighbor[1] });
+    static void union(int a, int b) {
+        parent[find(a)] = find(b);
+    }
+    int edgesUsed = 0;
+
+    public void kruskal(int[][] edges) {
+
+        int mstWeight = 0;
+
+        for (int[] edge : edges) {
+            int u = edge[0], v = edge[1], weight = edge[2];
+            if (find(u) != find(v)) { // Если вершины в разных компонентах
+                union(u, v);
+                mstWeight += weight;
+                edgesUsed++;
+                if (edgesUsed == n - 1) {
+                    break; // Остовное дерево построено
+
                 }
             }
         }
-        return false;
-    }
-
-    static List<int[]>[] adjencyListWithWeights(int[][] edges, int n) {
-        List<int[]>[] adj_list = new ArrayList[n];
-        for (int i = 0; i < n; i++) {
-            adj_list[i] = new ArrayList<>();
-        }
-        for (int[] edge : edges) {
-            int p = edge[0], q = edge[1], limit = edge[2];
-            adj_list[p].add(new int[] { q, limit });
-            adj_list[q].add(new int[] { p, limit });
-        }
-        return adj_list;
-
+        // return mstWeight; // Вес минимального остовного дерева
     }
 
     public boolean[] distanceLimitedPathsExist(int n, int[][] edgeList, int[][] queries) {
-        graph = adjencyListWithWeights(edgeList, n);
-
         this.n = n;
         boolean[] result = new boolean[queries.length];
+        for(int i=0; i<queries.length; ++i){
+            queries[i]= new int[]{queries[i][0], queries[i][1], queries[i][2], i};
+        }
+        Arrays.sort(queries, Comparator.comparingInt(a -> a[2]));
+        Arrays.sort(edgeList, Comparator.comparingInt(a -> a[2]));
 
+        int low = 0;
+        int high = 0;
+        int edgeList_ind = 0;
+        parent = new int[n];
+        for (int i = 0; i < n; i++) {
+            parent[i] = i; // Инициализируем DSU
+        }
         for (int i = 0; i < queries.length; ++i) {
-            result[i] = prim(queries[i][0], queries[i][1], queries[i][2]);
+            if (queries[i][2] > high) {
+                low = high;
+                high = queries[i][2];
+                int leftIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, low},
+                        (a, b) -> Integer.compare(a[2], b[2]));
+                if (leftIndex < 0) {
+                    leftIndex = -leftIndex - 1; // Корректировка, если точного совпадения нет
+                }
+
+// Находим конечный индекс (первый элемент, где edgeList[i][2] >= high)
+                int rightIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, high},
+                        (a, b) -> Integer.compare(a[2], b[2]));
+                if (rightIndex < 0) {
+                    rightIndex = -rightIndex - 1;
+                }
+
+// Получаем подмассив (от leftIndex до rightIndex-1)
+                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex);
+                kruskal(subarray);
+
+            }
+            //result[i] = prim(queries[i][0], queries[i][1], queries[i][2]);
+                result[queries[i][3]] = find(queries[i][0]) == find(queries[i][1]);
         }
         return result;
 
     }
+
+   
 }
