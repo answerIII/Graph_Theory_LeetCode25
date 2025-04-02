@@ -31,7 +31,7 @@ class Solution {
                 mstWeight += weight;
                 edgesUsed++;
                 if (edgesUsed == n - 1) {
-                    break; // Остовное дерево построено
+                   // break; // Остовное дерево построено
 
                 }
             }
