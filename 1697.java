@@ -26,9 +26,7 @@ class Solution {
 
         for (int[] edge : edges) {
             int u = edge[0], v = edge[1], weight = edge[2];
-            if(weight>=limit){
-                continue;
-            }
+            
             if (find(u) != find(v)) { // Если вершины в разных компонентах
                 union(u, v);
                 mstWeight += weight;
@@ -58,32 +56,16 @@ class Solution {
         for (int i = 0; i < n; i++) {
             parent[i] = i; // Инициализируем DSU
         }
-for (int i = 0; i < queries.length; ++i) {
-            if (queries[i][2] > high) {
-                low = high;
-                high = queries[i][2];
-                
-
-                // Бинарный поиск границ
-                int leftIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, low},
-                        (a, b) -> Integer.compare(a[2], b[2]));
-                if (leftIndex < 0) {
-                    leftIndex = -leftIndex - 1;
-                }
-
-                int rightIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, high},
-                        (a, b) -> Integer.compare(a[2], b[2]));
-                if (rightIndex < 0) {
-                    rightIndex = -rightIndex - 1;
-                }
-// Получаем подмассив (от leftIndex до rightIndex-1)
-                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex);
-                kruskal(subarray, high);
-
-            }
-            //result[i] = prim(queries[i][0], queries[i][1], queries[i][2]);
-            result[queries[i][3]] = find(queries[i][0]) == find(queries[i][1]);
+    for (int i = 0; i < queries.length; i++) {
+        // Добавляем рёбра в MST, но НЕ сбрасываем `parent[]`
+        while (edgeList_ind < edgeList.length && edgeList[edgeList_ind][2] < queries[i][2]) {
+            union(edgeList[edgeList_ind][0], edgeList[edgeList_ind][1]);
+            edgeList_ind++;
         }
+
+        // Проверяем, находятся ли вершины в одном компоненте
+        result[queries[i][3]] = (find(queries[i][0]) == find(queries[i][1]));
+    }
         return result;
 
     }
