@@ -6,7 +6,7 @@ class Solution {
     private List<int[]>[] graph;
     private int n;
 
-    static int[] parent;
+    int[] parent;
 
    public int find(int v) {
         if (parent[v] != v) {
