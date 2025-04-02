@@ -8,14 +8,14 @@ class Solution {
 
     static int[] parent;
 
-    static int find(int v) {
-        if (parent[v] == v) {
-            return v;
+   public int find(int v) {
+        if (parent[v] != v) {
+            parent[v] = find(parent[v]); // Сжатие пути
         }
-        return parent[v] = find(parent[v]);
+        return parent[v];
     }
 
-    static void union(int a, int b) {
+    void union(int a, int b) {
         parent[find(a)] = find(b);
     }
     int edgesUsed = 0;
