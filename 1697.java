@@ -55,30 +55,31 @@ class Solution {
         for (int i = 0; i < n; i++) {
             parent[i] = i; // Инициализируем DSU
         }
-        for (int i = 0; i < queries.length; ++i) {
+for (int i = 0; i < queries.length; ++i) {
             if (queries[i][2] > high) {
                 low = high;
                 high = queries[i][2];
+                
+
+                // Бинарный поиск границ
                 int leftIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, low},
                         (a, b) -> Integer.compare(a[2], b[2]));
                 if (leftIndex < 0) {
-                    leftIndex = -leftIndex - 1; // Корректировка, если точного совпадения нет
+                    leftIndex = -leftIndex - 1;
                 }
 
-// Находим конечный индекс (первый элемент, где edgeList[i][2] >= high)
                 int rightIndex = Arrays.binarySearch(edgeList, new int[]{0, 0, high},
                         (a, b) -> Integer.compare(a[2], b[2]));
                 if (rightIndex < 0) {
                     rightIndex = -rightIndex - 1;
                 }
-
 // Получаем подмассив (от leftIndex до rightIndex-1)
-                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex-1);
+                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex);
                 kruskal(subarray);
 
             }
             //result[i] = prim(queries[i][0], queries[i][1], queries[i][2]);
-                result[queries[i][3]] = find(queries[i][0]) == find(queries[i][1]);
+            result[queries[i][3]] = find(queries[i][0]) == find(queries[i][1]);
         }
         return result;
 
