@@ -31,7 +31,7 @@ class Solution {
                 mstWeight += weight;
                 edgesUsed++;
                 if (edgesUsed == n - 1) {
-                   // break; // Остовное дерево построено
+                    break; // Остовное дерево построено
 
                 }
             }
@@ -73,7 +73,7 @@ class Solution {
                 }
 
 // Получаем подмассив (от leftIndex до rightIndex-1)
-                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex);
+                int[][] subarray = Arrays.copyOfRange(edgeList, leftIndex, rightIndex-1);
                 kruskal(subarray);
 
             }
