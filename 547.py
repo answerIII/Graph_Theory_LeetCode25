@@ -7,7 +7,7 @@ class Solution:
         while stack != []:
             node = stack.pop()
             for neighbor in range(n):
-                if graph[node][neighbor] == 1:
+                if graph[node][neighbor] == 1 and visited[neighbor] == False:
                     visited[neighbor] = True
                     stack.append(neighbor)
 
