@@ -1,18 +1,16 @@
 from typing import List
 
 class Solution:
-    def DFS(self, сurrent_node, n, graph, visited, color) -> bool:
+    def DFS(self, сurrent_node, graph, state) -> bool:
             stack = [сurrent_node]
-            visited[сurrent_node] = True
-            color[сurrent_node] = 0
+            state[сurrent_node] = 0
             while stack != []:
                 node = stack.pop()
                 for neighbor in graph[node]:
-                        if color[neighbor] is None:
-                            color[neighbor] = 1 - color[node]
-                            visited[neighbor] = True
+                        if state[neighbor] is None:
+                            state[neighbor] = 1 - state[node]
                             stack.append(neighbor)
-                        elif color[neighbor] == color[node]:
+                        elif state[neighbor] == state[node]:
                             return False
             return True
 
@@ -21,10 +19,9 @@ class Solution:
         for a, b in dislikes:
             graph[a - 1].append(b - 1)
             graph[b - 1].append(a - 1)
-        visited = [False] * n
-        color = [None] * n
+        state = [None] * n
         for сurrent_node in range(n):
-            if visited[сurrent_node] == False:
-                if self.DFS(сurrent_node, n, graph, visited, color) == False:
+            if state[сurrent_node] is None:
+                if self.DFS(сurrent_node, graph, state) == False:
                     return False
         return True
