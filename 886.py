@@ -7,7 +7,7 @@ class Solution:
                 if state[neighbor] == color:
                     return False
                 if state[neighbor] is None and self.DFS(neighbor, graph, state, 1 - color) == False:
-                return False
+                    return False
             return True
 
     def possibleBipartition(self, n: int, dislikes: List[List[int]]) -> bool:
