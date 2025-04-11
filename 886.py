@@ -1,7 +1,7 @@
 from typing import List
 
 class Solution:
-    def DFS(self, сurrent_node, n) -> bool:
+    def DFS(self, сurrent_node, n, graph, visited, color) -> bool:
             stack = [сurrent_node]
             visited[сurrent_node] = True
             color[сurrent_node] = 0
@@ -26,6 +26,6 @@ class Solution:
         color = [None] * n
         for сurrent_node in range(n):
             if visited[сurrent_node] == False:
-                if DFS(сurrent_node, n) == False:
+                if self.DFS(сurrent_node, n, graph, visited, color) == False:
                     return False
         return True
