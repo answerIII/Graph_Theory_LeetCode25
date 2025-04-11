@@ -7,8 +7,7 @@ class Solution:
             color[сurrent_node] = 0
             while stack != []:
                 node = stack.pop()
-                for neighbor in range(n):
-                    if graph[node][neighbor] == 1:
+                for neighbor in graph[node]:
                         if color[neighbor] is None:
                             color[neighbor] = 1 - color[node]
                             visited[neighbor] = True
@@ -20,8 +19,8 @@ class Solution:
     def possibleBipartition(self, n: int, dislikes: List[List[int]]) -> bool:
         graph = [[0] * n for _ in range(n)]
         for a, b in dislikes:
-            graph[a - 1][b - 1] = 1
-            graph[b - 1][a - 1] = 1
+            graph[a - 1].append(b - 1)
+            graph[b - 1].append(a - 1)
         visited = [False] * n
         color = [None] * n
         for сurrent_node in range(n):
