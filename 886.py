@@ -17,7 +17,7 @@ class Solution:
             return True
 
     def possibleBipartition(self, n: int, dislikes: List[List[int]]) -> bool:
-        graph = [[0] * n for _ in range(n)]
+        graph = [[] for _ in range(n)]
         for a, b in dislikes:
             graph[a - 1].append(b - 1)
             graph[b - 1].append(a - 1)
