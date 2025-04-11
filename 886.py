@@ -8,7 +8,7 @@ class Solution:
             while stack != []:
                 node = stack.pop()
                 for neighbor in range(n):
-                    if graph[node][neighbor] == 1 and visited[neighbor] == False:
+                    if graph[node][neighbor] == 1:
                         if color[neighbor] is None:
                             color[neighbor] = 1 - color[node]
                             visited[neighbor] = True
