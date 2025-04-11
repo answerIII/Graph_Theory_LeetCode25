@@ -3,7 +3,7 @@ from typing import List
 class Solution:
     def DFS(self, сurrent_node, graph, state, color) -> bool:
             state[сurrent_node] = color
-            for neighbor in graph[node]:
+            for neighbor in graph[current_node]:
                         if state[neighbor] == color:
                             return False
                         if state[neighbor] is None and self.DFS(neighbor, graph, state, 1 - color) == False:
