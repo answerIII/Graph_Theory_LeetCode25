@@ -1,16 +1,12 @@
 from typing import List
 
 class Solution:
-    def DFS(self, сurrent_node, graph, state) -> bool:
-            stack = [сurrent_node]
-            state[сurrent_node] = 0
-            while stack != []:
-                node = stack.pop()
-                for neighbor in graph[node]:
-                        if state[neighbor] is None:
-                            state[neighbor] = 1 - state[node]
-                            stack.append(neighbor)
-                        elif state[neighbor] == state[node]:
+    def DFS(self, сurrent_node, graph, state, color) -> bool:
+            state[сurrent_node] = color
+            for neighbor in graph[node]:
+                        if state[neighbor] == color:
+                            return False
+                        if state[neighbor] is None and self.DFS(neighbor, graph, state, 1 - color) == False:
                             return False
             return True
 
@@ -22,6 +18,6 @@ class Solution:
         state = [None] * n
         for сurrent_node in range(n):
             if state[сurrent_node] is None:
-                if self.DFS(сurrent_node, graph, state) == False:
+                if self.DFS(сurrent_node, graph, state, 0) == False:
                     return False
         return True
