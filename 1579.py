@@ -17,9 +17,8 @@ class Solution:
         
         for edge in edges:
             edge_type, u, v = edge
-            u -= 1 #TODO перевроверить индексы
+            u -= 1
             v -= 1
-            print ( edge_type, u, v, "\n")
             if edge_type == 1:
                 graphAlice[u].append(v)
                 graphAlice[v].append(u)
@@ -55,7 +54,7 @@ class Solution:
                     edgesToRemove += 1
                 else:
                     graphAlice[u].append(v)
-                    graphAlice[u].append(v)
+                    graphAlice[v].append(u)
 
             elif edge_type == 2:
                 graphBob[u].remove(v)
