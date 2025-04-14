@@ -19,6 +19,7 @@ class Solution:
             edge_type, u, v = edge
             u -= 1 #TODO перевроверить индексы
             v -= 1
+            print ( edge_type, u, v, "\n")
             if edge_type == 1:
                 graphAlice[u].append(v)
                 graphAlice[v].append(u)
