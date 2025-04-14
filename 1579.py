@@ -7,7 +7,7 @@ class Solution:
         while stack != []:
             node = stack.pop()
             for neighbor in graph[node]:
-                ifgit visited[neighbor] == False:
+                if visited[neighbor] == False:
                     visited[neighbor] = True
                     stack.append(neighbor)
 
@@ -28,8 +28,8 @@ class Solution:
             elif edge_type == 3:
                 graphAlice[u].append(v)
                 graphAlice[v].append(u)
-                graphAlice[u].append(v)
-                graphAlice[v].append(u)
+                graphBob[u].append(v)
+                graphBob[v].append(u)
 
         visitedAlice = [False] * n
         visitedBob = [False] * n
