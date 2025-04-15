@@ -1,6 +1,6 @@
 class Solution(object):
     def calcEquation(self, equations, values, queries):
-        graph = dict()
+        graph = {}
 
         for i in range(len(equations)):
             A = equations[i][0]
@@ -8,9 +8,9 @@ class Solution(object):
             element = values[i]
 
             if A not in graph:
-                graph[A] = dict()
+                graph[A] = {}
             if B not in graph:
-                graph[B] = dict()
+                graph[B] = {}
             
             graph[A][B] = element
             graph[B][A] = 1 / element
