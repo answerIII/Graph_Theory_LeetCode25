@@ -26,11 +26,10 @@ class Solution:
             
         visited = [0] * numCourses  # 0-не трогали, 2-идем по цепочке, 3-уже прошли
         res = []
-        print("Зависимости: {course_map} /n")
 
         for course in range(numCourses):
             if visited[course] == 0:
                 if DFS(course) == False:
                     return []
-        print(res)
-        return res.reverse()
+        res.reverse()
+        return res
