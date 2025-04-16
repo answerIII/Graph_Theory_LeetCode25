@@ -2,12 +2,12 @@ from typing import List
 from collections import defaultdict
 
 class Solution:
-    def DFS(course):
+    def DFS(self, course, visited, res, course_map):
         if visited[course] == 0:
             visited[course] = 1
             
             for next_course in course_map[course]:
-                if DFS(next_course) == False:
+                if self.DFS(next_course, visited, res, course_map) == False:
                     return False
                     
             res.append(course)
@@ -30,7 +30,7 @@ class Solution:
 
         for course in range(numCourses):
             if visited[course] == 0:
-                if DFS(course) == False:
+                if self.DFS(course, visited, res, course_map) == False:
                     return []
         res.reverse()
         return res
