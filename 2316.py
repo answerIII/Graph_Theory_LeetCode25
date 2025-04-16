@@ -1,13 +1,17 @@
 class Solution(object):
     @staticmethod
-    def run_dfs_and_return_size_of_conn_component(curr_vert, adjacency_list, is_visited):
-        is_visited[curr_vert] = True
-        size = 1
+    def run_dfs_and_return_size_of_conn_component_ITERATIVE(curr_vert, adjacency_list, is_visited):
+        stack = [curr_vert]
+        size = 0
+        while len(stack) > 0:
+            curr_vert = stack.pop()
 
-        for adj_vertex in adjacency_list[curr_vert]:
-            if not is_visited[adj_vertex]:
-                size += Solution.run_dfs_and_return_size_of_conn_component(adj_vertex, adjacency_list, is_visited)
-        
+            if not is_visited[curr_vert]:
+                is_visited[curr_vert] = True
+                size += 1
+                for adj_vertex in adjacency_list[curr_vert]:
+                    if not is_visited[adj_vertex]:
+                        stack.append(adj_vertex)
         return size
 
     def countPairs(self, n, edges):
