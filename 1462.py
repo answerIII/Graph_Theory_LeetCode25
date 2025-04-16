@@ -13,7 +13,7 @@ class Solution:
     def checkIfPrerequisite(self, numCourses: int, prerequisites: List[List[int]], queries: List[List[int]]) -> List[bool]:
         course_map = defaultdict(list)
         for course, prereq in prerequisites:
-            course_map[course].append(prereq)
+            course_map[prereq].append(course)
         
         visited = [0] * numCourses  # 0- не посещали, 1- посещена
         components = []
