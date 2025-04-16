@@ -8,7 +8,7 @@ class Solution:
                 visited[course] = 1
                 
                 for next_course in course_map[course]:
-                    if DFC(next_course) == False:
+                    if DFS(next_course) == False:
                         return False
                         
                 res.append(course)
@@ -25,7 +25,7 @@ class Solution:
         for course, prereq in prerequisites:
             course_map[prereq].append(course)
             
-        visited = [0]* numCourses  # 0-не трогали, 2-идем по цепочке, 3-уже прошли
+        visited = [0] * numCourses  # 0-не трогали, 2-идем по цепочке, 3-уже прошли
         res = []
 
         for course in range(numCourses):
