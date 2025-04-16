@@ -25,6 +25,10 @@ class Solution:
         for course, prereq in prerequisites:
             course_map[course].append(prereq)  
 
+
+        if not prerequisites:
+            return [False] * len(queries)
+        
         visited = [0] * numCourses  # 0-не трогали, 2-идем по цепочке, 3-уже прошли
         res = []
 
