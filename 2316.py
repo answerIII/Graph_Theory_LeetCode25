@@ -30,3 +30,16 @@ class Solution(object):
                 curr_conn_comp = []
                 Solution.dfs(curr_vertex, adjacency_list, is_visited, curr_conn_comp)
                 all_conn_comps.append(curr_conn_comp)
+
+        # as we don't need vertices in components (only their sizes to say [3] -- [5] <- 3*5 pairs), we'll store just sizes
+        all_conn_comps_sizes = [len(curr_conn_comp) for curr_conn_comp in all_conn_comps]
+
+        total_unreachable_pairs = 0
+        for i in range(len(all_conn_comps_sizes)):
+            curr_conn_comp_size = all_conn_comps_sizes[i]
+            other_part_of_graph_size = n - curr_conn_comp_size
+            total_unreachable_pairs += curr_conn_comp_size * other_part_of_graph_size
+        
+        total_unreachable_pairs //= 2 # each pair is counted twice ([3] -- [5] and [5] -- [3])
+
+        return total_unreachable_pairs
