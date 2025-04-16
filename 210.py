@@ -2,26 +2,25 @@ from typing import List
 from collections import defaultdict
 
 class Solution:
-    def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
-        
-        def DFS(course):
-            if visited[course] == 0:
-                visited[course] = 1
-                
-                for next_course in course_map[course]:
-                    if DFS(next_course) == False:
-                        return False
-                        
-                res.append(course)
-                visited[course] = 2
-                return True
-                
-            if visited[course] == 1: #нашли цикл
-                return False
-                
-            if visited[course] == 2:
-                return True
+    def DFS(course):
+        if visited[course] == 0:
+            visited[course] = 1
+            
+            for next_course in course_map[course]:
+                if DFS(next_course) == False:
+                    return False
+                    
+            res.append(course)
+            visited[course] = 2
+            return True
+            
+        if visited[course] == 1: #нашли цикл
+            return False
+            
+        if visited[course] == 2:
+            return True
 
+    def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
         course_map = defaultdict(list)
         for course, prereq in prerequisites:
             course_map[prereq].append(course) 
