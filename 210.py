@@ -1,4 +1,6 @@
 from typing import List
+from collections import defaultdict
+
 class Solution:
     def findOrder(self, numCourses: int, prerequisites: List[List[int]]) -> List[int]:
         
@@ -19,11 +21,11 @@ class Solution:
                 
             if visited[course] == 2:
                 return True
-                
-        course_map = [[] for _ in range(numCourses)]
+
+        course_map = defaultdict(list)
         for course, prereq in prerequisites:
-            course_map[prereq].append(course)
-            
+            course_map[prereq].append(course) 
+
         visited = [0] * numCourses  # 0-не трогали, 2-идем по цепочке, 3-уже прошли
         res = []
 
