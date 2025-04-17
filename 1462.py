@@ -13,18 +13,17 @@ class Solution:
         for prereq, course in prerequisites:
             graph[prereq].append(course)
 
-        # reachable[i][j] = true (если из i можно добраться до j)
-        reachable = [[False] * numCourses for _ in range(numCourses)]
+        reachable = defaultdict(set)
 
         for course in range(numCourses):
             visited = [0] * numCourses
             self.DFS(course, visited, graph)
             for i in range(numCourses):
                 if visited[i]:
-                    reachable[course][i] = True
+                    reachable[course].add(i)
 
         answer = []
         for uj, vj in queries:
-            answer.append(reachable[uj][vj])
+            answer.append(vj in reachable[uj])
         
         return answer
