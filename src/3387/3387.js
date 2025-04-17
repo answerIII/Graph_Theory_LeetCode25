@@ -7,11 +7,10 @@
  * @return {number}
  */
 var maxAmount = function(initialCurrency, pairs1, rates1, pairs2, rates2) {
+    
     // 1. Создаём графы для обоих дней
     const graph1 = {};
     const graph2 = {};
-    
-    // Множества всех валют
     const currencies = new Set([initialCurrency]);
     
     // Заполняем граф для первого дня
@@ -46,17 +45,17 @@ var maxAmount = function(initialCurrency, pairs1, rates1, pairs2, rates2) {
         currencies.add(target);
     }
     
-    // 2. Функция для поиска максимального множителя с помощью модифицированного Беллмана-Форда
+    // 2. Функция для поиска максимального множителя с помощью Беллмана-Форда
     function findMaxMultiplier(graph, start, end) {
         
-        const distances = {};
+        const amounts = {};
         
         for (const currency of currencies) {
-            distances[currency] = -Infinity; // Ищем максимум, поэтому начинаем с -∞
+            amounts[currency] = 0; // Изначально 0 для всех валют
         }
-        distances[start] = 0; // Логарифм множителя 1
+        amounts[start] = 1; // Начинаем с 1 единицы
         
-        // Преобразуем веса в логарифмы, чтобы умножение стало сложением
+        // Беллман-Форд с умножением
         for (let i = 0; i < currencies.size - 1; i++) {
             for (const from of currencies) {
                 
@@ -64,26 +63,28 @@ var maxAmount = function(initialCurrency, pairs1, rates1, pairs2, rates2) {
                 
                 for (const [to, rate] of graph[from]) {
                     
-                    const logRate = Math.log(rate);
+                    const newAmount = amounts[from] * rate;
                     
-                    if (distances[from] + logRate > distances[to]) {
-                        distances[to] = distances[from] + logRate;
+                    if (newAmount > amounts[to]) {
+                        amounts[to] = newAmount;
                     }
                 }
             }
         }
         
-        return distances[end] === -Infinity ? 0 : Math.exp(distances[end]);
+        return amounts[end];
     }
     
     // 3. Первый день: находим максимальное количество каждой валюты
     const amountsAfterDay1 = {};
+    
     for (const currency of currencies) {
         amountsAfterDay1[currency] = findMaxMultiplier(graph1, initialCurrency, currency);
     }
     
     // 4. Второй день: максимизируем количество initialCurrency
     let maxFinalAmount = 0;
+    
     for (const intermediate of currencies) {
         
         const amountAfterDay1 = amountsAfterDay1[intermediate];
