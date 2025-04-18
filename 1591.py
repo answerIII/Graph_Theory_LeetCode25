@@ -32,8 +32,8 @@ class Solution:
             x1, y1, x2, y2 = borders[color]
             print("Color", color, "with borders: (" , x1 , "," , y1,") to (" , x2 , "," , y2 , ")", "\n")
             
-            for i in range(x1, x2):
-                for j in range(y1, y2):
+            for i in range(x1, x2+1):
+                for j in range(y1, y2+1):
                     print("(", i , "," , j , "), value", targetGrid[i][j], "\n")
                     if targetGrid[i][j] < color:
                         return False  #из предположения, что с каждым разом мы увеличиваем значение цвета
