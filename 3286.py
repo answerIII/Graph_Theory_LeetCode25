@@ -24,7 +24,7 @@ class Solution:
                 else:
                     new_health = health
 
-                if health >= 1:
+                if new_health >= 1:
                     visited[row - 1][col] = True
                     queue.append((row - 1, col, new_health))
 
@@ -33,7 +33,7 @@ class Solution:
                     new_health = health - 1
                 else:
                     new_health = health
-                if health >= 1:
+                if  new_health >= 1:
                     visited[row + 1][col] = True
                     queue.append((row + 1, col, new_health))
 
@@ -42,7 +42,7 @@ class Solution:
                     new_health = health - 1
                 else:
                     new_health = health
-                if health >= 1:
+                if  new_health >= 1:
                     visited[row][col - 1] = True
                     queue.append((row, col - 1, new_health))
 
@@ -51,7 +51,7 @@ class Solution:
                     new_health = health - 1
                 else:
                     new_health = health
-                if health >= 1:
+                if  new_health >= 1:
                     visited[row][col + 1] = True
                     queue.append((row, col + 1, new_health))
         return False
