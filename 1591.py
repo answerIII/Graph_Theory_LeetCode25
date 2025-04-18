@@ -57,7 +57,7 @@ class Solution:
                     value = targetGrid[i][j]
                     #print("(", i , "," , j , "), value", value, "\n")
                     if value != color:
-                        graph[color].append(value)
+                        graph[color].add(value)
 
         visited = defaultdict(int)
 
