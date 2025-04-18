@@ -47,7 +47,7 @@ class Solution:
                         borders[current_color][3] = j
         #print("Borders: ", borders, "\n")
 
-        graph = defaultdict(list)
+        graph = defaultdict(set)
         for color in borders:
             x1, y1, x2, y2 = borders[color]
             #print("Color", color, "with borders: (" , x1 , "," , y1,") to (" , x2 , "," , y2 , ")", "\n")
