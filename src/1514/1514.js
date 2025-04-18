@@ -24,35 +24,27 @@ var maxProbability = function(n, edges, succProb, start_node, end_node) {
     const probs = new Array(n).fill(0);
     probs[start_node] = 1; // Вероятность в начальной вершине — 1
     
-    // 3. Приоритетная очередь для Дейкстры: храним [prob, node]
-    const pq = [[1, start_node]]; // [prob, node], начинаем с 1
+    // 3. BFS с очередью
+    const queue = [start_node];
     
-    while (pq.length > 0) {
-        
-        // Сортируем очередь по убыванию вероятности
-        pq.sort((a, b) => b[0] - a[0]); // Максимизируем вероятность
-        const [prob, node] = pq.shift();
-        
-        // Если вероятность меньше уже найденной, пропускаем
-        if (prob < probs[node]) continue;
-        
-        // Если достигли конечной вершины, возвращаем вероятность
-        if (node === end_node) return prob;
+    while (queue.length > 0) {
+        const node = queue.shift();
         
         // Обрабатываем соседей
         for (const [next, edgeProb] of graph[node]) {
             
-            const newProb = prob * edgeProb;
+            const newProb = probs[node] * edgeProb;
             
             if (newProb > probs[next]) {
+                
                 probs[next] = newProb;
-                pq.push([newProb, next]);
+                queue.push(next); // Добавляем в очередь для дальнейшей обработки
             }
         }
     }
     
-    // Если не достигли end_node, возвращаем 0
-    return 0;
+    // Возвращаем вероятность для end_node
+    return probs[end_node];
 };
 
 module.exports = maxProbability;
