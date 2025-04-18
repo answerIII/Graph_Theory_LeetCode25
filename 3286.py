@@ -17,7 +17,6 @@ class Solution:
             if (row - 1 >= 0) and (visited[row - 1][col] == False): #вверх
                 if grid[row - 1][col] == 1:
                     health -= 1
-
                 if health >= 1:
                     visited[row - 1][col] = True
                     queue.append((row - 1, col, health))
@@ -25,7 +24,6 @@ class Solution:
             if (row + 1 < m) and (visited[row + 1][col] == False): #вниз
                 if grid[row + 1][col] == 1:
                     health -= 1
-
                 if health >= 1:
                     visited[row + 1][col] = True
                     queue.append((row + 1, col, health))
@@ -33,7 +31,6 @@ class Solution:
             if (col - 1 >= 0) and (visited[row][col - 1] == False): #влево
                 if grid[row][col - 1] == 1:
                     health -= 1
-
                 if health >= 1:
                     visited[row][col - 1] = True
                     queue.append((row, col - 1, health))
@@ -41,10 +38,9 @@ class Solution:
             if (col + 1 < n) and (visited[row][col + 1] == False): #вправо
                 if grid[row][col + 1] == 1:
                     health -= 1
-
                 if health >= 1:
-                    visited[row][col - 1] = True
-                    queue.append((row, col - 1, health))
+                    visited[row][col + 1] = True
+                    queue.append((row, col + 1, health))
 
             if (row == m - 1) and (col == n - 1): 
                 if health >= 1:
