@@ -9,7 +9,7 @@ class Solution:
         for i in range(m):
             for j in range(n):
                 colors.add(targetGrid[i][j])
-
+        print("Colors: ", colors, "\n")
         borders = {}
         for i in range(m):
             for j in range(n):
@@ -27,12 +27,14 @@ class Solution:
                         borders[current_color][2] = i
                     if j > borders[current_color][3]:
                         borders[current_color][3] = j
-
+        print("Borders: ", borders, "\n")
         for color in borders:
             x1, y1, x2, y2 = borders[color]
+            print("Color", color, "with borders: (" , x1 , "," , y1,") to (" , x2 , "," , y2 , ")", "\n")
             
             for i in range(x1, x2):
                 for j in range(y1, y2):
+                    print("(", i , "," , j , "), value", targetGrid[i][j], "\n")
                     if targetGrid[i][j] < color:
                         return False  #из предположения, что с каждым разом мы увеличиваем значение цвета
         return True
