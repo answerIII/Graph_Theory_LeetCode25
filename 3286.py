@@ -20,29 +20,38 @@ class Solution:
 
             if (row - 1 >= 0) and (visited[row - 1][col] == False): #вверх
                 if grid[row - 1][col] == 1:
-                    health -= 1
+                    new_health = health - 1
+                else:
+                    new_health = health
+
                 if health >= 1:
                     visited[row - 1][col] = True
-                    queue.append((row - 1, col, health))
+                    queue.append((row - 1, col, new_health))
 
             if (row + 1 < m) and (visited[row + 1][col] == False): #вниз
                 if grid[row + 1][col] == 1:
-                    health -= 1
+                    new_health = health - 1
+                else:
+                    new_health = health
                 if health >= 1:
                     visited[row + 1][col] = True
-                    queue.append((row + 1, col, health))
+                    queue.append((row + 1, col, new_health))
 
             if (col - 1 >= 0) and (visited[row][col - 1] == False): #влево
                 if grid[row][col - 1] == 1:
-                    health -= 1
+                    new_health = health - 1
+                else:
+                    new_health = health
                 if health >= 1:
                     visited[row][col - 1] = True
-                    queue.append((row, col - 1, health))
+                    queue.append((row, col - 1, new_health))
 
             if (col + 1 < n) and (visited[row][col + 1] == False): #вправо
                 if grid[row][col + 1] == 1:
-                    health -= 1
+                    new_health = health - 1
+                else:
+                    new_health = health
                 if health >= 1:
                     visited[row][col + 1] = True
-                    queue.append((row, col + 1, health))
+                    queue.append((row, col + 1, new_health))
         return False
