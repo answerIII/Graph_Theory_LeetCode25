@@ -8,7 +8,7 @@ class Solution:
         n = len(grid[0])
         visited = [[False] * n for _ in range(m)]
         queue = deque() #BFS
-        queue.append((0, 0, health)) #row,col,health
+        queue.append((0, 0, health - 1 if grid[0][0] == 1 else health)) #row,col,health
         visited[0][0] = True
 
         while queue:
