@@ -6,10 +6,8 @@ class Solution:
         
         m = len(grid)
         n = len(grid[0])
-        visited = [[False] * n for _ in range(m)]
         queue = deque() #BFS
         queue.append((0, 0, health - 1 if grid[0][0] == 1 else health)) #row,col,health
-        visited[0][0] = True
 
         while queue:
             row, col, health = queue.popleft()
@@ -18,40 +16,36 @@ class Solution:
                 if health >= 1:
                     return True
 
-            if (row - 1 >= 0) and (visited[row - 1][col] == False): #вверх
+            if (row - 1 >= 0): #вверх
                 if grid[row - 1][col] == 1:
                     new_health = health - 1
                 else:
                     new_health = health
 
                 if new_health >= 1:
-                    visited[row - 1][col] = True
                     queue.append((row - 1, col, new_health))
 
-            if (row + 1 < m) and (visited[row + 1][col] == False): #вниз
+            if (row + 1 < m): #вниз
                 if grid[row + 1][col] == 1:
                     new_health = health - 1
                 else:
                     new_health = health
                 if  new_health >= 1:
-                    visited[row + 1][col] = True
                     queue.append((row + 1, col, new_health))
 
-            if (col - 1 >= 0) and (visited[row][col - 1] == False): #влево
+            if (col - 1 >= 0): #влево
                 if grid[row][col - 1] == 1:
                     new_health = health - 1
                 else:
                     new_health = health
                 if  new_health >= 1:
-                    visited[row][col - 1] = True
                     queue.append((row, col - 1, new_health))
 
-            if (col + 1 < n) and (visited[row][col + 1] == False): #вправо
+            if (col + 1 < n): #вправо
                 if grid[row][col + 1] == 1:
                     new_health = health - 1
                 else:
                     new_health = health
                 if  new_health >= 1:
-                    visited[row][col + 1] = True
                     queue.append((row, col + 1, new_health))
         return False
