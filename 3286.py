@@ -14,6 +14,10 @@ class Solution:
         while queue:
             row, col, health = queue.popleft()
 
+            if (row == m - 1) and (col == n - 1):
+                if health >= 1:
+                    return True
+
             if (row - 1 >= 0) and (visited[row - 1][col] == False): #вверх
                 if grid[row - 1][col] == 1:
                     health -= 1
@@ -41,9 +45,4 @@ class Solution:
                 if health >= 1:
                     visited[row][col + 1] = True
                     queue.append((row, col + 1, health))
-
-            if (row == m - 1) and (col == n - 1): 
-                if health >= 1:
-                    return True
-                else:
-                    return False
+        return False
