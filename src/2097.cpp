@@ -54,7 +54,7 @@ public:
             }
             else {
                 stk.pop();
-                result.push_back({node, graph[node].front()});
+                result.push_back({stk.top(), node});
             }
         }
 
