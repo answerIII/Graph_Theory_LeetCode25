@@ -6,16 +6,7 @@
 
 class Solution {
 public:
-    //void dfs(int node, std::unordered_map<int, std::deque<int>>& graph, std::vector<std::vector<int>>& result) {
-    //    while (!graph[node].empty()) {
-    //        int neighbour = graph[node].front();
-    //        graph[node].pop_front();
-    //        dfs(neighbour, graph, result);
-    //        result.push_back({ node, neighbour });
-    //    }
-    //}
-
-    std::vector<std::vector<int>> validArrangement(std::vector<std::vector<int>>& pairs) {
+ std::vector<std::vector<int>> validArrangement(std::vector<std::vector<int>>& pairs) {
         std::unordered_map<int, std::deque<int>> graph;
         std::unordered_map<int, int> in_degree, out_degree;
 
@@ -35,11 +26,6 @@ public:
                 break;
             }
         }
-
-        //std::vector<std::vector<int>> result;
-        //dfs(start_node, graph, result);
-        //std::reverse(result.begin(), result.end());
-        //return result;
 
         std::vector<std::vector<int>> result;
         std::stack<int> stk;
