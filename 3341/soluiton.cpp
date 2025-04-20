@@ -7,7 +7,7 @@ class Solution {
 public:
     int minTimeToReach(vector<vector<int>>& moveTime) {
         const int mx[4]{0,1,0,-1}, 
-                  my[4]{1,0,-1,1};   
+                  my[4]{1,0,-1,0};   
 
         vector<vector<int>> dist(moveTime.size(), vector<int>(moveTime[0].size(), INT_MAX));
         dist[0][0] = 0;
