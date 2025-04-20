@@ -13,6 +13,7 @@ Solutions for 10 LeetCode graph theory problems (7 Medium, 3 Hard) as part of th
 - 3387: Maximize Amount After Two Days of Conversions
 - 1514: Path with Maximum Probability
 - 886: Possible Bipartition
+- 1466: Reorder Routes to Make All Paths Lead to the City Zero
 - ...
 
 ## Setup
