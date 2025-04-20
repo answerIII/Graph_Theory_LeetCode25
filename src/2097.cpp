@@ -54,7 +54,9 @@ public:
             }
             else {
                 stk.pop();
-                result.push_back({stk.top(), node});
+                if(!stk.empty()) {
+                    result.push_back({stk.top(), node});
+                }
             }
         }
 
@@ -62,3 +64,4 @@ public:
         return result;
     }
 };
+
