@@ -26,7 +26,7 @@ public:
             in_degree[end]++;
         }
 
-        int start_node = 0; 
+        int start_node = pairs[0][0]; 
         for (auto& entry : graph) {
             int node = entry.first;
             if (out_degree[node] > in_degree[node]) {
