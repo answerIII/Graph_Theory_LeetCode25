@@ -1,7 +1,7 @@
 class Solution {
 public:
     int edgeScore(std::vector<int>& edges) {
-        std::vector<int> scores(edges.size(), 0);
+        std::vector<size_t> scores(edges.size(), 0);
         int currentMaxScore = 0;
         int currentMaxScoreIndex = 0;
         for (int i = 0; i < edges.size(); ++i) {
