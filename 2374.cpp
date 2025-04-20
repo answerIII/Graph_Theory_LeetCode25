@@ -10,6 +10,9 @@ public:
                 currentMaxScore = scores[edges[i]];
                 currentMaxScoreIndex = edges[i];
             }
+            else if (scores[edges[i]] == currentMaxScore && edges[i] < currentMaxScoreIndex) {
+                currentMaxScoreIndex = edges[i];
+            }
         }
         return currentMaxScoreIndex;
     }
