@@ -7,7 +7,7 @@
 class Solution {
 public:
  std::vector<std::vector<int>> validArrangement(std::vector<std::vector<int>>& pairs) {
-        std::unordered_map<int, std::deque<int>> graph;
+        std::unordered_map<int, std::vector<int>> graph;
         std::unordered_map<int, int> in_degree, out_degree;
 
         for (int i = 0; i < pairs.size(); ++i) {
@@ -34,8 +34,8 @@ public:
         while (!stk.empty()) {
             int node = stk.top();
             if (!graph[node].empty()) {
-                int neighbour = graph[node].front();
-                graph[node].pop_front();
+                int neighbour = graph[node].back();
+                graph[node].pop_back();
                 stk.push(neighbour);
             }
             else {
