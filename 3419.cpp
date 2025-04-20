@@ -69,11 +69,7 @@ public:
     
     int minMaxWeight(int n, vector<vector<int>>& edges, int threshold) {
         int left = 1;
-        int right = 0;
-        for (const auto& edge : edges) 
-        {
-            right = max(right, edge[2]);
-        }
+        int right = 10000000;
         int answer = -1;
         
         while (left <= right) 
