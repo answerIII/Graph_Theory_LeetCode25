@@ -44,11 +44,6 @@ public:
 class Solution {
 public:
     bool equationsPossible(std::vector<std::string>& equations) {
-        for (auto e : equations) {
-            if (e[1] == '!' && e[0] == e[3]) {
-                return false;
-            }
-        }
         UnionFind uf(26);
         for (auto e : equations) {
             if (e[1] == '=') {
