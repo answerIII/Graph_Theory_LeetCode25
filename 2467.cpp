@@ -55,7 +55,7 @@ public:
         }
         std::unordered_map<int, int> bobs_path;
         bool end = false;
-        int maxScore = 0;
+        int maxScore = -1'000'000'000; // minimal score (n = 10**5 and every node contains -10**4)
         DFSBob(bob, -1, 0, end, adjacency, bobs_path);
         DFSAlice(0, -1, 0, adjacency, bobs_path, amount, 0, maxScore);
         return maxScore;
