@@ -1,7 +1,6 @@
 class Solution(object):
     @staticmethod
-    def mark_visited_using_iterative_dfs(curr_vert, adjacency_list, n):
-        is_visited = [False] * n
+    def mark_visited_using_iterative_dfs(curr_vert, adjacency_list, is_visited):
         stack = [curr_vert]
         while len(stack) > 0:
             curr_vert = stack.pop()
@@ -26,7 +25,8 @@ class Solution(object):
             adjacency_list[u].append(v)
 
         # find all 'bad' vertices
-        is_visited = Solution.mark_visited_using_iterative_dfs(k, adjacency_list, n)
+        is_visited = [False] * n
+        Solution.mark_visited_using_iterative_dfs(k, adjacency_list, is_visited)
 
         any_external_vertex_calls_into_bad = False
         for i in range(n):
