@@ -35,3 +35,12 @@ class Solution(object):
                     if is_visited[child]:       # our child is in bad set
                         any_external_vertex_calls_into_bad = True
                         break
+        no_removal = any_external_vertex_calls_into_bad
+
+        vertices_remaining_after_removal = []
+        if no_removal:
+            vertices_remaining_after_removal = list(range(n))
+        else:
+            vertices_remaining_after_removal = [i for i in range(n) if not is_visited[i]]
+
+        return vertices_remaining_after_removal
