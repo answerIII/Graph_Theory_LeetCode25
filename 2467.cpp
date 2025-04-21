@@ -42,7 +42,7 @@ public:
                 DFSAlice(v, u, depth + 1, adjacency, bobs_path, amount, score, maxScore);
             }
         }
-        if (adjacency[u].empty()) {
+        if (adjacency[u].size() == 1 && u != 0) { // root 0 may have only one edge
             maxScore = std::max(score, maxScore);
         }
     }
