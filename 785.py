@@ -9,7 +9,7 @@ class Solution(object):
             curr_vert = stack.pop()
 
             for adj_vertex in adjacency_list[curr_vert]:
-                if coloring[adj_vertex] == 0:
+                if coloring[adj_vertex] == 0: # not visited
                     coloring[adj_vertex] = -coloring[curr_vert]
                     stack.append(adj_vertex)
                 elif coloring[adj_vertex] == coloring[curr_vert]:
@@ -27,3 +27,8 @@ class Solution(object):
         n = len(graph)
         coloring = [0] * n # 0 for not visited, (-1, 1) for colors
 
+        for curr_vertex in range(n):
+            if coloring[curr_vertex] == 0: # not visited
+                if not Solution.run_dfs_and_color_vertices(curr_vertex, adjacency_list, coloring):
+                    return False
+        return True
