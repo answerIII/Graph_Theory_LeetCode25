@@ -49,7 +49,7 @@ public:
 
     int mostProfitablePath(std::vector<std::vector<int>>& edges, int bob, std::vector<int>& amount) {
         std::vector<std::vector<int>> adjacency(amount.size());
-        for (int i = 0; i < amount.size(); ++i) {
+        for (int i = 0; i < edges.size(); ++i) {
             adjacency[edges[i][0]].push_back(edges[i][1]);
             adjacency[edges[i][1]].push_back(edges[i][0]);
         }
