@@ -28,3 +28,10 @@ class Solution(object):
         # find all 'bad' vertices
         is_visited = Solution.mark_visited_using_iterative_dfs(k, adjacency_list, n)
 
+        any_external_vertex_calls_into_bad = False
+        for i in range(n):
+            if not is_visited[i]:               # external vertex
+                for child in adjacency_list[i]: # look at all the chlrdren
+                    if is_visited[child]:       # our child is in bad set
+                        any_external_vertex_calls_into_bad = True
+                        break
