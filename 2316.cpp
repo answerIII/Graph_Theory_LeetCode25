@@ -38,7 +38,7 @@ public:
         long long sqrs(0);
         for (auto i : subgraphSizes) {
             total += static_cast<long long>(i);
-            sqrs += static_cast<long long>(i * i);
+            sqrs += static_cast<long long>(i) * static_cast<long long>(i);
         }
         delete[] adj;
         delete[] visited;
