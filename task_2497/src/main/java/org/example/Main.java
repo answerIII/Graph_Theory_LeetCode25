@@ -8,21 +8,22 @@ class Solution {
     int max = Integer.MIN_VALUE;
     Arrays.sort(edges, Comparator.comparingInt(a -> a[0]));
     for(int i = 0; i < edges.length; ++i) {
-      int[] potential = new int[k];
+      int[] potential = new int[edges.length];
       int t = 0;
-      int cur = edges[i][0];
-      if(t<k && vals[edges[i][1]] > 0){
+      int cur = vals[edges[i][0]];
+      if(vals[edges[i][1]] > 0){
         potential[t++] = vals[edges[i][1]];
       }
       while(i+1 != edges.length && edges[i][0] == edges[i+1][0]){
-        if(t < k) break;
+        ++i;
         if(vals[edges[i][1]] > 0){
           potential[t++] = vals[edges[i][1]];
         }
       }
       Arrays.sort(potential, 0, t);
       --t;
-      while(t != -1){
+      int avl = k;
+      while(t != -1 && avl-- != 0){
         cur += potential[t--];
       }
       if(cur > max) max = cur;
