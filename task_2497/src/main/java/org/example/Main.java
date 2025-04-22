@@ -16,10 +16,10 @@ class Solution {
     for(int[] edge : edges){
       map.putIfAbsent(edge[0], new ArrayList<>());
       map.putIfAbsent(edge[1], new ArrayList<>());
-      if(edge[1] > 0){
+      if(vals[edge[1]] > 0){
         map.get(edge[0]).add(edge[1]);
       }
-      if(edge[0] > 0){
+      if(vals[edge[0]] > 0){
         map.get(edge[1]).add(edge[0]);
       }
     }
@@ -39,9 +39,9 @@ public class Main {
 
   public static void main(String[] args) {
     Solution solution = new Solution();
-    int[] vals = {-5};
-    int[][] edges = {};
-    int k = 0;
+    int[] vals = {17, 49, -34, -17, -7, -23, 24};
+    int[][] edges = {{3,1},{5,1},{0,3},{4,6},{1,4},{3,4},{6,3},{2,6},{5,2},{1,6},{6,0},{2,3},{3,5},{2,1},{0,2},{5,0},{0,4}};
+    int k = 6;
     System.out.println(solution.maxStarSum(vals, edges, k));
   }
 
