@@ -13,7 +13,8 @@ public:
         for (int i = 0; i < n; ++i) {
             visited[i] = false;
         }
-        std::vector<int> subgraphSizes;
+        long long total(0);
+        long long sqrs(0);
         for (int i = 0; i < n; ++i) {
             if (!visited[i]) {
                 std::queue<int> q;
@@ -31,14 +32,9 @@ public:
                         }
                     }
                 }
-                subgraphSizes.push_back(size);
+                total += static_cast<long long>(size);
+                sqrs += static_cast<long long>(size) * static_cast<long long>(size);
             }
-        }
-        long long total(0);
-        long long sqrs(0);
-        for (auto i : subgraphSizes) {
-            total += static_cast<long long>(i);
-            sqrs += static_cast<long long>(i) * static_cast<long long>(i);
         }
         delete[] adj;
         delete[] visited;
