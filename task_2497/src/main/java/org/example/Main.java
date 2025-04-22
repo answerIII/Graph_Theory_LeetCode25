@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 
 class Solution {
   public int maxStarSum(int[] vals, int[][] edges, int k) {
@@ -24,11 +26,18 @@ class Solution {
       }
     }
     for(Map.Entry<Integer, ArrayList<Integer>> entry : map.entrySet()){
-      entry.getValue().sort(Comparator.comparingInt(a -> vals[(Integer) a]).reversed());
-      int i = 0;
       int cur = vals[entry.getKey()];
-      while(i < entry.getValue().size() && i != k){
-        cur += vals[entry.getValue().get(i++)];
+      PriorityQueue<Integer> queue = new PriorityQueue<>();
+      for(int index : entry.getValue()){
+        if(queue.size() < k) {
+          queue.add(vals[index]);
+          cur += vals[index];
+        }
+        else if (!queue.isEmpty() && queue.peek() < vals[index]){
+          cur -= queue.poll();
+          queue.add(vals[index]);
+          cur+= vals[index];
+        }
       }
       if (cur > max) max = cur;
     }
