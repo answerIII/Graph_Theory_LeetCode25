@@ -1,32 +1,36 @@
 package org.example;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 class Solution {
   public int maxStarSum(int[] vals, int[][] edges, int k) {
     int max = Integer.MIN_VALUE;
-    Arrays.sort(edges, Comparator.comparingInt(a -> a[0]));
-    for(int i = 0; i < edges.length; ++i) {
-      int[] potential = new int[edges.length];
-      int t = 0;
-      int cur = vals[edges[i][0]];
-      if(vals[edges[i][1]] > 0){
-        potential[t++] = vals[edges[i][1]];
+    for(int val : vals){
+      if(val > max) max = val;
+    }
+    Map<Integer, ArrayList<Integer>> map = new HashMap<>();
+    for(int[] edge : edges){
+      map.putIfAbsent(edge[0], new ArrayList<>());
+      map.putIfAbsent(edge[1], new ArrayList<>());
+      if(edge[1] > 0){
+        map.get(edge[0]).add(edge[1]);
       }
-      while(i+1 != edges.length && edges[i][0] == edges[i+1][0]){
-        ++i;
-        if(vals[edges[i][1]] > 0){
-          potential[t++] = vals[edges[i][1]];
-        }
+      if(edge[0] > 0){
+        map.get(edge[1]).add(edge[0]);
       }
-      Arrays.sort(potential, 0, t);
-      --t;
-      int avl = k;
-      while(t != -1 && avl-- != 0){
-        cur += potential[t--];
+    }
+    for(Map.Entry<Integer, ArrayList<Integer>> entry : map.entrySet()){
+      entry.getValue().sort(Comparator.comparingInt(a -> vals[(Integer) a]).reversed());
+      int i = 0;
+      int cur = vals[entry.getKey()];
+      while(i < entry.getValue().size() && i != k){
+        cur += vals[entry.getValue().get(i++)];
       }
-      if(cur > max) max = cur;
+      if (cur > max) max = cur;
     }
     return max;
   }
@@ -35,9 +39,9 @@ public class Main {
 
   public static void main(String[] args) {
     Solution solution = new Solution();
-    int[] vals = {1,2,3,4,10,-10,-20};
-    int[][] edges = {{0,1},{1,2},{1,3},{3,4},{3,5},{3,6}};
-    int k = 2;
+    int[] vals = {-5};
+    int[][] edges = {};
+    int k = 0;
     System.out.println(solution.maxStarSum(vals, edges, k));
   }
 
