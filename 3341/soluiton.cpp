@@ -17,13 +17,14 @@ public:
         vector<vector<int>> dist(n, vector<int>(m, INF));
         dist[0][0] = 0;
 
-        using T = tuple<int,int,int>;
+        using T = pair<int,pair<int,int>>;
         priority_queue<T, vector<T>, greater<T>> q;
-        q.push({0,0,0});
+        q.push({0,{0,0}});
 
         --n;--m;
         while(!q.empty()){
-            auto [d, x, y] = q.top(); q.pop();
+            auto [d, c] = q.top(); q.pop();
+            auto [x,y] = c;
 
             if(x == n && y == m){
                 return d;
@@ -39,7 +40,7 @@ public:
                 int next_move = max(dist[x][y], moveTime[nx][ny]) + 1;
                 if(dist[nx][ny] > next_move){
                     dist[nx][ny] = next_move;
-                    q.push({next_move, nx, ny});
+                    q.push({next_move, {nx, ny}});
                 }
             }
         }
