@@ -4,20 +4,30 @@
 using namespace std;
 
 class Solution {
+private:
+    static constexpr int mx[4]{0,1,0,-1}, 
+                         my[4]{1,0,-1,0};   
+    const int INF = INT_MAX;
+
+
 public:
     int minTimeToReach(vector<vector<int>>& moveTime) {
-        const int mx[4]{0,1,0,-1}, 
-                  my[4]{1,0,-1,0};   
-
-        vector<vector<int>> dist(moveTime.size(), vector<int>(moveTime[0].size(), INT_MAX));
+        int n = moveTime.size(),
+            m = moveTime[0].size();
+        vector<vector<int>> dist(n, vector<int>(m, INF));
         dist[0][0] = 0;
 
         using T = tuple<int,int,int>;
         priority_queue<T, vector<T>, greater<T>> q;
         q.push({0,0,0});
 
+        --n;--m;
         while(!q.empty()){
             auto [d, x, y] = q.top(); q.pop();
+
+            if(x == n && y == m){
+                return d;
+            }
 
             for(int i = 0; i < 4; ++i){
                 int nx = x + mx[i], ny = y + my[i];
