@@ -11,7 +11,7 @@ public:
             if (p[1] == v && !visited[p[0]]) {
                 dfs(prerequisites, p[0]);
             }
-            else if (p[1] == v && res[p[0]] == NULL) {
+            else if (p[1] == v && res[p[0]] == -1) {
                 current_label = -2;
                 return;
             }
@@ -26,9 +26,9 @@ public:
         visited = new bool[numCourses];
         current_label = numCourses - 1;
         res.resize(numCourses);
-        res[0] = -1;
         for (int i = 0; i < numCourses; ++i) {
             visited[i] = false;
+            res[i] = -1;
         }
         for (int i = 0; i < numCourses; ++i) {
             if (!visited[i]) {
