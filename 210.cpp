@@ -19,7 +19,7 @@ public:
         if (current_label == -2) {
             return;
         }
-        res[current_label] = v;
+        res[v] = current_label;
         --current_label;
     }
     std::vector<int> findOrder(int numCourses, std::vector<std::vector<int>>& prerequisites) {
