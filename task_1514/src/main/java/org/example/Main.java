@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.function.ToIntFunction;
 
@@ -20,16 +21,33 @@ class Solution {
       graph.get(a).add(new double[]{b, prob});
       graph.get(b).add(new double[]{a, prob});
     }
-    Stack<Integer> stack = new Stack<>();
-    int[] probabilities = new int[n];
+    double[] probabilities = new double[n];
     probabilities[start_node] = 1;
-    stack.push(start_node);
-    while(!stack.empty()){
-      int parent = stack.pop();
-      for(double[] friends : graph.get(parent)){
-        probabilities[(int)friends[0]]
+    PriorityQueue<double[]> queue = new PriorityQueue<>(Comparator.comparingDouble(doubles -> doubles[1]));
+    boolean[] alreadyChecked = new boolean[n];
+    queue.add(new double[]{start_node, 1.0});
+
+
+    while(!queue.isEmpty()){
+      double[] parent = queue.poll();
+      int parentIndex = (int) parent[0];
+      alreadyChecked[parentIndex] = true;
+      if(parentIndex == end_node) {
+        return parent[1];
+      }
+      for(double[] friend : graph.get(parentIndex)){
+        int friendIndex = (int)friend[0];
+        if(alreadyChecked[friendIndex]){
+          continue;
+        }
+        double way = probabilities[parentIndex] * parent[1];
+        if(way > probabilities[friendIndex]){
+          probabilities[friendIndex] = way;
+          friend[1] = way;
+        }
       }
     }
+    return -1;
   }
 }
 
