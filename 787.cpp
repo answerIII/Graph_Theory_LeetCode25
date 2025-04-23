@@ -3,7 +3,9 @@ public:
     // Ford-Bellman algo
     int findCheapestPrice(int n, std::vector<std::vector<int>>& flights, int src, int dst, int k) {
         std::vector<std::vector<int>> d(k + 2, std::vector<int>(n, INT_MAX));
-        d[0][src] = 0;
+        for (int i = 0; i < d.size(); ++i) {
+            d[i][src] = 0;
+        }
         int u;
         int v;
         for (int i = 1; i <= k + 1; ++i) {
