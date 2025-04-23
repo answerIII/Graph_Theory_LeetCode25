@@ -11,10 +11,10 @@ import java.util.function.ToIntFunction;
 class Solution {
   public double maxProbability(int n, int[][] edges, double[] succProb, int start_node, int end_node) {
     List<List<double[]>> graph = new ArrayList<>();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; ++i) {
       graph.add(new ArrayList<>());
     }
-    for (int i = 0; i < edges.length; i++) {
+    for (int i = 0; i < edges.length; ++i) {
       int a = edges[i][0];
       int b = edges[i][1];
       double prob = succProb[i];
@@ -23,7 +23,7 @@ class Solution {
     }
     double[] probabilities = new double[n];
     probabilities[start_node] = 1;
-    PriorityQueue<double[]> queue = new PriorityQueue<>(Comparator.comparingDouble(doubles -> doubles[1]));
+    PriorityQueue<double[]> queue = new PriorityQueue<>((a,b) -> Double.compare(b[1],a[1]));
     boolean[] alreadyChecked = new boolean[n];
     queue.add(new double[]{start_node, 1.0});
 
@@ -40,10 +40,11 @@ class Solution {
         if(alreadyChecked[friendIndex]){
           continue;
         }
-        double way = probabilities[parentIndex] * parent[1];
+        double way = friend[1] * parent[1];
         if(way > probabilities[friendIndex]){
           probabilities[friendIndex] = way;
           friend[1] = way;
+          queue.add(new double[]{friendIndex, way});
         }
       }
     }
@@ -54,7 +55,15 @@ class Solution {
 public class Main {
 
   public static void main(String[] args) {
-    System.out.println("Hello world!");
+    Solution s = new Solution();
+    int n = 3;
+    int[][] edges = {{0, 1}, {1, 2}, {0, 2}};
+    double[] succProb = {0.5, 0.5, 0.2};
+    int start = 0;
+    int end = 2;
+
+    double result = s.maxProbability(n, edges, succProb, start, end);
+    System.out.println("Maximum probability: " + result);
   }
 
 }
