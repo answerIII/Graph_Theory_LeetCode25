@@ -4,6 +4,7 @@ class Solution {
 public:
     int current_label;
     bool* visited;
+    bool* labeled;
     std::vector<int> res;
     void dfs(std::vector<std::vector<int>>& prerequisites, int v) {
         visited[v] = true;
@@ -11,7 +12,7 @@ public:
             if (p[1] == v && !visited[p[0]]) {
                 dfs(prerequisites, p[0]);
             }
-            else if (p[1] == v && res[p[0]] == -1) {
+            else if (p[1] == v && labeled[p[0]] == false) {
                 current_label = -2;
                 return;
             }
@@ -19,15 +20,18 @@ public:
         if (current_label == -2) {
             return;
         }
-        res[v] = current_label;
+        res[current_label] = v;
+        labeled[v] = true;
         --current_label;
     }
     std::vector<int> findOrder(int numCourses, std::vector<std::vector<int>>& prerequisites) {
         visited = new bool[numCourses];
+        labeled = new bool[numCourses];
         current_label = numCourses - 1;
         res.resize(numCourses);
         for (int i = 0; i < numCourses; ++i) {
             visited[i] = false;
+            labeled[i] = false;
             res[i] = -1;
         }
         for (int i = 0; i < numCourses; ++i) {
@@ -39,6 +43,7 @@ public:
             }
         }
         delete[] visited;
+        delete[] labeled;
         if (current_label == -2) {
             return {};
         }
