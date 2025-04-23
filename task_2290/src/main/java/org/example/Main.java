@@ -5,10 +5,13 @@ import java.util.Arrays;
 import java.util.Deque;
 
 class Solution {
-  public int minimumObstacles(int[][] grid) {
+  public int minimumObstacles(final int[][] grid) {
     int n = grid.length;
     int m = grid[0].length;
-    int[][] cellsList = grid.clone();
+    int[][] cellsList = new int[n][];
+    for (int i = 0; i < grid.length; ++i) {
+      cellsList[i] = grid[i].clone();
+    }
     int[][] directions = new int[][]{{1,0},{-1,0},{0,1},{0,-1}};
     for (int[] cells : cellsList) {
       Arrays.fill(cells, Integer.MAX_VALUE);
@@ -28,12 +31,19 @@ class Solution {
         i+=direction[0];
         j+=direction[1];
         if(i < n && j < m && i > -1 && j > -1){
-          int way = cellsList[i-direction[0]][j-direction[1]] + grid[i][j];
+          int way = cellsList[cell[0]][cell[1]] + grid[i][j];
           if(way < cellsList[i][j]){
             cellsList[i][j] = way;
-            deque.addLast(new int[]{i,j});
+            if(grid[i][j]==1) {
+              deque.addLast(new int[]{i, j});
+            }
+            else{
+              deque.addFirst(new int[]{i, j});
+            }
           }
         }
+        i = cell[0];
+        j = cell[1];
       }
     }
     throw new RuntimeException("program error");
@@ -43,7 +53,13 @@ class Solution {
 public class Main {
 
   public static void main(String[] args) {
-    System.out.println("Hello world!");
+    Solution s = new Solution();
+    int[][] grid = {
+            {0, 1, 0, 0, 0},
+            {0, 1, 0, 1, 0},
+            {0, 0, 0, 1, 0}
+    };
+    System.out.println(s.minimumObstacles(grid));
   }
 
 }
