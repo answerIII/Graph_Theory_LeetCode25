@@ -5,7 +5,7 @@ public:
     // где r[u] - максимальная длина пути, который начинается в r[u], остальные слагаемые - диаметры деревьев t1 и t2)
     // т.е d(t) = max(r[a] + r[b] + 1, d(t1), d(t2))
     // чтобы найти min[d(t)], нужно найти вершины a и b, для которых 
-    // r[a] и r[b] минимально. Чтобы это сделать, нужно для каждой вершины u найти r[u], попутно посчитать диаметры, далее очевидно.
+    // r[a] и r[b] минимально. Эти вершины лежат на центре диаметра.
 
     void DFS(int u, int prev, int depth, const std::vector<std::vector<int>>& adjacency, int& maxDepth, int& maxDepthV) {
         if (depth > maxDepth) {
@@ -44,6 +44,7 @@ public:
         fillAdj(edges2, adjacency2);
         int d1 = diameter(adjacency1) + 1; // +1, потому что d1 - количество вершин в диаметре, а не ребер
         int d2 = diameter(adjacency2) + 1;
-        return std::max(d1 / 2 + d2 / 2 + 1, std::max(d1, d2));
+        // берем d1 - 1, потому что нас интересует количество ребер (диаметр по определению - количество ребер)
+        return std::max(d1 / 2 + d2 / 2 + 1, std::max(d1 - 1, d2 - 1)); 
     }
 };
