@@ -3,6 +3,7 @@
 class Solution {
 public:
     int current_label;
+    int now;
     bool* visited;
     bool* labeled;
     std::vector<int> res;
@@ -12,7 +13,7 @@ public:
             if (p[1] == v && !visited[p[0]]) {
                 dfs(prerequisites, p[0]);
             }
-            else if (p[1] == v && labeled[p[0]] == false) {
+            else if (p[1] == v && p[0] == now) {
                 current_label = -2;
                 return;
             }
@@ -36,6 +37,7 @@ public:
         }
         for (int i = 0; i < numCourses; ++i) {
             if (!visited[i]) {
+                now = i;
                 dfs(prerequisites, i);
                 if (current_label == -2) {
                     break;
