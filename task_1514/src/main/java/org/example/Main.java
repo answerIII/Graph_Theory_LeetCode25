@@ -21,12 +21,13 @@ class Solution {
       graph.get(a).add(new double[]{b, prob});
       graph.get(b).add(new double[]{a, prob});
     }
+
     double[] probabilities = new double[n];
     Arrays.fill(probabilities, Double.POSITIVE_INFINITY);
-    probabilities[start_node] = 0;
+    probabilities[start_node] = 0.0;
     PriorityQueue<double[]> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> a[1]));
     boolean[] alreadyChecked = new boolean[n];
-    queue.add(new double[]{start_node, 0});
+    queue.add(new double[]{start_node, 0.0});
 
 
     while(!queue.isEmpty()){
@@ -44,12 +45,11 @@ class Solution {
         double way = friend[1] + parent[1];
         if(way < probabilities[friendIndex]){
           probabilities[friendIndex] = way;
-          friend[1] = way;
           queue.add(new double[]{friendIndex, way});
         }
       }
     }
-    return -1;
+    return 0;
   }
 }
 
