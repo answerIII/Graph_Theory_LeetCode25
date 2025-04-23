@@ -14,23 +14,20 @@ class Solution(object):
         for a, b in edges:
             deg[a] += 1
             deg[b] += 1
-            smaller_vertex = min(a, b)
-            bigger_vertex = max(a, b)
-            edge = (smaller_vertex, bigger_vertex) # so (1,2) and (2,1) are the same
-            shared[edge] += 1
+            if a > b: # (1, 2) and (2, 1) are the same
+                a, b = b, a
+            shared[(a, b)] += 1
 
-        vertices_by_deg = sorted(range(1, n + 1), key=lambda x: deg[x])
-
+        sorted_deg = sorted(deg[1:]) # nodes are 1-indexed
         answers = []
+
         for query in queries:
             count = 0
             L = 0
             R = n - 1
 
             while L < R:
-                left_vertex = vertices_by_deg[L]
-                right_vertex = vertices_by_deg[R]
-                if deg[left_vertex] + deg[right_vertex] > query:
+                if sorted_deg[L] + sorted_deg[R] > query:
                     count += (R - L)
                     R -= 1
                 else:
