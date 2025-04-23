@@ -1,0 +1,24 @@
+# JetBrains IDE
+.idea/
+*.iml
+modules.xml
+
+# Build/output directories
+target/      # Maven
+build/       # Gradle, Kotlin
+out/         # IntelliJ compiled classes
+bin/         # Eclipse
+
+# Dependency directories
+node_modules/
+.venv/
+venv/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# OS-specific files
+.DS_Store    # macOS
+Thumbs.db    # Windows
