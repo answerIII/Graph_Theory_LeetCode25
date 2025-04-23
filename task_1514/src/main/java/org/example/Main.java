@@ -17,15 +17,16 @@ class Solution {
     for (int i = 0; i < edges.length; ++i) {
       int a = edges[i][0];
       int b = edges[i][1];
-      double prob = succProb[i];
+      double prob = -Math.log(succProb[i]);
       graph.get(a).add(new double[]{b, prob});
       graph.get(b).add(new double[]{a, prob});
     }
     double[] probabilities = new double[n];
-    probabilities[start_node] = 1;
-    PriorityQueue<double[]> queue = new PriorityQueue<>((a,b) -> Double.compare(b[1],a[1]));
+    Arrays.fill(probabilities, Double.POSITIVE_INFINITY);
+    probabilities[start_node] = 0;
+    PriorityQueue<double[]> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> a[1]));
     boolean[] alreadyChecked = new boolean[n];
-    queue.add(new double[]{start_node, 1.0});
+    queue.add(new double[]{start_node, 0});
 
 
     while(!queue.isEmpty()){
@@ -33,15 +34,15 @@ class Solution {
       int parentIndex = (int) parent[0];
       alreadyChecked[parentIndex] = true;
       if(parentIndex == end_node) {
-        return parent[1];
+        return Math.exp(-parent[1]);
       }
       for(double[] friend : graph.get(parentIndex)){
         int friendIndex = (int)friend[0];
         if(alreadyChecked[friendIndex]){
           continue;
         }
-        double way = friend[1] * parent[1];
-        if(way > probabilities[friendIndex]){
+        double way = friend[1] + parent[1];
+        if(way < probabilities[friendIndex]){
           probabilities[friendIndex] = way;
           friend[1] = way;
           queue.add(new double[]{friendIndex, way});
