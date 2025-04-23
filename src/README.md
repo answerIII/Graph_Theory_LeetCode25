@@ -16,7 +16,7 @@ Solutions for 10 LeetCode graph theory problems (7 Medium, 3 Hard) as part of th
 - 1466: Reorder Routes to Make All Paths Lead to the City Zero
 - 2977: Minimum Cost to Convert String II
 - 3123: Find Edges in Shortest Paths
-- ...
+- 1591: Strange Printer II
 
 ## Setup
 1. Install dependencies: `npm install`
