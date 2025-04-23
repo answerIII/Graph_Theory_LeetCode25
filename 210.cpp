@@ -11,6 +11,13 @@ public:
             if (p[1] == v && !visited[p[0]]) {
                 dfs(prerequisites, p[0]);
             }
+            else if (p[1] == v && res[p[0]] == NULL) {
+                current_label = -2;
+                return;
+            }
+        }
+        if (current_label == -2) {
+            return;
         }
         res[current_label] = v;
         --current_label;
@@ -26,10 +33,13 @@ public:
         for (int i = 0; i < numCourses; ++i) {
             if (!visited[i]) {
                 dfs(prerequisites, i);
+                if (current_label == -2) {
+                    break;
+                }
             }
         }
         delete[] visited;
-        if (res[0] == -1) {
+        if (current_label == -2) {
             return {};
         }
         return res;
