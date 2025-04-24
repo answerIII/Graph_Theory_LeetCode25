@@ -1,38 +1,32 @@
 class Solution {
 public:
-    int countComponents(const int n, const vector<vector<bool>>& g) {
-        vector visited(n, false);
-        int res = 0;
+    bool possibleBipartition(const int n, const vector<vector<int>>& dislikes) {
+        vector<vector<int>> g(n);
+        for (const auto& u : dislikes) {
+            g[u[0] - 1].push_back(u[1] - 1);
+            g[u[1] - 1].push_back(u[0] - 1);
+        }
+        vector color(n, -1);
         for (int i = 0; i < n; ++i) {
-            if (!visited[i]) {
-                stack<int> s;
-                s.push(i);
-                visited[i] = true;
-                while (!s.empty()) {
-                    const int v = s.top();
-                    s.pop();
-                    for (int j = 0; j < n; ++j) {
-                        if (g[v][j] && !visited[j]) {
-                            visited[j] = true;
-                            s.push(j);
+            if (color[i] == -1) {
+                queue<int> q;
+                q.push(i);
+                color[i] = 0;
+                while (!q.empty()) {
+                    int v = q.front();
+                    q.pop();
+                    for (int u : g[v]) {
+                        if (color[u] == -1) {
+                            color[u] = 1 - color[v];
+                            q.push(u);
+                        }
+                        else if (color[u] == color[v]) {
+                            return false;
                         }
                     }
                 }
-                res++;
             }
         }
-        return res;
-    }
-
-    bool possibleBipartition(const int n, const vector<vector<int>>& dislikes) {
-        vector g(n, vector(n, true));
-        for (auto p : dislikes) {
-            g[p[0] - 1][p[1] - 1] = false;
-            g[p[1] - 1][p[0] - 1] = false;
-        }
-        if (countComponents(n, g) < 3) {
-            return true;
-        }
-        return false;
+        return true;
     }
 };
