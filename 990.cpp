@@ -30,6 +30,7 @@ public:
         }
         for (const auto& s : equations) {
             g[s[0] - 'a'].emplace_back(s[3] - 'a', s[1] == '=');
+            g[s[3] - 'a'].emplace_back(s[0] - 'a', s[1] == '=');
             vars[s[0] - 'a'] = true;
             vars[s[3] - 'a'] = true;
         }
