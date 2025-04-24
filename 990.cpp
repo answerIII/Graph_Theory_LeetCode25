@@ -20,9 +20,14 @@ public:
         } else {
             values[v] = ++max_value;
         }
-        return std::ranges::all_of(g[v], [v, this](const auto& u) {
-            return u == 0 || dfs(u, v);
-        });
+        for (int i = 0; i < ALPH_SIZE; ++i) {
+            if (g[i][v] != 0) {
+                if (!dfs(i, v)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     bool equationsPossible(vector<string>& equations) {
         for (auto& x : values) {
