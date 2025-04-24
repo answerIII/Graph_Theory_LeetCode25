@@ -6,99 +6,56 @@
  * @param {number[]} rates2
  * @return {number}
  */
-var maxAmount = function(initialCurrency, pairs1, rates1, pairs2, rates2) {
-    
-    // 1. Создаём графы для обоих дней
-    const graph1 = {};
-    const graph2 = {};
-    const currencies = new Set([initialCurrency]);
-    
-    // Заполняем граф для первого дня
-    for (let i = 0; i < pairs1.length; i++) {
-        
-        const [start, target] = pairs1[i];
-        const rate = rates1[i];
-        
-        if (!graph1[start]) graph1[start] = [];
-        if (!graph1[target]) graph1[target] = [];
-        
-        graph1[start].push([target, rate]);
-        graph1[target].push([start, 1 / rate]);
-        
-        currencies.add(start);
-        currencies.add(target);
-    }
-    
-    // Заполняем граф для второго дня
-    for (let i = 0; i < pairs2.length; i++) {
-        
-        const [start, target] = pairs2[i];
-        const rate = rates2[i];
-        
-        if (!graph2[start]) graph2[start] = [];
-        if (!graph2[target]) graph2[target] = [];
-        
-        graph2[start].push([target, rate]);
-        graph2[target].push([start, 1 / rate]);
-        
-        currencies.add(start);
-        currencies.add(target);
-    }
-    
-    // 2. Функция для поиска максимального множителя с помощью Беллмана-Форда
-    function findMaxMultiplier(graph, start, end) {
-        
-        const amounts = {};
-        
-        for (const currency of currencies) {
-            amounts[currency] = 0; // Изначально 0 для всех валют
-        }
-        amounts[start] = 1; // Начинаем с 1 единицы
-        
-        // Беллман-Форд с умножением
-        for (let i = 0; i < currencies.size - 1; i++) {
-            for (const from of currencies) {
+var maxAmount = function (initialCurrency, pairs1, rates1, pairs2, rates2) {
+  // Функция для выполнения Беллмана-Форда
+    const bellmanFord = (amounts, pairs, rates) => {
+        const n = pairs.length;
+
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
                 
-                if (!graph[from]) continue;
+                const start = pairs[j][0];
+                const target = pairs[j][1];
+                const rate = rates[j];
                 
-                for (const [to, rate] of graph[from]) {
-                    
-                    const newAmount = amounts[from] * rate;
-                    
-                    if (newAmount > amounts[to]) {
-                        amounts[to] = newAmount;
-                    }
+                const startVal = amounts.get(start) || 0;
+                const targetVal = amounts.get(target) || 0;
+                
+                if (startVal > 0) {
+                    amounts.set(target, Math.max(targetVal, startVal * rate));
                 }
-            }
+
+                if (targetVal > 0) {
+                    amounts.set(start, Math.max(startVal, targetVal / rate));
+                }
         }
-        
-        return amounts[end];
     }
+  };
+
+  // Инициализируем суммы
+  const amounts = new Map();
+  amounts.set(initialCurrency, 1.0);
+  bellmanFord(amounts, pairs1, rates1);
+  
+  const amountsDay1 = new Map(amounts);
+  amounts.clear();
+  
+  amounts.set(initialCurrency, 1.0);
+  const pairs2Reverse = pairs2.map(([start, target]) => [target, start]);
+  bellmanFord(amounts, pairs2Reverse, rates2);
+
+  let maxAmount = 1.0;
+  
+  for (const [currency, amount1] of amountsDay1) {
     
-    // 3. Первый день: находим максимальное количество каждой валюты
-    const amountsAfterDay1 = {};
+    const amount2 = amounts.get(currency) || 0;
     
-    for (const currency of currencies) {
-        amountsAfterDay1[currency] = findMaxMultiplier(graph1, initialCurrency, currency);
+    if (amount1 > 0 && amount2 > 0) {
+        maxAmount = Math.max(maxAmount, amount1 * amount2);
     }
-    
-    // 4. Второй день: максимизируем количество initialCurrency
-    let maxFinalAmount = 0;
-    
-    for (const intermediate of currencies) {
-        
-        const amountAfterDay1 = amountsAfterDay1[intermediate];
-        
-        if (amountAfterDay1 === 0) continue; // Пропускаем недостижимые валюты
-        
-        const multiplierDay2 = findMaxMultiplier(graph2, intermediate, initialCurrency);
-        const finalAmount = amountAfterDay1 * multiplierDay2;
-        
-        maxFinalAmount = Math.max(maxFinalAmount, finalAmount);
-    }
-    
-    // 5. Учитываем случай, когда не делаем конвертаций
-    return Math.max(maxFinalAmount, 1.0);
+  }
+
+  return Math.round(maxAmount * 100000) / 100000;
 };
 
-module.exports = maxAmount;
+module.export = maxAmount;

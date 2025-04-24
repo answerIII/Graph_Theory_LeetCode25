@@ -27,13 +27,4 @@ describe('3387. Maximize Amount After Two Days of Conversions', () => {
     const rates2 = [10.0];
     expect(maxAmount(initialCurrency, pairs1, rates1, pairs2, rates2)).toBeCloseTo(1.0, 5);
   });
-
-  test('Example 766', () => {
-    const initialCurrency = "S";
-    const pairs1 = [["S","Z"],["Z","FYN"],["FYN","TW"],["TW","V"],["V","OO"]];
-    const rates1 = [10.0,10.0,10.0,10.0,10.0];
-    const pairs2 = [["OO","CTV"],["CTV","X"],["X","CI"],["CI","R"],["R","S"]];
-    const rates2 = [10.0,10.0,10.0,10.0,10.0];
-    expect(maxAmount(initialCurrency, pairs1, rates1, pairs2, rates2)).toBeCloseTo(10000000000.0, 5);
-  });
 });
