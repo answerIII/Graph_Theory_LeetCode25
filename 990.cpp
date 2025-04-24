@@ -5,23 +5,23 @@ public:
 
     int values[ALPH_SIZE]{};
     bool vars[ALPH_SIZE]{ false };
-    vector<pair<int, bool>> g[ALPH_SIZE];
+    int g[ALPH_SIZE][ALPH_SIZE]{}; // 0 - нет ребра, -1 - не равны, 1 - равны
     int max_value = -1;
 
-    bool dfs(const int v, const int prev, bool equal) {
+    bool dfs(const int v, const int prev) {
         if (values[v] != -1) {
-            return !(equal && values[v] != values[prev] || !equal && values[v] == values[prev]);
+            return !(g[v][prev] == 1 && values[v] != values[prev] || g[v][prev] == -1 && values[v] == values[prev]);
         }
         if (v == prev) { // значит только начали обход
             max_value = -1;
         }
-        if (equal) {
+        if (g[v][prev] == 1) {
             values[v] = values[prev];
         } else {
             values[v] = ++max_value;
         }
         return std::ranges::all_of(g[v], [v, this](const auto& u) {
-            return dfs(u.first, v, u.second);
+            return u == 0 || dfs(u, v);
         });
     }
     bool equationsPossible(vector<string>& equations) {
@@ -29,19 +29,26 @@ public:
             x = -1;
         }
         for (const auto& s : equations) {
+            int eq = s[1] == '=' ? 1 : -1;
             if (s[0] == s[3]) {
-                if (s[1] == '=') {
+                if (eq == 1) { // a == a
                     continue;
                 }
+                return false; // a != a
+            }
+            if (g[s[0] - 'a'][s[3] - 'a'] == eq) { // уже добавляли это условие
+                continue;
+            }
+            if (g[s[0] - 'a'][s[3] - 'a'] == -eq) { // условие противоречит уже добавленному
                 return false;
             }
-            g[s[0] - 'a'].emplace_back(s[3] - 'a', s[1] == '=');
-            g[s[3] - 'a'].emplace_back(s[0] - 'a', s[1] == '=');
+            g[s[0] - 'a'][s[3] - 'a'] = eq;
+            g[s[3] - 'a'][s[0] - 'a'] = eq;
             vars[s[0] - 'a'] = true;
             vars[s[3] - 'a'] = true;
         }
         for (int v = 0; v < ALPH_SIZE; ++v) {
-            if (vars[0] && values[v] == -1 && !dfs(v, v, false)) {
+            if (vars[0] && values[v] == -1 && !dfs(v, v)) {
                 return false;
             }
         }
