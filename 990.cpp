@@ -29,6 +29,12 @@ public:
             x = -1;
         }
         for (const auto& s : equations) {
+            if (s[0] == s[3]) {
+                if (s[1] == '=') {
+                    continue;
+                }
+                return false;
+            }
             g[s[0] - 'a'].emplace_back(s[3] - 'a', s[1] == '=');
             g[s[3] - 'a'].emplace_back(s[0] - 'a', s[1] == '=');
             vars[s[0] - 'a'] = true;
