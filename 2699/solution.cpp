@@ -4,7 +4,7 @@
 using namespace std;
 
 class Solution {
-    const int INF = INT_MAX;
+    int INF;
     using ll = long long;
     vector<vector<int>> *_edges;
     vector<vector<ll>> _graph;
@@ -48,6 +48,7 @@ class Solution {
 
 public:
     vector<vector<int>> modifiedGraphEdges(int n, vector<vector<int>>& edges, int source, int destination, int target) {
+        INF = target+1;
         _edges = &edges;
         _graph.resize(n);
         fill(_graph.begin(), _graph.end(), vector<ll>(n));
