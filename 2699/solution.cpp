@@ -1,4 +1,5 @@
 #include<bits/stdc++.h>
+#include <queue>
 
 using namespace std;
 
@@ -12,9 +13,9 @@ class Solution {
     int _n;
     int _src;
 
-    void dp(){
+    void dijkstra(){
         for(auto &el : _graph) {
-            fill(el.begin(), el.end(), INF);
+            fill(el.begin(), el.end(), -1);
         }
         fill(_dist.begin(), _dist.end(), INF);
         fill(_visited.begin(), _visited.end(), 0);
@@ -27,18 +28,20 @@ class Solution {
             _graph[edge[0]][edge[1]] = _graph[edge[1]][edge[0]] = edge[2];
         }
 
-        for (int i = 0; i < _n; ++i) {
-            int last = -1;
-            for (int j = 0; j < _n; ++j) {
-                if (!_visited[j] && (last == -1 || _dist[j] < _dist[last])) {
-                    last = j;
-                    break;
-                }
-            }
+        priority_queue<pair<int, int>, vector<pair<int,int>>, greater<>> q;
+        q.push({0, _src});
 
-            _visited[last] = true;
-            for (int j = 0; j < _n; ++j) {
-                _dist[j] = min(_dist[j], _dist[last] + _graph[last][j]);
+        while(!q.empty()){
+            auto [d,u] = q.top(); q.pop();
+
+            for(int v = 0; v < _n; ++v){
+                if(_graph[u][v] == -1){
+                    continue;
+                }
+                if(_dist[v] > _dist[u] + _graph[u][v]){
+                    _dist[v] = _dist[u] + _graph[u][v];
+                    q.push({_dist[v], v});
+                }
             }
         }
     }
@@ -53,7 +56,7 @@ public:
         _n = n;
         _src = source;
         
-        dp();
+        dijkstra();
 
         if(_dist[destination] < target){
             return {};
@@ -70,7 +73,7 @@ public:
             }
 
             edge[2] = 1;
-            dp();
+            dijkstra();
             if(_dist[destination] <= target){
                 flag = true;
                 edge[2] += target - _dist[destination];
@@ -87,9 +90,9 @@ public:
 int main(){
     Solution sol;
 
-    vector<vector<int>> v{{4,1,-1},{2,0,-1},{0,3,-1},{4,3,-1}};
+    vector<vector<int>> v{{1,3,10},{4,2,-1},{0,3,7},{4,0,7},{3,2,-1},{1,4,5},{2,0,8},{1,0,3},{1,2,5}};
 
-    for(auto x : sol.modifiedGraphEdges(5, v, 0, 1, 5)){
+    for(auto x : sol.modifiedGraphEdges(5, v, 3, 4, 11)){
         cout << x[0] << " " << x[1] << " " << x[2] << endl;
     }
 
