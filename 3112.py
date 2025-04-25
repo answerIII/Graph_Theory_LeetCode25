@@ -22,7 +22,8 @@ class Solution:
                 continue
 
             visited[current_node] = True
-
+            if current_time > disappear[current_node]:
+                continue
             for neighbor, edge_length in graph[current_node]:
                 if visited[neighbor] == True:
                     continue
