@@ -3,60 +3,54 @@ public:
 
     static constexpr int ALPH_SIZE = 26;
 
-    int values[ALPH_SIZE]{};
-    bool vars[ALPH_SIZE]{ false };
-    int g[ALPH_SIZE][ALPH_SIZE]{}; // 0 - нет ребра, -1 - не равны, 1 - равны
-    int max_value = -1;
+    vector<int> g[ALPH_SIZE]{};
+    bool visited[ALPH_SIZE]{};
 
-    bool dfs(const int v, const int prev) {
-        if (values[v] != -1) {
-            return !(g[v][prev] == 1 && values[v] != values[prev] || g[v][prev] == -1 && values[v] == values[prev]);
+    void dfs(const int v, vector<int>& component) {
+        if (visited[v]) {
+            return;
         }
-        if (v == prev) { // значит только начали обход
-            max_value = -1;
+        visited[v] = true;
+        component.push_back(v);
+        for (const auto& u : g[v]) {
+            dfs(u, component);
         }
-        if (g[v][prev] == 1) {
-            values[v] = values[prev];
-        } else {
-            values[v] = ++max_value;
-        }
-        for (int i = 0; i < ALPH_SIZE; ++i) {
-            if (g[i][v] != 0) {
-                if (!dfs(i, v)) {
+    }
+    bool equationsPossible(const vector<string>& equations) {
+        int v_components[ALPH_SIZE]{};
+        vector<int> eq_with_not;
+        for (int i = 0; i < equations.size(); ++i) {
+            if (equations[i][1] == '!') {
+                if (equations[i][0] == equations[i][3]) {
                     return false;
                 }
+                eq_with_not.push_back(i);
+                g[equations[i][0] - 'a'].push_back(equations[i][0] - 'a');
+                g[equations[i][3] - 'a'].push_back(equations[i][3] - 'a');
+            }
+            else {
+                g[equations[i][0] - 'a'].push_back(equations[i][3] - 'a');
+                g[equations[i][3] - 'a'].push_back(equations[i][0] - 'a');
             }
         }
-        return true;
-    }
-    bool equationsPossible(vector<string>& equations) {
-        for (auto& x : values) {
-            x = -1;
-        }
-        for (const auto& s : equations) {
-            int eq = s[1] == '=' ? 1 : -1;
-            if (s[0] == s[3]) {
-                if (eq == 1) { // a == a
-                    continue;
-                }
-                return false; // a != a
-            }
-            if (g[s[0] - 'a'][s[3] - 'a'] == eq) { // уже добавляли это условие
+        vector<int> component;
+        int count_of_component = 1;
+        component.reserve(ALPH_SIZE);
+        for (int i = 0; i < ALPH_SIZE; ++i) {
+            if (g[i].empty()) {
                 continue;
             }
-            if (g[s[0] - 'a'][s[3] - 'a'] == -eq) { // условие противоречит уже добавленному
-                return false;
+            dfs(i, component);
+            for (const auto& v : component) {
+                v_components[v] = count_of_component;
             }
-            g[s[0] - 'a'][s[3] - 'a'] = eq;
-            g[s[3] - 'a'][s[0] - 'a'] = eq;
-            vars[s[0] - 'a'] = true;
-            vars[s[3] - 'a'] = true;
-        }
-        for (int v = 0; v < ALPH_SIZE; ++v) {
-            if (vars[0] && values[v] == -1 && !dfs(v, v)) {
-                return false;
+            if (!component.empty()) {
+                ++count_of_component;
             }
+            component.resize(0);
         }
-        return true;
+        return ranges::all_of(eq_with_not, [&v_components, &equations](auto i) {
+            return v_components[equations[i][0] - 'a'] != v_components[equations[i][3] - 'a'];
+        });
     }
 };
