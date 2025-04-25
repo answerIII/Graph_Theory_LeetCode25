@@ -13,20 +13,9 @@ class Solution {
     int _src;
 
     void dijkstra(){
-        for(auto &el : _graph) {
-            el.clear();
-        }
         fill(_dist.begin(), _dist.end(), INF);
         fill(_visited.begin(), _visited.end(), 0);
         _dist[_src] = 0;
-        
-        for(auto &edge : (*_edges)){
-            if(edge[2] == -1){
-                continue;
-            }
-            _graph[edge[0]].push_back({edge[2], edge[1]});
-            _graph[edge[1]].push_back({edge[2], edge[0]});
-        }
 
         priority_queue<pair<int, int>, vector<pair<int,int>>, greater<>> q;
         q.push({0, _src});
@@ -34,7 +23,10 @@ class Solution {
         while(!q.empty()){
             auto [d,u] = q.top(); q.pop();
 
-            for(auto [w, v] : _graph[u]){
+            for(auto &[w, v] : _graph[u]){
+                if(w == -1){
+                    continue;
+                }
                 if(_dist[v] > _dist[u] + w){
                     _dist[v] = _dist[u] + w;
                     q.push({_dist[v], v});
@@ -46,8 +38,15 @@ class Solution {
 public:
     vector<vector<int>> modifiedGraphEdges(int n, vector<vector<int>>& edges, int source, int destination, int target) {
         INF = target+1;
-        _edges = &edges;
         _graph.resize(n);
+        for(auto edge : edges){
+            if(edge[2] == -1){
+                continue;
+            }
+
+            _graph[edge[0]].push_back({edge[2], edge[1]});
+            _graph[edge[1]].push_back({edge[2], edge[0]});
+        }
         _dist.resize(n);
         _visited.resize(n);
         _n = n;
@@ -70,6 +69,8 @@ public:
             }
 
             edge[2] = 1;
+            _graph[edge[1]].push_back({1, edge[0]});
+            _graph[edge[0]].push_back({1, edge[1]});
             dijkstra();
             if(_dist[destination] <= target){
                 flag = true;
