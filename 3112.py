@@ -34,7 +34,10 @@ class Solution:
 
         result = []
         for time in min_times:
-            result.append(time)
+            if time == math.inf:
+                result.append(-1)
+            else:
+                result.append(time)
 
         return result
 
