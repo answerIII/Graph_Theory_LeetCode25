@@ -1,5 +1,4 @@
 #include<bits/stdc++.h>
-#include <queue>
 
 using namespace std;
 
@@ -7,7 +6,7 @@ class Solution {
     int INF;
     using ll = long long;
     vector<vector<int>> *_edges;
-    vector<vector<ll>> _graph;
+    vector<vector<pair<int,int>>> _graph;
     vector<ll> _dist;
     vector<bool> _visited;
     int _n;
@@ -15,7 +14,7 @@ class Solution {
 
     void dijkstra(){
         for(auto &el : _graph) {
-            fill(el.begin(), el.end(), -1);
+            el.clear();
         }
         fill(_dist.begin(), _dist.end(), INF);
         fill(_visited.begin(), _visited.end(), 0);
@@ -25,7 +24,8 @@ class Solution {
             if(edge[2] == -1){
                 continue;
             }
-            _graph[edge[0]][edge[1]] = _graph[edge[1]][edge[0]] = edge[2];
+            _graph[edge[0]].push_back({edge[2], edge[1]});
+            _graph[edge[1]].push_back({edge[2], edge[0]});
         }
 
         priority_queue<pair<int, int>, vector<pair<int,int>>, greater<>> q;
@@ -34,12 +34,9 @@ class Solution {
         while(!q.empty()){
             auto [d,u] = q.top(); q.pop();
 
-            for(int v = 0; v < _n; ++v){
-                if(_graph[u][v] == -1){
-                    continue;
-                }
-                if(_dist[v] > _dist[u] + _graph[u][v]){
-                    _dist[v] = _dist[u] + _graph[u][v];
+            for(auto [w, v] : _graph[u]){
+                if(_dist[v] > _dist[u] + w){
+                    _dist[v] = _dist[u] + w;
                     q.push({_dist[v], v});
                 }
             }
@@ -51,7 +48,6 @@ public:
         INF = target+1;
         _edges = &edges;
         _graph.resize(n);
-        fill(_graph.begin(), _graph.end(), vector<ll>(n));
         _dist.resize(n);
         _visited.resize(n);
         _n = n;
