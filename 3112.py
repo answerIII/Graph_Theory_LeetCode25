@@ -29,7 +29,7 @@ class Solution:
                     continue
 
                 new_time = current_time + edge_length
-                if new_time <= disappear[neighbor] and new_time < min_times[neighbor]:
+                if new_time < disappear[neighbor] and new_time < min_times[neighbor]:
                     min_times[neighbor] = new_time
                     heapq.heappush(priority_queue, (new_time, neighbor))
 
