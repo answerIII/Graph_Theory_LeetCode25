@@ -7,12 +7,13 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 class Solution {
-  static final int OFFSET = 97;
+  static final int OFFSET = (int) 'a';
+  static final int CHAR_COUNT = 26;
   public long minimumCost(String source, String target, char[] original, char[] changed, int[] cost) {
-    int[][] vocabulary = new int[26][26];
+    int[][] vocabulary = new int[CHAR_COUNT][CHAR_COUNT];
     long totalCost =0;
     List<List<int[]>> paths = new ArrayList<>(original.length);
-    for (int i =0; i < 28; ++i) {
+    for (int i =0; i < CHAR_COUNT; ++i) {
       paths.add(new ArrayList<>());
     }
     for(int i = 0; i < original.length; ++i){
@@ -23,7 +24,7 @@ class Solution {
     for(int i = 0; i < source.length(); ++i){
       int sourceS = (int) source.charAt(i) - OFFSET;
       int targetS = (int) target.charAt(i) - OFFSET;
-      if(source.charAt(i)!=target.charAt(i) && vocabulary[sourceS][targetS] == -1) {
+      if(source.charAt(i)!=target.charAt(i) && vocabulary[sourceS][targetS] == Integer.MAX_VALUE) {
         return -1;
       }
       totalCost+=vocabulary[sourceS][targetS];
@@ -36,7 +37,7 @@ class Solution {
       Arrays.fill(vocabulary[i], Integer.MAX_VALUE);
       vocabulary[i][i] = 0;
     }
-    for(int i=0; i < 26; ++i){
+    for(int i=0; i < CHAR_COUNT; ++i){
       PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
       queue.add(new int[]{i, 0});
       while(!queue.isEmpty()){
