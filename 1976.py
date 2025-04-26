@@ -2,8 +2,12 @@ import heapq
 
 class Solution(object):
     def countPaths(self, n, roads):
-        graph = [[] for _ in range(n)]
+        graph = {}
         for u, v, time in roads:
+            if u not in graph:
+                graph[u] = []
+            if v not in graph:
+                graph[v] = []
             graph[u].append((v, time))
             graph[v].append((u, time))
         
@@ -13,20 +17,14 @@ class Solution(object):
         ways = [0] * n
         ways[0] = 1
 
-        visited = [False] * n
-
         heap = [(0, 0)]
         while heap:
             weight, min_node = heapq.heappop(heap)
-            
-            if visited[min_node]:
+
+            if weight > weights[min_node]:
                 continue
 
-            visited[min_node] = True
-
-            for neighbor, time in graph[min_node]:
-                if visited[neighbor]:
-                    continue
+            for neighbor, time in graph.get(min_node, []):
 
                 if weights[neighbor] > weights[min_node] + time:
                     weights[neighbor] = weights[min_node] + time
