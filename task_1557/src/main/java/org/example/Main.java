@@ -1,55 +1,22 @@
 package org.example;
 
+import org.w3c.dom.Node;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 class Solution {
-  class Node{
-    List<Node> parents = new ArrayList<>();
-    boolean isFound;
-    int number;
-    Node(int number){
-      this.number = number;
-    }
-
-    public void findParent(List<Integer> vertexes, boolean byCycle) {
-      if(isFound && parents.size() == 0 && !byCycle) {
-        vertexes.set(number, -1);
-        return;
-      }
-      else if(parents.size() == 0){
-        vertexes.set(number, number);
-        return;
-      }
-      if (isFound) return;
-      isFound = true;
-      for(Node parent: parents){
-        parent.findParent(vertexes, false);
-      }
-    }
-
-  }
   public List<Integer> findSmallestSetOfVertices(int n, List<List<Integer>> edges) {
-    Node[] nodes = new Node[n];
-    List<Integer> vertexes = new ArrayList<>(n);
-    for (int i=0; i< n ; ++i) {
-      vertexes.add(-1);
-    }
-    for (int i=0; i < n; ++i) {
-      nodes[i] = new Node(i);
-    }
+    int[] nodes = new int[n];
     for(List<Integer> edge: edges){
-      nodes[edge.get(1)].parents.add(nodes[edge.get(0)]);
+      ++nodes[edge.get(1)];
     }
-    for (Node node : nodes) {
-      if (!node.isFound) node.findParent(vertexes, true);
+    List<Integer> list = new ArrayList<>();
+    for(int i=0;i<n; ++i){
+      if(nodes[i] == 0) list.add(i);
     }
-    List<Integer> minVertexes = new ArrayList<>();
-    for (Integer vertex : vertexes) {
-      if(vertex != -1) minVertexes.add(vertex);
-    }
-    return minVertexes;
+    return list;
   }
 }
 
