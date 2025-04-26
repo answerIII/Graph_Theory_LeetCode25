@@ -2,6 +2,7 @@ import heapq
 
 class Solution(object):
     def countPaths(self, n, roads):
+
         graph = {}
         for u, v, time in roads:
             if u not in graph:
@@ -32,6 +33,6 @@ class Solution(object):
                     heapq.heappush(heap, (weights[neighbor], neighbor))
 
                 elif weights[neighbor] == weights[min_node] + time:
-                    ways[neighbor] = (ways[neighbor] + ways[min_node])
+                    ways[neighbor] = (ways[neighbor] + ways[min_node]) % (10**9 + 7)
 
-        return ways[n - 1] % (10**9 + 7)
+        return ways[n - 1]
