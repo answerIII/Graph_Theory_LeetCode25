@@ -10,7 +10,7 @@ class Solution {
   static final int OFFSET = 97;
   public long minimumCost(String source, String target, char[] original, char[] changed, int[] cost) {
     int[][] vocabulary = new int[26][26];
-    int totalCost =0;
+    long totalCost =0;
     List<List<int[]>> paths = new ArrayList<>(original.length);
     for (int i =0; i < 28; ++i) {
       paths.add(new ArrayList<>());
@@ -22,7 +22,7 @@ class Solution {
     for(int i = 0; i < source.length(); ++i){
       int sourceS = (int) source.charAt(i)- OFFSET;
       int targetS = (int) target.charAt(i)- OFFSET;
-      if(vocabulary[sourceS][targetS] == 0) {
+      if(vocabulary[sourceS][targetS] == 0 && source.charAt(i)!=target.charAt(i)) {
         vocabulary[sourceS][targetS] = findMostCheapest(paths,sourceS, targetS);
       }
       if (vocabulary[sourceS][targetS] == -1) return -1;
@@ -34,6 +34,7 @@ class Solution {
   private int findMostCheapest(List<List<int[]>> paths, int sourceS, int targetS) {
     int[] probabilities = new int[28];
     Arrays.fill(probabilities,Integer.MAX_VALUE);
+    probabilities[sourceS] = 0;
     PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> a[1]));
     queue.add(new int[]{sourceS, 0});
 
