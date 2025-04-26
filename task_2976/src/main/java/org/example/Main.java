@@ -1,0 +1,65 @@
+package org.example;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+
+class Solution {
+  static final int OFFSET = 97;
+  public long minimumCost(String source, String target, char[] original, char[] changed, int[] cost) {
+    int[][] vocabulary = new int[26][26];
+    int totalCost =0;
+    List<List<int[]>> paths = new ArrayList<>(original.length);
+    for (int i =0; i< original.length; ++i) {
+      paths.add(new ArrayList<>());
+    }
+    for(int i = 0; i < original.length; ++i){
+      paths.get((int)original[i] - OFFSET)
+              .add(new int[] {(int)changed[i] - OFFSET, cost[i]});
+    }
+    for(int i = 0; i < source.length(); ++i){
+      int sourceS = (int) source.charAt(i)- OFFSET;
+      int targetS = (int) target.charAt(i)- OFFSET;
+      if(vocabulary[sourceS][targetS] == 0) {
+        vocabulary[sourceS][targetS] = findMostCheapest(paths,sourceS, targetS, changed.length);
+      }
+      totalCost+=vocabulary[sourceS][targetS];
+    }
+    return totalCost;
+  }
+
+  private int findMostCheapest(List<List<int[]>> paths, int sourceS, int targetS, int forCaseSize) {
+    int[] probabilities = new int[paths.size()+forCaseSize];
+    PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> a[1]));
+    queue.add(new int[]{sourceS, 0});
+
+
+    while(!queue.isEmpty()){
+      int[] parent = queue.poll();
+      if(parent[0] == targetS) {
+        return parent[1];
+      }
+      for(int[] friend : paths.get(parent[0])){
+        int friendIndex = friend[0];
+        int way = friend[1] + parent[1];
+        if(way < probabilities[friendIndex]){
+          probabilities[friendIndex] = way;
+          queue.add(new int[]{friendIndex, way});
+        }
+      }
+    }
+    return -1;
+  }
+
+}
+
+public class Main {
+
+
+
+  public static void main(String[] args) {
+    System.out.println("Hello world!");
+  }
+
+}
