@@ -1,10 +1,16 @@
+import heapq
+
 class Solution(object):
     def countPaths(self, n, roads):
-        """
-        :type n: int
-        :type roads: List[List[int]]
-        :rtype: int
-        """
+        graph = {}
+        for u, v, time in roads:
+            if u not in graph:
+                graph[u] = []
+            if v not in graph:
+                graph[v] = []
+            graph[u].append((v, time))
+            graph[v].append((u, time))
+        
         weights = [float('inf')] * n
         weights[0] = 0
         
@@ -22,27 +28,16 @@ class Solution(object):
 
             visited[min_node] = True
 
-            for road in roads:
-                u, v, time = road
+            for neighbor, time in graph.get(min_node, []):
+                if visited[neighbor]:
+                    continue
 
-                if u == min_node and not visited[v]:
+                if weights[neighbor] > weights[min_node] + time:
+                    weights[neighbor] = weights[min_node] + time
+                    ways[neighbor] = ways[min_node]
+                    heapq.heappush(heap, (weights[neighbor], neighbor))
 
-                    if weights[v] > weights[u] + time:
-                        weights[v] = weights[u] + time
-                        ways[v] = ways[u]
-                        heapq.heappush(heap, (weights[v], v))
-
-                    elif weights[v] == weights[u] + time:
-                        ways[v] = ways[v] + ways[u]
-
-                elif v == min_node and not visited[u]:
-
-                    if weights[u] > weights[v] + time:
-                        weights[u] = weights[v] + time
-                        ways[u] = ways[v]
-                        heapq.heappush(heap, (weights[u], u))
-
-                    elif weights[u] == weights[v] + time:
-                        ways[u] = ways[u] + ways[v]
+                elif weights[neighbor] == weights[min_node] + time:
+                    ways[neighbor] = (ways[neighbor] + ways[min_node])
 
         return ways[n - 1] % (10**9 + 7)
