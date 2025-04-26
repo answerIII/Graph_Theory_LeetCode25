@@ -1,6 +1,8 @@
 class Solution(object):
     def sumOfDistancesInTree(self, n, edges):
-        graph = {i: [] for i in range(n)}
+        if n == 1:
+            return [0]
+        graph = {}
         for u, v in edges:
             if u not in graph:
                 graph[u] = []
