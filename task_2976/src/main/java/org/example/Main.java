@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -11,7 +12,7 @@ class Solution {
     int[][] vocabulary = new int[26][26];
     int totalCost =0;
     List<List<int[]>> paths = new ArrayList<>(original.length);
-    for (int i =0; i< original.length; ++i) {
+    for (int i =0; i < 28; ++i) {
       paths.add(new ArrayList<>());
     }
     for(int i = 0; i < original.length; ++i){
@@ -22,15 +23,17 @@ class Solution {
       int sourceS = (int) source.charAt(i)- OFFSET;
       int targetS = (int) target.charAt(i)- OFFSET;
       if(vocabulary[sourceS][targetS] == 0) {
-        vocabulary[sourceS][targetS] = findMostCheapest(paths,sourceS, targetS, changed.length);
+        vocabulary[sourceS][targetS] = findMostCheapest(paths,sourceS, targetS);
       }
+      if (vocabulary[sourceS][targetS] == -1) return -1;
       totalCost+=vocabulary[sourceS][targetS];
     }
     return totalCost;
   }
 
-  private int findMostCheapest(List<List<int[]>> paths, int sourceS, int targetS, int forCaseSize) {
-    int[] probabilities = new int[paths.size()+forCaseSize];
+  private int findMostCheapest(List<List<int[]>> paths, int sourceS, int targetS) {
+    int[] probabilities = new int[28];
+    Arrays.fill(probabilities,Integer.MAX_VALUE);
     PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> a[1]));
     queue.add(new int[]{sourceS, 0});
 
@@ -59,7 +62,15 @@ public class Main {
 
 
   public static void main(String[] args) {
-    System.out.println("Hello world!");
+    Solution s = new Solution();
+    String source = "aaaa";
+    String target = "bbbb";
+    char[] original = {'a', 'c'};
+    char[] changed = {'b', 'b'};
+    int[] cost = {1, 2};
+
+    int result = (int) s.minimumCost(source, target, original, changed, cost);
+    System.out.println("Minimum conversion cost: " + result);
   }
 
 }
