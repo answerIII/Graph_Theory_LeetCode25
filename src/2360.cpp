@@ -1,23 +1,34 @@
 #include <vector>
+#include <unordered_map>
+
 class Solution {
 public:
     int longestCycle(std::vector<int>& edges) {
         int n = edges.size();
+        std::vector<bool> visited(n, false);
         int max_cycle = -1;
 
         for (int i = 0; i < n; ++i) {
-            std::vector<int> visited(n, -1); // visited[u] = шаг, когда мы попали в вершину
-            int curr = i;
-            int time = 0;
+            if (visited[i]) {
+                continue;
+            }
 
-            while (curr != -1) {
-                if (visited[curr] != -1) {
-                    // Найден цикл: длина = текущее время - шаг, когда впервые зашли в curr
-                    max_cycle = std::max(max_cycle, time - visited[curr]);
+            std::unordered_map<int, int> nodeTime; // узел, время входа
+            int time = 0;
+            int curr = i;
+
+            while (curr != -1 && nodeTime.find(curr) == nodeTime.end()) {
+                if (visited[curr]) 
                     break;
-                }
-                visited[curr] = time++;
+                nodeTime[curr] = time++;
+                visited[curr] = true;
                 curr = edges[curr];
+            }
+
+ 
+            if (curr != -1 && nodeTime.find(curr) != nodeTime.end()) {
+                int cycleLen = time - nodeTime[curr];
+                max_cycle = std::max(max_cycle, cycleLen);
             }
         }
 
