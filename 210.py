@@ -21,11 +21,13 @@ class Solution:
                 in_degree[neighbor] -= 1
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
+        if len(result) == numCourses:
+            return result
+        else:
+            return []
 
-        return result
 
-
-numCourses = 1
-prerequisites = []
+numCourses = 3
+prerequisites = [[1,0],[1,2],[0,1]]
 sol = Solution()
 print(sol.findOrder(numCourses, prerequisites))
