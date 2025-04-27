@@ -14,8 +14,32 @@ class Solution:
         for u, v in connections:
             graph[u].append(v)
 
-        
-        return graph
+        visited = [False] * n
+        answer = -1
+
+        for i in range(n):
+            if not visited[i]:
+                current = i
+                step = {}
+                depth = 0
+
+                while current != -1:
+                    if current in step:
+                        answer = max(answer, depth - step[current])
+                        break
+                    if visited[current]:
+                        break
+
+                    step[current] = depth
+                    visited[current] = True
+
+                    if graph[current]:
+                        current = graph[current][0]
+                    else:
+                        current = -1
+                    depth += 1
+
+        return answer
 
 
 sol = Solution()
