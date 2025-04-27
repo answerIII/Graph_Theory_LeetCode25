@@ -58,4 +58,4 @@ var maxAmount = function (initialCurrency, pairs1, rates1, pairs2, rates2) {
   return Math.round(maxAmount * 100000) / 100000;
 };
 
-module.export = maxAmount;
+module.exports = maxAmount;
