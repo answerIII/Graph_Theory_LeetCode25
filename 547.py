@@ -4,16 +4,25 @@ from collections import deque, defaultdict
 
 class Solution:
     def findCircleNum(self, isConnected: List[List[int]]) -> int:
-        answer = []
-        for i in isConnected:
-            answer.append(i.count(1))
-        print(answer)
-        if len(list(set(answer))) == 1:
-            return len(answer)
-        elif len(list(answer)) // len(list(set(answer))) == 2:
-            return 1
-        else:
-            return len(list(set(answer)))
+        n = len(isConnected)
+        visited = [False] * n
+        answer = 0
+
+        for city in range(n):
+            if not visited[city]:
+                queue = deque([city])
+                visited[city] = True
+
+                while queue:
+                    current = queue.popleft()
+                    for neighbor in range(n):
+                        if isConnected[current][neighbor] == 1 and not visited[neighbor]:
+                            visited[neighbor] = True
+                            queue.append(neighbor)
+
+                answer += 1
+
+        return answer
 
 
 sol = Solution()
@@ -26,4 +35,8 @@ print(sol.findCircleNum(isConnected))
 
 sol = Solution()
 isConnected = [[1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 1, 1]]
+print(sol.findCircleNum(isConnected))
+
+sol = Solution()
+isConnected = [[1,1,1],[1,1,1],[1,1,1]]
 print(sol.findCircleNum(isConnected))
