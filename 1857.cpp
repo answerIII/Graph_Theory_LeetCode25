@@ -51,7 +51,7 @@ public:
             {
                 for (int c = 0; c < 26; ++c)
                 {
-                    dp[v][c] = dp[u][c];
+                    dp[v][c] = max(dp[v][c], dp[u][c]);
                 }
                 --indegree[v];
                 if (indegree[v] == 0)
