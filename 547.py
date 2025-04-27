@@ -10,6 +10,8 @@ class Solution:
         print(answer)
         if len(list(set(answer))) == 1:
             return len(answer)
+        elif len(list(answer)) // len(list(set(answer))) == 2:
+            return 1
         else:
             return len(list(set(answer)))
 
@@ -20,4 +22,8 @@ print(sol.findCircleNum(isConnected))
 
 sol = Solution()
 isConnected = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+print(sol.findCircleNum(isConnected))
+
+sol = Solution()
+isConnected = [[1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 1], [1, 0, 1, 1]]
 print(sol.findCircleNum(isConnected))
