@@ -14,10 +14,6 @@ class Solution
 public:
     int reachableNodes(vector<vector<int>>& edges, int maxMoves, int n)
     {
-        if(edges.empty())
-        {
-            return 1;
-        }
         vector<vector<pair<int, int>>> graph(n);
 
         for (int i = 0; i < edges.size(); ++i)
