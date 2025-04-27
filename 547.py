@@ -4,13 +4,14 @@ from collections import deque, defaultdict
 
 class Solution:
     def findCircleNum(self, isConnected: List[List[int]]) -> int:
-        answer = 0
+        answer = []
         for i in isConnected:
-            if i.count(1) == 1:
-                answer += 1
+            answer.append(i.count(1))
+        answer = len(list(set(answer)))
+
         return answer
 
 
 sol = Solution()
-isConnected = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+isConnected = [[1, 1, 0], [1, 1, 0], [0, 0, 1]]
 print(sol.findCircleNum(isConnected))
