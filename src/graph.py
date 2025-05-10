@@ -59,8 +59,8 @@ class Graph:
       self._adj[v] = dict()
       self._node[v] = dict()
 
-    if (self._adj[u].get(v) != None):
-      print(f"multiEdge {u}-{v}")
+    # if (self._adj[u].get(v) != None):
+    #   print(f"multiEdge {u}-{v}")
     data = self._adj[u].get(v, dict())
     data.update(attr)
     self._adj[u][v] = data
@@ -117,6 +117,16 @@ class Graph:
           edge_list.append(re.split(r'\s',line)[:2])
       return Graph(edge_list=edge_list, **attr)
   
+  @staticmethod
+  def cast_dgraph_to_ugraph(dgraph: 'Graph', **attr: Any) -> 'Graph':
+    if not dgraph._graph['directed']:
+      raise ValueError("Graph is not directed")
+    ugraph = Graph(**attr)
+    for u, neighbor in dgraph.adj().items():
+      for v in neighbor:
+        ugraph.add_edge(u, v)
+    return ugraph
+  
   def find_wcc(self) -> List[List[Node]]:
     if self._graph['directed']:
       raise ValueError("Can't find WCC in directed graph")
@@ -138,3 +148,10 @@ class Graph:
       dict(reversed(tout_dict.items())),
       self.inversed().adj()
     )
+
+  @staticmethod
+  def sort_components(components: List[List[Node]], desc: Optional[bool] = False) -> List[List[Node]]:
+    if desc:
+      return sorted(components, key=lambda x: len(x), reverse=True)
+    else:
+      return sorted(components, key=lambda x: len(x))
