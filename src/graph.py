@@ -1,23 +1,30 @@
 import re
+from typing import Dict, Any, Optional, List, Tuple
 from algorithms import DFS
 
+Node = int
+EdgeList = List[Tuple[Node, Node]]
+Adjacency = Dict[Node, Dict[Node, Dict[str, Any]]]
+NodeAttr = Dict[Node, Dict[str, Any]]
+GraphAttr = Dict[str, Any]
+
 class Graph:
-  def __init__(self, edge_list = None, **attr):
+  def __init__(self, edge_list: Optional[EdgeList] = None, **attr: Any) -> None:
     attr.setdefault("directed", False)
-    self._graph = attr
-    self._adj = dict()
-    self._node = dict()
+    self._graph: GraphAttr = attr
+    self._adj: Adjacency = dict()
+    self._node: NodeAttr = dict()
     if edge_list is not None:
       for u, v in edge_list:
         self.add_edge(u, v)
 
-  def adj(self):
+  def adj(self) -> Adjacency:
     return self._adj
     
-  def nodes(self):
+  def nodes(self) -> NodeAttr:
     return self._node
   
-  def add_node(self, node, **attr):
+  def add_node(self, node: Node, **attr: Any) -> None:
     if node not in self._node:
       if node is None:
         raise ValueError("None is not a properly node")
@@ -27,7 +34,7 @@ class Graph:
     else:
       self._node[node].update(attr)
 
-  def remove_node(self, node):
+  def remove_node(self, node: Node) -> None:
     try:
       neighbors = self._adj
       del self._node[node]
@@ -37,10 +44,10 @@ class Graph:
       del self._adj[u][node]
     del self._adj[node]
 
-  def has_node(self, node):
+  def has_node(self, node: Node) -> bool:
     return node in self._node
   
-  def add_edge(self, u, v, **attr):
+  def add_edge(self, u: Node, v: Node, **attr: Any) -> None:
     if (u not in self._node):
       if u is None:
         raise ValueError("None is not a properly node")
@@ -60,7 +67,7 @@ class Graph:
     if (not self._graph['directed'] and u != v):
         self._adj[v][u] = data
 
-  def remove_edge(self, u, v):
+  def remove_edge(self, u: Node, v: Node) -> None:
     try:
       del self._adj[u][v]
       if (not self._graph['directed']):
@@ -68,32 +75,32 @@ class Graph:
     except KeyError:
       raise ValueError(f"Edge {u}-{v} is not in the graph")
   
-  def has_edge(self, u, v):
+  def has_edge(self, u: Node, v: Node) -> bool:
     try:
       return v in self._adj[u]
     except KeyError:
       return False
     
-  def inversed(self):
+  def inversed(self) -> 'Graph':
     inversed_graph = Graph(**self._graph)
     for u, nbrdict in self._adj.items():
       for v, attr in nbrdict.items():
         inversed_graph.add_edge(v, u, **attr)
     return inversed_graph
 
-  def degree(self, node):
+  def degree(self, node: Node) -> int:
     return len(self._adj[node])
 
-  def number_of_nodes(self):
+  def number_of_nodes(self) -> int:
     return len(self._node)
   
-  def number_of_edges(self):
+  def number_of_edges(self) -> int:
     return (
       sum(self.degree(u) for u in self._node) 
       // (2 if not self._graph['directed'] else 1)
     )
   
-  def density(self):
+  def density(self) -> float:
     return (
       self.number_of_edges()
       * (2 if not self._graph['directed'] else 1)
@@ -101,27 +108,27 @@ class Graph:
     )
 
   @staticmethod
-  def from_file(file_name, **attr):
+  def from_file(file_name: str, **attr: Any) -> 'Graph':
     with open(file_name) as inputFile:
-      edge_list = []
+      edge_list: EdgeList = []
       for line in inputFile:
         if line.startswith('#'): continue
         else: 
           edge_list.append(re.split(r'\s',line)[:2])
       return Graph(edge_list=edge_list, **attr)
   
-  def find_wcc(self):
+  def find_wcc(self) -> List[List[Node]]:
     if self._graph['directed']:
       raise ValueError("Can't find WCC in directed graph")
     return DFS(self.nodes(), self.adj())
   
-  def find_scc(self):
+  def find_scc(self) -> List[List[Node]]:
     if not self._graph['directed']:
       raise ValueError("Can't find SCC in undirected graph")
-    tout_dict = dict()
-    time = 0
+    tout_dict: Dict[Node, int] = dict()
+    time: int = 0
 
-    def on_out(node):
+    def on_out(node: Node) -> None:
       nonlocal time
       tout_dict[node] = time
       time += 1
@@ -131,8 +138,3 @@ class Graph:
       dict(reversed(tout_dict.items())),
       self.inversed().adj()
     )
-    
-
-# graph = Graph.from_file('directed/test.txt', directed=True)
-
-# print(graph.find_scc())
