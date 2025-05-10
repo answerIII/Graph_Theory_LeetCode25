@@ -16,6 +16,7 @@ def DFS(
     if node not in used_set:
       path = []
       stack = [(node, False)]
+      used_set.add(node)
       while stack:
         u, is_processed = stack.pop()
         if is_processed:
@@ -25,10 +26,10 @@ def DFS(
         else:
           if on_in is not None:
             on_in(u)
-          used_set.add(u)
           stack.append((u, True))
           for v in edge_list[u]:
             if v not in used_set:
               stack.append((v, False))
+              used_set.add(v)
       components.append(path)
   return components
