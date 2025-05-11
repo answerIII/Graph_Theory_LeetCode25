@@ -9,7 +9,6 @@ class Graph {
 protected:
     std::unordered_map<int, std::vector<int>> paths;
     std::unordered_map<int, Node> nodes;
-    std::vector<std::vector<Node*>>  components;
     int vertexCount = 0;
     int edgesCount = 0;
     void removeMarks() {
@@ -58,22 +57,37 @@ public:
 class DirectedGraph : public Graph {
     std::unordered_map<int, std::vector<int>> transposePaths;
     std::unordered_map<int, std::vector<int>> undirectedPaths;
+    std::vector<std::vector<Node*>>  strongComponents;
+    std::vector<std::vector<Node*>>  weekComponents;
 
     double density = 0;
-    int weekComponentCount = 0;
-    int maxVertexCountInWeekComponent = 0;
     //std::vector<Node*> biggestWeekNode;
 
-    void findWeekComponentCount() {
-        for (std::pair node : nodes) {
-            if (!node.second.marked) {
-                int nodeCount = dfs(&node.second, undirectedPaths);
-                ++weekComponentCount;
-                if (nodeCount > maxVertexCountInWeekComponent) {
-                    maxVertexCountInWeekComponent = nodeCount;
+    void initWeekComponents() {
+        for (auto& [num,node] : nodes) {
+            if (!node.marked) {
+                std::vector<Node*> component;
+                std::stack<Node*> stack;
+                stack.push(&node);
+                int nodeCount = 0;
+                while (!stack.empty()) {
+                    Node* currentNode = stack.top(); stack.pop();
+                    component.push_back(currentNode);
+                    ++nodeCount;
+                    currentNode->marked = true;
+                    for (int neighborhood : paths[currentNode->num]) {
+                        if (nodes[neighborhood].marked != true) {
+                            stack.push(&nodes[neighborhood]);
+                        }
+                    }
                 }
+                weekComponents.push_back(component);
             }
         }
+        std::sort(weekComponents.begin(), weekComponents.end(),
+    [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
+        return a.size() > b.size();}
+        );
         removeMarks();
     }
 
@@ -86,81 +100,6 @@ class DirectedGraph : public Graph {
             }
         }
     }
-
-    int countStrongComponents() {
-    // 1) Построить стек вершин в порядке окончания DFS (по post‑order), нерекурсивно
-    std::stack<Node*> finishStack;
-
-    // Сбросить метки
-    for (auto & [k, nd] : nodes) nd.marked = false;
-
-    // Для каждого узла, если не посещён — запустить DFS
-    for (auto & [k, nd] : nodes) {
-        if (nd.marked) continue;
-        // используем стек пар (Node*, индекс следующего соседа)
-        std::stack<std::pair<Node*, size_t>> st;
-        nd.marked = true;
-        st.emplace(&nd, 0);
-
-        while (!st.empty()) {
-            auto & [u, idx] = st.top();
-            auto & neigh = paths[u->num];
-
-            if (idx < neigh.size()) {
-                int vnum = neigh[idx++];
-                Node & v = nodes[vnum];
-                if (!v.marked) {
-                    v.marked = true;
-                    st.emplace(&v, 0);
-                }
-            } else {
-                // все потомки обработаны — фиксируем u в порядке окончания
-                finishStack.push(u);
-                st.pop();
-            }
-        }
-    }
-
-    // 2) Сбросить метки для второго прохода
-    for (auto & [k, nd] : nodes) nd.marked = false;
-
-    // 3) Построить транспонированный граф, если ещё не построен
-    if (transposePaths.empty()) {
-        for (auto & [u, neigh] : paths) {
-            for (int v : neigh) {
-                transposePaths[v].push_back(u);
-            }
-        }
-    }
-
-    // 4) Второй проход: обойти в порядке finishStack и посчитать компоненты
-    int sccCount = 0;
-    while (!finishStack.empty()) {
-        Node * start = finishStack.top();
-        finishStack.pop();
-        if (start->marked) continue;
-
-        // новый DFS по transposePaths
-        ++sccCount;
-        std::stack<Node*> st2;
-        start->marked = true;
-        st2.push(start);
-
-        while (!st2.empty()) {
-            Node * u = st2.top();
-            st2.pop();
-            for (int vnum : transposePaths[u->num]) {
-                Node & v = nodes[vnum];
-                if (!v.marked) {
-                    v.marked = true;
-                    st2.push(&v);
-                }
-            }
-        }
-    }
-
-    return sccCount;
-}
 
     void initTransposePaths() {
         transposePaths.reserve(paths.size());
@@ -176,7 +115,7 @@ class DirectedGraph : public Graph {
         density = edgesCount / maxEdges;
     }
 
-    void initComponents() {
+    void initStrongComponents() {
         //1 dfs
         std::vector<Node*> outVertexes;
         std::unordered_set<int> visited;
@@ -224,12 +163,12 @@ class DirectedGraph : public Graph {
                         }
                     }
                 }
-                components.push_back(component);
+                strongComponents.push_back(component);
             }
         }
         removeMarks();
         //sorting [0] - the biggest component
-        std::sort(components.begin(), components.end(),
+        std::sort(strongComponents.begin(), strongComponents.end(),
     [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
         return a.size() > b.size();}
         );
@@ -237,15 +176,15 @@ class DirectedGraph : public Graph {
 public:
 
     int getWeekComponentCount() {
-        if (components.empty() && weekComponentCount == 0) initUndirectedPaths();
-        if (weekComponentCount == 0) findWeekComponentCount();
-        return weekComponentCount;
+        if (strongComponents.empty() && weekComponents.empty()) initUndirectedPaths();
+        if (weekComponents.empty()) initWeekComponents();
+        return weekComponents.size();
     }
 
     int getStrongestComponentCount() {
-        if (components.empty() == 0 && weekComponentCount == 0) initUndirectedPaths();
-        if (components.empty()) initComponents();
-        return components.size();
+        if (strongComponents.empty() == 0 && weekComponents.empty()) initUndirectedPaths();
+        if (strongComponents.empty()) initStrongComponents();
+        return strongComponents.size();
     }
 
     double getDensity() {
@@ -253,14 +192,14 @@ public:
         return density;
     }
 
-    int getShareVertexInBeggestWeekComponent() {
+    double getShareVertexInBeggestWeekComponent() {
         getWeekComponentCount();
-        return maxVertexCountInWeekComponent / weekComponentCount;
+        return (double)weekComponents[0].size() / (double)vertexCount * 100.0;
     }
 
-    int getShareVertexInBeggestStrongComponent() {
+    double getShareVertexInBeggestStrongComponent() {
         getStrongestComponentCount();
-        return components[0].size() / vertexCount;
+        return (double)strongComponents[0].size() / (double)vertexCount * 100.0;
     }
 
     DirectedGraph(Graph& graph)
@@ -269,6 +208,7 @@ public:
 };
 
 class UndirectedGraph : public Graph {
+    std::vector<std::vector<Node*>>  strongComponents;
     double density = 0;
 
     void initDensity() {
@@ -292,18 +232,18 @@ class UndirectedGraph : public Graph {
                         }
                     }
                 }
-                components.push_back(component);
+                strongComponents.push_back(component);
             }
         }
         removeMarks();
-        std::ranges::sort(components);
+        std::ranges::sort(strongComponents);
     }
 
 public:
 
-    int getComponentCount() {
-        if (components.empty()) initComponents();
-        return components.size();
+    int getComponentsCount() {
+        if (strongComponents.empty()) initComponents();
+        return strongComponents.size();
     }
 
     double getDensity() {
@@ -312,8 +252,8 @@ public:
     }
 
     int getShareVertexInBeggestComponent() {
-        getComponentCount();
-        return components[0].size() / vertexCount;
+        getComponentsCount();
+        return strongComponents[0].size() / vertexCount;
     }
 
 };
