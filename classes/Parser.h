@@ -50,7 +50,7 @@ public:
             paths[from].push_back(to);
             if (!directed){paths[to].push_back(from);}
         }
-        return Graph(vertexes, paths,vertexCount,edgeCount,directed);
+        return Graph(vertexes, paths, vertexCount,edgeCount);
     }
 };
 #endif //PARSER_H

@@ -11,4 +11,6 @@
 #include <fstream>
 #include <unordered_map>
 #include <sstream>
+#include <memory>
+#include <unordered_set>
 #endif //LIBS_H
