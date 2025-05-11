@@ -37,6 +37,14 @@ func (g *Graph) nodes() Nodes {
 	return g.Nodes
 }
 
+func (g *Graph) nodesSlice() []Node {
+	nodes := make([]Node, 0, g.NumberOfNodes())
+	for node, _ := range g.Nodes {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
 func (g *Graph) AddNode(n Node) {
 	if _, exists := g.Nodes[n]; !exists {
 		g.Nodes[n] = struct{}{}
@@ -149,13 +157,15 @@ func (g *Graph) FindWCC() ([][]Node, error) {
 	if g.Directed {
 		return nil, errors.New("can't find WCC in directed graph")
 	}
-	return algo.DFS(g.Nodes, g.Adj, nil, nil, nil), nil
+	return algo.DFS(g.nodesSlice(), g.Adj, nil, nil, nil), nil
 }
 
 func (g *Graph) FindSCC() ([][]Node, error) {
 	if !g.Directed {
 		return nil, errors.New("can't find SCC in undirected graph")
 	}
+
+	nodes := g.nodesSlice()
 
 	tout := make(map[Node]int)
 	time := 0
@@ -165,24 +175,15 @@ func (g *Graph) FindSCC() ([][]Node, error) {
 		time++
 	}
 
-	algo.DFS(g.Nodes, g.Adj, nil, nil, onOut)
+	algo.DFS(nodes, g.Adj, nil, nil, onOut)
 
-	sortedNodes := make([]Node, 0, len(tout))
-	for node := range tout {
-		sortedNodes = append(sortedNodes, node)
-	}
-	sort.Slice(sortedNodes, func(i, j int) bool {
-		return tout[sortedNodes[i]] > tout[sortedNodes[j]]
+	sort.Slice(nodes, func(i, j int) bool {
+		return tout[nodes[i]] > tout[nodes[j]]
 	})
 
 	inverted := g.Inverted()
 
-	orderedNodes := make(map[Node]struct{}, len(sortedNodes))
-	for _, node := range sortedNodes {
-		orderedNodes[node] = struct{}{}
-	}
-
-	return algo.DFS(orderedNodes, inverted.Adj, nil, nil, nil), nil
+	return algo.DFS(nodes, inverted.Adj, nil, nil, nil), nil
 }
 
 func FromFile(filePath string, directed bool) (*Graph, error) {

@@ -1,7 +1,7 @@
 package graph
 
 func DFS[T comparable](
-	nodes map[T]struct{},
+	nodes []T,
 	edges map[T]map[T]struct{},
 	used map[T]struct{},
 	onIn, onOut func(T),
@@ -12,7 +12,7 @@ func DFS[T comparable](
 
 	var components [][]T
 
-	for node := range nodes {
+	for _, node := range nodes {
 		if _, ok := used[node]; ok {
 			continue
 		}
