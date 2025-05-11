@@ -1,5 +1,6 @@
 #ifndef GRAPH_H
 #define GRAPH_H
+#include <queue>
 #include <stack>
 
 #include "../libs.h"
@@ -61,7 +62,7 @@ class DirectedGraph : public Graph {
     std::vector<std::vector<Node*>>  weekComponents;
 
     double density = 0;
-    //std::vector<Node*> biggestWeekNode;
+    int approximateDiameter = 0;
 
     void initWeekComponents() {
         for (auto& [num,node] : nodes) {
@@ -173,6 +174,42 @@ class DirectedGraph : public Graph {
         return a.size() > b.size();}
         );
     }
+
+    void initApproximateDiameter() {
+
+        if (weekComponents.empty()) initWeekComponents();
+
+        int randomIndex = (rand()+1718) % weekComponents[0].size();
+        Node* r  = weekComponents[0][randomIndex];
+        std::pair<int, Node*> a = getFarthestVertex(r);
+        std::pair<int, Node*> b = getFarthestVertex(a.second);
+        approximateDiameter = b.first;
+    }
+
+    std::pair<int, Node*> getFarthestVertex(Node* node) {
+        std::pair farthestVertex(0,node);
+        std::queue<Node*> queue;
+        std::unordered_map<int,int> lengths(nodes.size());
+        lengths[node->num] = 0;
+        queue.push(node);
+        while (!queue.empty()) {
+            Node* currentNode = queue.front(); queue.pop();
+            currentNode->marked = true;
+            if (farthestVertex.first < lengths[currentNode->num]) {
+                farthestVertex.first = lengths[currentNode->num];
+                farthestVertex.second = currentNode;
+            }
+            for (int neighborhood : paths[currentNode->num]) {
+                if (nodes[neighborhood].marked) continue;
+                nodes[neighborhood].marked = true;
+                lengths[neighborhood] = lengths[currentNode->num] + 1;
+                queue.push(&nodes[neighborhood]);
+            }
+        }
+        removeMarks();
+        return farthestVertex;
+    }
+
 public:
 
     int getWeekComponentCount() {
@@ -202,6 +239,11 @@ public:
         return (double)strongComponents[0].size() / (double)vertexCount * 100.0;
     }
 
+    int getApproximateDiameter() {
+        if (approximateDiameter == 0) initApproximateDiameter();
+        return approximateDiameter;
+    }
+
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
 
@@ -209,6 +251,7 @@ public:
 
 class UndirectedGraph : public Graph {
     std::vector<std::vector<Node*>>  strongComponents;
+
     double density = 0;
 
     void initDensity() {

@@ -9,10 +9,6 @@ int main(const int argc, const char *argv[]) {
     TxtParser parser;
     Graph graph(parser.parse(argv[1], directed));
     DirectedGraph directedGraph(graph);
-    std::cout << directedGraph.getWeekComponentCount() << std::endl;
-    std::cout << directedGraph.getStrongestComponentCount() << std::endl;
-    std::cout << directedGraph.getDensity() << std::endl;
-    std::cout << directedGraph.getShareVertexInBeggestWeekComponent()<< std::endl;
-    std::cout << directedGraph.getEdgesCount()<< std::endl;
+    std::cout << directedGraph.getApproximateDiameter() << std::endl;
     return 0;
 }
