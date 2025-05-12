@@ -10,5 +10,7 @@ int main(const int argc, const char *argv[]) {
     Graph graph(parser.parse(argv[1], directed));
     DirectedGraph directedGraph(graph);
     std::cout << directedGraph.getApproximateDiameter() << std::endl;
+    std::cout << directedGraph.get90PercentileB() << std::endl;
+    std::cout << directedGraph.get90PercentileC() << std::endl;
     return 0;
 }

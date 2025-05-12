@@ -5,7 +5,6 @@
 
 #include "../libs.h"
 #include "Node.h"
-using namespace std;
 class Graph {
 protected:
     std::unordered_map<int, std::vector<int>> paths;
@@ -63,8 +62,13 @@ class DirectedGraph : public Graph {
 
     double density = 0;
     int approximateDiameter = 0;
+    int percentileB = 0;
+    int percentileC = 0;
 
     void initWeekComponents() {
+
+        if (undirectedPaths.empty()) { initUndirectedPaths(); }
+
         for (auto& [num,node] : nodes) {
             if (!node.marked) {
                 std::vector<Node*> component;
@@ -185,6 +189,114 @@ class DirectedGraph : public Graph {
         std::pair<int, Node*> b = getFarthestVertex(a.second);
         approximateDiameter = b.first;
     }
+    /// dangerous !!! might be weekComponents.size() * 1000 space !!!!! should be optimizated
+    /// VERY VERY BAD
+    /// DONT START IT !!!!
+    /// YOUR COMPUTER GET DOWN
+    void init90PercentileB() {
+
+        if (weekComponents.empty()) initWeekComponents();
+
+        int samples = vertexCount > 10000 ? 1000 : 500;
+        int componentSize = weekComponents[0].size();
+        if (componentSize < 500) samples = componentSize;
+        std::vector<int> distances;
+        distances.reserve(samples);
+
+        for (int i =0; i < samples; ++i) {
+
+            int index = rand() % componentSize;
+            Node* node = weekComponents[0][index];
+
+            std::queue<Node*> queue;
+            std::unordered_map<int,int> lengths;
+            lengths.reserve(samples);
+            lengths[node->num] = 0;
+            queue.push(node);
+            while (!queue.empty()) {
+                Node* currentNode = queue.front(); queue.pop();
+                currentNode->marked = true;
+                for (int neighborhood : undirectedPaths[currentNode->num]) {
+                    if (nodes[neighborhood].marked) continue;
+                    nodes[neighborhood].marked = true;
+                    lengths[neighborhood] = lengths[currentNode->num] + 1;
+                    queue.push(&nodes[neighborhood]);
+                }
+            }
+            for (auto& [num, len]:lengths) {
+                distances.push_back(len);
+            }
+            removeMarks();
+        }
+
+        sort(distances.begin(), distances.end());
+        int index90 = (int)(0.9 * distances.size());
+        percentileB = distances[index90];
+    }
+    //require optimization
+    void init90PercentileC() {
+
+        if (weekComponents.empty()) initWeekComponents();
+
+        //create a snowball
+        int snowballSize = vertexCount > 10000 ? 1000 : 500;
+        int componentSize = weekComponents[0].size();
+        if (componentSize < 500) snowballSize = componentSize;
+        std::vector<int> snowball;
+        snowball.reserve(snowballSize);
+
+        //pull a snowball;
+        Node* node = weekComponents[0][0];
+        std::queue<Node*> queue;
+        queue.push(node);
+        node->marked = true;
+        while (!queue.empty() && snowball.size() <= snowballSize) {
+            Node* currentNode = queue.front(); queue.pop();
+            snowball.push_back(currentNode->num);
+            for (int neighborhood : undirectedPaths[currentNode->num]) {
+                if (nodes[neighborhood].marked) continue;
+                nodes[neighborhood].marked = true;
+                queue.push(&nodes[neighborhood]);
+            }
+        }
+        // DONT REMOVE marked because
+        // we should build distances for each node in range of snowball graph
+        // so i intend to consider only marked nodes below
+        // not -> removeMarks();
+
+        //just count all distances and calculate 90partentile
+        std::vector<int> distances;
+        distances.reserve(snowballSize);
+
+        for (int index : snowball) {
+            Node* node = &nodes[index];
+            std::queue<Node*> queue;
+            std::unordered_map<int,int> lengths;
+            lengths[node->num] = 0;
+            queue.push(node);
+            while (!queue.empty()) {
+                Node* currentNode = queue.front(); queue.pop();
+                for (int neighborhood : undirectedPaths[currentNode->num]) {
+                    // if not marked -> continue
+                    if (!nodes[neighborhood].marked) continue;
+
+                    //alternative way to mark
+                    if (lengths.contains(neighborhood)){continue;}
+
+                    lengths[neighborhood] = lengths[currentNode->num] + 1;
+                    queue.push(&nodes[neighborhood]);
+                }
+            }
+            for (auto& [num, len]:lengths) {
+                distances.push_back(len);
+            }
+            removeMarks();
+        }
+
+        sort(distances.begin(), distances.end());
+        int index90 = (int)(0.9 * distances.size());
+        percentileC = distances[index90];
+    }
 
     std::pair<int, Node*> getFarthestVertex(Node* node) {
         std::pair farthestVertex(0,node);
@@ -199,7 +311,7 @@ class DirectedGraph : public Graph {
                 farthestVertex.first = lengths[currentNode->num];
                 farthestVertex.second = currentNode;
             }
-            for (int neighborhood : paths[currentNode->num]) {
+            for (int neighborhood : undirectedPaths[currentNode->num]) {
                 if (nodes[neighborhood].marked) continue;
                 nodes[neighborhood].marked = true;
                 lengths[neighborhood] = lengths[currentNode->num] + 1;
@@ -213,13 +325,11 @@ class DirectedGraph : public Graph {
 public:
 
     int getWeekComponentCount() {
-        if (strongComponents.empty() && weekComponents.empty()) initUndirectedPaths();
         if (weekComponents.empty()) initWeekComponents();
         return weekComponents.size();
     }
 
     int getStrongestComponentCount() {
-        if (strongComponents.empty() == 0 && weekComponents.empty()) initUndirectedPaths();
         if (strongComponents.empty()) initStrongComponents();
         return strongComponents.size();
     }
@@ -242,6 +352,15 @@ public:
     int getApproximateDiameter() {
         if (approximateDiameter == 0) initApproximateDiameter();
         return approximateDiameter;
+    }
+
+    int get90PercentileB() {
+        if (percentileB == 0) init90PercentileB();
+        return percentileB;
+    }
+    int get90PercentileC() {
+        if (percentileC == 0) init90PercentileC();
+        return percentileC;
     }
 
     DirectedGraph(Graph& graph)
