@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"graph_theory/graph"
 	"log"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 )
@@ -55,6 +56,9 @@ func main() {
 	writef("Количество SCC: %d\n", len(scc))
 	writef("Доля вершин в максимальной SCC: %.6f\n", float64(len(scc[0]))/float64(g.NumberOfNodes()))
 
+	randomNode := wcc[0][rand.IntN(len(wcc)-1)]
+	diameter := ugraph.GetDiameterDoubleSweep(randomNode)
+	writef("Диаметр максимальной WCC, вычисленный методом The Double Sweep: %d\n", diameter)
 }
 
 func getFileNameWithoutExt(path string) string {

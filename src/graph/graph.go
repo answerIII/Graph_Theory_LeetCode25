@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	algo "graph_theory/graph/algorithms"
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -160,6 +161,7 @@ func (g *Graph) FindWCC() ([][]Node, error) {
 	return algo.DFS(g.nodesSlice(), g.Adj, nil, nil, nil), nil
 }
 
+// TODO: number of SCC is not determined
 func (g *Graph) FindSCC() ([][]Node, error) {
 	if !g.Directed {
 		return nil, errors.New("can't find SCC in undirected graph")
@@ -184,6 +186,21 @@ func (g *Graph) FindSCC() ([][]Node, error) {
 	inverted := g.Inverted()
 
 	return algo.DFS(nodes, inverted.Adj, nil, nil, nil), nil
+}
+
+func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
+	source := []Node{randomNode}
+	farnodeA, _, err := algo.BFS(source, g.Adj, nil)
+	if err != nil {
+		log.Fatalf("Error in BFS: %v\n", err)
+	}
+
+	source[0] = farnodeA
+	_, diameter, err := algo.BFS(source, g.Adj, nil)
+	if err != nil {
+		log.Fatalf("Error in BFS: %v\n", err)
+	}
+	return diameter
 }
 
 func FromFile(filePath string, directed bool) (*Graph, error) {
