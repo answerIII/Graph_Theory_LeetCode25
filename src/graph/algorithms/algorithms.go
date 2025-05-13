@@ -1,6 +1,11 @@
 package graph
 
-func DFS[T comparable](
+import (
+	"golang.org/x/exp/constraints"
+	"sort"
+)
+
+func DFS[T constraints.Ordered](
 	nodes []T,
 	edges map[T]map[T]struct{},
 	used map[T]struct{},
@@ -50,7 +55,15 @@ func DFS[T comparable](
 					isProcessed bool
 				}{u, true})
 
+				neighbors := make([]T, 0, len(edges[u]))
 				for v := range edges[u] {
+					neighbors = append(neighbors, v)
+				}
+				sort.Slice(neighbors, func(i, j int) bool {
+					return neighbors[i] < neighbors[j]
+				})
+
+				for _, v := range neighbors {
 					if _, ok := used[v]; !ok {
 						stack = append(stack, struct {
 							node        T

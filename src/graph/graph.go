@@ -43,6 +43,9 @@ func (g *Graph) nodesSlice() []Node {
 	for node, _ := range g.Nodes {
 		nodes = append(nodes, node)
 	}
+	sort.Slice(nodes, func(i, j int) bool {
+		return nodes[i] < nodes[j]
+	})
 	return nodes
 }
 
