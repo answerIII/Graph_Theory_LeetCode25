@@ -6,10 +6,13 @@ import (
 	"fmt"
 	algo "graph_theory/graph/algorithms"
 	"log"
+	"math"
+	"math/rand/v2"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Node int
@@ -218,6 +221,115 @@ func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
 	}
 
 	return farNode.distance
+}
+
+func generateSampleNodes(
+	nodes []Node,
+	sampleN int,
+) [][]Node {
+	sampleN = int(min(int64(sampleN), int64(len(nodes))*int64(len(nodes)-1)))
+	type pair struct {
+		u, v Node
+	}
+	sampleNodes := make(map[pair]struct{})
+	compLen := len(nodes)
+
+	for len(sampleNodes) < sampleN {
+		u := nodes[rand.IntN(compLen)]
+		v := nodes[rand.IntN(compLen)]
+		if u == v {
+			continue
+		}
+		if u > v {
+			u, v = v, u
+		}
+		p := pair{u, v}
+		if _, exists := sampleNodes[p]; !exists {
+			sampleNodes[p] = struct{}{}
+		}
+	}
+
+	res := make([][]Node, 0, len(sampleNodes))
+	for k := range sampleNodes {
+		res = append(res, []Node{k.u, k.v})
+	}
+
+	return res
+}
+
+func GetDistancePercentile(
+	component []Node,
+	edges map[Node]map[Node]struct{},
+	percentile float64,
+	sampleN int,
+) (float64, error) {
+	sampleNodes := generateSampleNodes(component, sampleN)
+
+	type task struct {
+		from Node
+		to   Node
+	}
+	tasks := make(chan task)
+	results := make(chan int, len(sampleNodes))
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < sampleN; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for t := range tasks {
+				var nodeTargetDist int
+				_, err := algo.BFS(
+					[]Node{t.from},
+					edges,
+					nil,
+					nil,
+					func(n Node, d int) bool {
+						if n == t.to {
+							nodeTargetDist = d
+							return true
+						}
+						return false
+					},
+				)
+				if err != nil {
+					results <- -1
+					continue
+				}
+				results <- nodeTargetDist
+			}
+		}()
+	}
+
+	go func() {
+		for _, p := range sampleNodes {
+			tasks <- task{from: p[0], to: p[1]}
+		}
+		close(tasks)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	dists := make([]int, 0, len(sampleNodes))
+	for d := range results {
+		if d >= 0 {
+			dists = append(dists, d)
+		}
+	}
+
+	sort.Slice(dists, func(i, j int) bool {
+		return dists[i] < dists[j]
+	})
+
+	i := percentile*float64(sampleN+1) - 1
+	floor_i := int(math.Floor(i))
+	ans := float64(dists[floor_i]) + (i-float64(floor_i))*float64(dists[floor_i+1]-dists[floor_i])
+
+	return ans, nil
 }
 
 func FromFile(filePath string, directed bool) (*Graph, error) {

@@ -47,3 +47,24 @@ func TestGraph_GetDiameterDoubleSweep(t *testing.T) {
 		t.Logf("Diameter: %d", got)
 	})
 }
+
+func TestGraph_GetDistancePercentile(t *testing.T) {
+	t.Run("Subtest1", func(t *testing.T) {
+		wcc, err := graph.FindWCC()
+		if err != nil {
+			t.Errorf("FindWCC() error = %v", err)
+			return
+		}
+		wcc = SortComponents(wcc, true)
+		percentile90, err := GetDistancePercentile(
+			wcc[0],
+			graph.Adj,
+			0.9,
+			500,
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("90-percentile in largest WCC: %2.f", percentile90)
+	})
+}
