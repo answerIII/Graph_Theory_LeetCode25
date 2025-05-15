@@ -56,7 +56,7 @@ func main() {
 	writef("Количество SCC: %d\n", len(scc))
 	writef("Доля вершин в максимальной SCC: %.6f\n", float64(len(scc[0]))/float64(g.NumberOfNodes()))
 
-	randomNode := wcc[0][rand.IntN(len(wcc)-1)]
+	randomNode := wcc[0][rand.IntN(len(wcc[0])-1)]
 	diameter := ugraph.GetDiameterDoubleSweep(randomNode)
 	writef("Диаметр максимальной WCC, вычисленный методом The Double Sweep: %d\n", diameter)
 }

@@ -82,7 +82,7 @@ func DFS[T constraints.Ordered](
 }
 
 // BFS finds the farthest node from the starting node in an undirected graph.
-func BFS[T comparable](
+func BFS[T constraints.Ordered](
 	nodes []T,
 	edges map[T]map[T]struct{},
 	used map[T]struct{},
@@ -105,7 +105,15 @@ func BFS[T comparable](
 		u := queue[0]
 		queue = queue[1:]
 
-		for neighbor := range edges[u] {
+		neighbors := make([]T, 0, len(edges[u]))
+		for v := range edges[u] {
+			neighbors = append(neighbors, v)
+		}
+		sort.Slice(neighbors, func(i, j int) bool {
+			return neighbors[i] < neighbors[j]
+		})
+
+		for _, neighbor := range neighbors {
 			if _, ok := used[neighbor]; !ok {
 				used[neighbor] = struct{}{}
 				queue = append(queue, neighbor)

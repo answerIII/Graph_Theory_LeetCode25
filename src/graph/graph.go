@@ -164,7 +164,6 @@ func (g *Graph) FindWCC() ([][]Node, error) {
 	return algo.DFS(g.nodesSlice(), g.Adj, nil, nil, nil), nil
 }
 
-// TODO: number of SCC is not determined
 func (g *Graph) FindSCC() ([][]Node, error) {
 	if !g.Directed {
 		return nil, errors.New("can't find SCC in undirected graph")
