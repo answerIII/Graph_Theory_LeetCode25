@@ -81,50 +81,51 @@ func DFS[T constraints.Ordered](
 	return components
 }
 
-// BFS finds the farthest node from the starting node in an undirected graph.
 func BFS[T constraints.Ordered](
 	nodes []T,
 	edges map[T]map[T]struct{},
 	used map[T]struct{},
-) (T, int, error) {
+	onVisit func(T, int),
+	stopCond func(T, int) bool,
+) (map[T]int, error) {
 	if used == nil {
 		used = make(map[T]struct{})
 	}
 
-	maxDistanceNode := struct {
-		node     T
-		distance int
-	}{nodes[0], 0}
-
-	queue := []T{nodes[0]}
-	used[nodes[0]] = struct{}{}
 	distances := make(map[T]int)
-	distances[nodes[0]] = 0
 
-	for len(queue) > 0 {
-		u := queue[0]
-		queue = queue[1:]
+	for _, node := range nodes {
+		distances[node] = 0
+		queue := []T{node}
+		used[node] = struct{}{}
 
-		neighbors := make([]T, 0, len(edges[u]))
-		for v := range edges[u] {
-			neighbors = append(neighbors, v)
-		}
-		sort.Slice(neighbors, func(i, j int) bool {
-			return neighbors[i] < neighbors[j]
-		})
+		for len(queue) > 0 {
+			u := queue[0]
+			if onVisit != nil {
+				onVisit(u, distances[u])
+			}
+			if stopCond != nil && stopCond(u, distances[u]) {
+				return distances, nil
+			}
+			queue = queue[1:]
 
-		for _, neighbor := range neighbors {
-			if _, ok := used[neighbor]; !ok {
-				used[neighbor] = struct{}{}
-				queue = append(queue, neighbor)
-				distances[neighbor] = distances[u] + 1
-				if distances[neighbor] > maxDistanceNode.distance {
-					maxDistanceNode.node = neighbor
-					maxDistanceNode.distance = distances[neighbor]
+			neighbors := make([]T, 0, len(edges[u]))
+			for v := range edges[u] {
+				neighbors = append(neighbors, v)
+			}
+			sort.Slice(neighbors, func(i, j int) bool {
+				return neighbors[i] < neighbors[j]
+			})
+
+			for _, neighbor := range neighbors {
+				if _, ok := used[neighbor]; !ok {
+					used[neighbor] = struct{}{}
+					queue = append(queue, neighbor)
+					distances[neighbor] = distances[u] + 1
 				}
 			}
 		}
 	}
 
-	return maxDistanceNode.node, maxDistanceNode.distance, nil
+	return distances, nil
 }

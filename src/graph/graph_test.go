@@ -38,7 +38,7 @@ func TestGraph_GetDiameterDoubleSweep(t *testing.T) {
 		}
 		wcc = SortComponents(wcc, true)
 		t.Logf("Number of WCC: %d", len(wcc))
-		n := len(wcc)
+		n := len(wcc[0])
 		if n > 1 {
 			n--
 		}

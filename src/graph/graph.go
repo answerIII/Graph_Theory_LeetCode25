@@ -192,17 +192,32 @@ func (g *Graph) FindSCC() ([][]Node, error) {
 
 func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
 	source := []Node{randomNode}
-	farnodeA, _, err := algo.BFS(source, g.Adj, nil)
+
+	farNode := struct {
+		node     Node
+		distance int
+	}{randomNode, 0}
+
+	updFarNode := func(node Node, dist int) {
+		if dist > farNode.distance {
+			farNode.node = node
+			farNode.distance = dist
+		}
+	}
+
+	_, err := algo.BFS(source, g.Adj, nil, updFarNode, nil)
 	if err != nil {
 		log.Fatalf("Error in BFS: %v\n", err)
 	}
 
-	source[0] = farnodeA
-	_, diameter, err := algo.BFS(source, g.Adj, nil)
+	source[0] = farNode.node
+	farNode.distance = 0
+	_, err = algo.BFS(source, g.Adj, nil, updFarNode, nil)
 	if err != nil {
 		log.Fatalf("Error in BFS: %v\n", err)
 	}
-	return diameter
+
+	return farNode.distance
 }
 
 func FromFile(filePath string, directed bool) (*Graph, error) {
