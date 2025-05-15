@@ -23,7 +23,16 @@ def load_graph_from_file(filename: str, directed: bool = True) -> dict:
             G.add_edge(u, v)
 
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
-    return nx.to_dict_of_lists
+    return nx.to_dict_of_lists(G)
 
-def dfs(graph: dict):
-    return
+def dfs_iterative(graph: dict, visited: set, start):
+        
+    stack : list = []
+    stack.append(start)
+    while stack:
+        v = stack.pop()
+        if v not in visited:
+            visited.add(v)
+            for neighbor in graph[v]:
+                stack.append(neighbor)
+                
