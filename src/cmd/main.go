@@ -9,6 +9,12 @@ import (
 	"path/filepath"
 )
 
+const (
+	SnowballSize         int     = 500 // Number of nodes to include in snowball graph
+	Percentile           float64 = 0.9 // 90th percentile for distance calculation
+	PercentileSampleSize int     = 500 // Number of random node pairs to sample when estimating the percentile
+)
+
 func main() {
 	if len(os.Args) != 3 {
 		fmt.Println("Usage: go run main.go <graph_file> <output_file>")
@@ -18,24 +24,6 @@ func main() {
 	filePath := os.Args[1]
 	outputPath := os.Args[2]
 	graphName := getFileNameWithoutExt(filePath)
-
-	g, err := graph.FromFile(filePath, true)
-	if err != nil {
-		log.Fatalf("Error reading graph file: %v\n", err)
-	}
-
-	ugraph := g.CastToUndirected()
-
-	wcc, err := ugraph.FindWCC()
-	if err != nil {
-		log.Fatalf("Error finding WCC: %v\n", err)
-	}
-	scc, err := g.FindSCC()
-	if err != nil {
-		log.Fatalf("Error finding SCC: %v\n", err)
-	}
-	wcc = graph.SortComponents(wcc, true)
-	scc = graph.SortComponents(scc, true)
 
 	file, err := os.Create(outputPath)
 	if err != nil {
@@ -47,76 +35,130 @@ func main() {
 		_, _ = fmt.Fprintf(file, format, args...)
 	}
 
+	ugraph, sccCount, maxSccSize := loadAndPrepareGraph(filePath)
+
+	wcc := getWCC(ugraph)
+	randomNode := getRandomNode(wcc[0])
+	maxWCCDiameterTDS := ugraph.GetDiameterDoubleSweep(randomNode)
+
+	percentile := getPercentile(ugraph, wcc[0])
+	snowball := getSnowball(ugraph, wcc[0])
+	maxWCCDiameterSTDS := ugraph.GetDiameterDoubleSweep(getRandomNode(snowball))
+	snowballPercentile := getPercentile(ugraph, snowball)
+
+	triangles := getTriangles(ugraph)
+	avgCC := getAvgCC(ugraph, nil)
+	globalCC := getGlobalCC(ugraph, triangles)
+	avgCcWcc := getAvgCC(ugraph, wcc[0])
+
+	minD, avgD, maxD := getDegrees(ugraph)
+
+	// Output summary
 	writef("Сводная информация о графе %s:\n\n", graphName)
 	writef("Количество вершин: %d\n", ugraph.NumberOfNodes())
 	writef("Количество рёбер: %d\n", ugraph.NumberOfEdges())
 	writef("Плотность графа: %.6f\n", ugraph.Density())
 	writef("Количество WCC: %d\n", len(wcc))
-	writef("Доля вершин в максимальной WCC: %.6f\n", float64(len(wcc[0]))/float64(g.NumberOfNodes()))
-	writef("Количество SCC: %d\n", len(scc))
-	writef("Доля вершин в максимальной SCC: %.6f\n", float64(len(scc[0]))/float64(g.NumberOfNodes()))
-
-	randomNode := wcc[0][rand.IntN(len(wcc[0])-1)]
-	diameter := ugraph.GetDiameterDoubleSweep(randomNode)
-	writef("Диаметр максимальной WCC, вычисленный методом The Double Sweep: %d\n", diameter)
-
-	percentile90, err := ugraph.GetDistancePercentile(wcc[0], 0.9, 500)
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	writef("90 процентиль расстояния между вершинами графа: %.2f\n", percentile90)
-
-	snowballGraph, err := graph.GetSnowballGraph(wcc[0], ugraph.Adj, 500)
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	wccSnowball, err := snowballGraph.FindWCC()
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	randomNode = wccSnowball[0][rand.IntN(len(wccSnowball[0])-1)]
-	diameter = snowballGraph.GetDiameterDoubleSweep(randomNode)
-	percentile90, err = snowballGraph.GetDistancePercentile(wccSnowball[0], 0.9, 500)
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	writef("Диаметр максимальной WCC, вычисленный методом Snowball и The Double Sweep: %d\n", diameter)
-	writef("90 процентиль расстояния между вершинами графа, вычисленный методом Snowball: %.2f\n", percentile90)
-
-	triangles, err := ugraph.TrianglesNumber()
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
+	writef("Доля вершин в наибольшей WCC: %.6f\n", float64(len(wcc[0]))/float64(ugraph.NumberOfNodes()))
+	writef("Количество SCC: %d\n", sccCount)
+	writef("Доля вершин в наибольшей SCC: %.6f\n", float64(maxSccSize)/float64(ugraph.NumberOfNodes()))
+	writef("Диаметр наибольшей WCC (The Double Sweep): %d\n", maxWCCDiameterTDS)
+	writef("%d процентиль расстояний: %.2f\n", int(Percentile*100), percentile)
+	writef("Диаметр наибольшей WCC (Snowball + Double Sweep): %d\n", maxWCCDiameterSTDS)
+	writef("%d процентиль расстояний (Snowball): %.2f\n", int(Percentile*100), snowballPercentile)
 	writef("Количество треугольников: %d\n", triangles)
-
-	avgCC, err := ugraph.GetAverageClusteringCoefficient(nil)
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
 	writef("Средний коэффициент кластеризации: %.4f\n", avgCC)
-
-	glbCC, err := ugraph.GetGlobalClusteringCoefficient(triangles)
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	writef("Глобальный коэффициент кластеризации: %.4f\n", glbCC)
-
-	avgCcWcc, err := ugraph.GetAverageClusteringCoefficient(wcc[0])
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
-	writef("Средний коэффициент кластеризации для максимальной WCC: %.4f\n", avgCcWcc)
-	minD, avgD, maxD, err := ugraph.ProcessNodesDegrees("")
-	if err != nil {
-		_ = fmt.Errorf("raised error: %v", err)
-	}
+	writef("Глобальный коэффициент кластеризации: %.4f\n", globalCC)
+	writef("Средний коэффициент кластеризации (largest WCC): %.4f\n", avgCcWcc)
 	writef("Минимальная степень узлов: %d\n", minD)
 	writef("Средняя степень узлов: %.2f\n", avgD)
 	writef("Максимальная степень узлов: %d\n", maxD)
 }
 
+// Utility
+
 func getFileNameWithoutExt(path string) string {
 	base := filepath.Base(path)
-	ext := filepath.Ext(base)
-	return base[:len(base)-len(ext)]
+	return base[:len(base)-len(filepath.Ext(base))]
+}
+
+// Graph processing helpers
+
+func loadAndPrepareGraph(path string) (*graph.Graph, int, int) {
+	g, err := graph.FromFile(path, true)
+	if err != nil {
+		log.Fatalf("Error loading graph: %v", err)
+	}
+
+	scc, err := g.FindSCC()
+	if err != nil {
+		log.Fatalf("Error finding SCC: %v", err)
+	}
+
+	scc = graph.SortComponents(scc, true)
+	return g.CastToUndirected(), len(scc), len(scc[0])
+}
+
+func getWCC(g *graph.Graph) [][]graph.Node {
+	wcc, err := g.FindWCC()
+	if err != nil {
+		log.Fatalf("Error finding WCC: %v", err)
+	}
+	return graph.SortComponents(wcc, true)
+}
+
+func getRandomNode(nodes []graph.Node) graph.Node {
+	return nodes[rand.IntN(len(nodes))]
+}
+
+func getPercentile(g *graph.Graph, nodes []graph.Node) float64 {
+	val, err := g.GetDistancePercentile(nodes, Percentile, PercentileSampleSize)
+	if err != nil {
+		log.Printf("Error calculating percentile: %v", err)
+	}
+	return val
+}
+
+func getSnowball(g *graph.Graph, base []graph.Node) []graph.Node {
+	snowballGraph, err := graph.GetSnowballGraph(base, g.Adj, SnowballSize)
+	if err != nil {
+		log.Printf("Error building snowball: %v", err)
+	}
+	wcc, err := snowballGraph.FindWCC()
+	if err != nil {
+		log.Printf("Error finding WCC in snowball: %v", err)
+	}
+	return graph.SortComponents(wcc, true)[0]
+}
+
+func getTriangles(g *graph.Graph) int64 {
+	val, err := g.TrianglesNumber()
+	if err != nil {
+		log.Printf("Error counting triangles: %v", err)
+	}
+	return val
+}
+
+func getAvgCC(g *graph.Graph, nodes []graph.Node) float64 {
+	val, err := g.GetAverageClusteringCoefficient(nodes)
+	if err != nil {
+		log.Printf("Error calculating average clustering coefficient: %v", err)
+	}
+	return val
+}
+
+func getGlobalCC(g *graph.Graph, triangles int64) float64 {
+	val, err := g.GetGlobalClusteringCoefficient(triangles)
+	if err != nil {
+		log.Printf("Error calculating global clustering coefficient: %v", err)
+	}
+	return val
+}
+
+func getDegrees(g *graph.Graph) (int, float64, int) {
+	minD, avgD, maxD, err := g.ProcessNodesDegrees("")
+	if err != nil {
+		log.Printf("Error processing degrees: %v", err)
+	}
+	return minD, avgD, maxD
 }
