@@ -88,6 +88,18 @@ func main() {
 		_ = fmt.Errorf("raised error: %v", err)
 	}
 	writef("Количество треугольников: %d\n", triangles)
+
+	avgCC, err := ugraph.GetAverageClusteringCoefficient()
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("Средний коэффициент кластеризации: %.4f\n", avgCC)
+
+	glbCC, err := ugraph.GetGlobalClusteringCoefficient(triangles)
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("Глобальный коэффициент кластеризации: %.4f\n", glbCC)
 }
 
 func getFileNameWithoutExt(path string) string {

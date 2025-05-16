@@ -225,6 +225,76 @@ func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
 	return farNode.distance
 }
 
+func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
+
+	neighbours := g.Adj[node]
+	k := len(neighbours)
+	if k < 2 {
+		return 0, nil
+	}
+	edges := 0
+
+	for u := range neighbours {
+		for v := range neighbours {
+			if _, exists := g.Adj[v][u]; exists && u > v {
+				edges++
+			}
+		}
+	}
+
+	return float64(2*edges) / float64(k*(k-1)), nil
+}
+
+func (g *Graph) GetAverageClusteringCoefficient() (float64, error) {
+	if g.Directed {
+		return 0, fmt.Errorf("graph must be undirected")
+	}
+
+	var sum float64
+	var mu sync.Mutex
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(g.Nodes))
+	defer wp.Shutdown()
+
+	for node := range g.Nodes {
+		node := node
+		wp.Submit(func() error {
+			loc, err := g.GetLocalClusteringCoefficient(node)
+			if err != nil {
+				return err
+			}
+			mu.Lock()
+			sum += loc
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	wp.Wait()
+
+	return sum / float64(g.NumberOfNodes()), nil
+}
+
+func (g *Graph) GetGlobalClusteringCoefficient(triangles int64) (float64, error) {
+	if g.Directed {
+		return 0, fmt.Errorf("graph must be undirected")
+	}
+
+	if triangles < 0 {
+		var err error
+		triangles, err = g.TrianglesNumber()
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	sum := 0.0
+	for node := range g.Nodes {
+		l := len(g.Adj[node])
+		sum += float64(l * (l - 1) / 2)
+	}
+	return float64(3*triangles) / sum, nil
+}
+
 func generateSampleNodes(
 	nodes []Node,
 	sampleN int,

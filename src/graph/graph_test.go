@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const FILEPATH = "../datasets/very_large_graphs/vk.txt"
+const FILEPATH = "../datasets/directed/web-Google.txt"
 
 var graph *Graph
 
@@ -109,5 +109,27 @@ func TestGraph_TrianglesNumber(t *testing.T) {
 			return
 		}
 		t.Logf("Number of triangles: %d", n)
+	})
+}
+
+func TestGraph_GetAverageClusteringCoefficient(t *testing.T) {
+	t.Run("Average clustering coefficient", func(t *testing.T) {
+		avgCC, err := graph.GetAverageClusteringCoefficient()
+		if err != nil {
+			t.Errorf("GetAverageClusteringCoefficient() error = %v", err)
+			return
+		}
+		t.Logf("Average clustering coefficient: %.4f", avgCC)
+	})
+}
+
+func TestGraph_GetGlobalClusteringCoefficient(t *testing.T) {
+	t.Run("Global clustering coefficient", func(t *testing.T) {
+		glbCC, err := graph.GetGlobalClusteringCoefficient(-1)
+		if err != nil {
+			t.Errorf("GetGlobalClusteringCoefficient() error = %v", err)
+			return
+		}
+		t.Logf("Global clustering coefficient: %.4f", glbCC)
 	})
 }
