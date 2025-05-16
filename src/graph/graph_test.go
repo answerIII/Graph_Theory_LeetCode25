@@ -1,12 +1,14 @@
 package graph
 
 import (
+	"fmt"
 	"log"
 	"math/rand/v2"
+	"strings"
 	"testing"
 )
 
-const FILEPATH = "../datasets/directed/Wiki-Vote.txt"
+const FILEPATH = "../datasets/very_large_graphs/com-orkut.ungraph.txt"
 
 var graph *Graph
 
@@ -131,5 +133,21 @@ func TestGraph_GetGlobalClusteringCoefficient(t *testing.T) {
 			return
 		}
 		t.Logf("Global clustering coefficient: %.4f", glbCC)
+	})
+}
+
+func TestGraph_ProcessNodesDegrees(t *testing.T) {
+	t.Run("Process nodes degrees", func(t *testing.T) {
+		parts := strings.Split(FILEPATH, "/")
+		path := fmt.Sprintf("../visualization/data/degrees-%s", parts[len(parts)-1])
+		minD, avgD, maxD, err := graph.ProcessNodesDegrees(path)
+		if err != nil {
+			t.Errorf("ProcessNodesDegrees() error = %v", err)
+			return
+		}
+
+		t.Logf("Min degree: %d", minD)
+		t.Logf("Avg degree: %.2f", avgD)
+		t.Logf("Max degree: %d", maxD)
 	})
 }

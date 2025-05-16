@@ -299,6 +299,46 @@ func (g *Graph) GetGlobalClusteringCoefficient(triangles int64) (float64, error)
 	return float64(3*triangles) / sum, nil
 }
 
+func (g *Graph) ProcessNodesDegrees(filePath string) (minDeg int, avgDeg float64, maxDeg int, err error) {
+	degreesFrequency := make(map[int]int)
+
+	var sum int64
+	minDegree := math.MaxInt32
+	maxDegree := 0
+
+	for node := range g.Nodes {
+		degree := len(g.Adj[node])
+		if degree < minDegree {
+			minDegree = degree
+		}
+		if degree > maxDegree {
+			maxDegree = degree
+		}
+		sum += int64(degree)
+		degreesFrequency[degree]++
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	defer file.Close()
+
+	_, err = fmt.Fprint(file, "# degree frequency\n")
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	for degree, freq := range degreesFrequency {
+		_, err := fmt.Fprintf(file, "%d %d\n", degree, freq)
+		if err != nil {
+			return 0, 0, 0, err
+		}
+	}
+
+	avgDegree := float64(sum) / float64(len(g.Nodes))
+	return minDegree, avgDegree, maxDegree, nil
+}
+
 func generateSampleNodes(
 	nodes []Node,
 	sampleN int,
