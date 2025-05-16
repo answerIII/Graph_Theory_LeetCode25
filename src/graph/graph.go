@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	algo "graph_theory/graph/algorithms"
+	"graph_theory/workerpool"
 	"log"
 	"math"
 	"math/rand/v2"
@@ -263,65 +264,40 @@ func (g *Graph) GetDistancePercentile(
 	percentile float64,
 	sampleN int,
 ) (float64, error) {
-	workerCount := runtime.NumCPU()
-
 	sampleNodes := generateSampleNodes(component, sampleN)
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(sampleNodes))
+	defer wp.Shutdown()
 
-	type task struct {
-		from Node
-		to   Node
-	}
-	tasks := make(chan task)
-	results := make(chan int, len(sampleNodes))
-
-	var wg sync.WaitGroup
-
-	for i := 0; i < workerCount; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for t := range tasks {
-				var nodeTargetDist int
-				_, err := algo.BFS(
-					[]Node{t.from},
-					g.Adj,
-					nil,
-					nil,
-					func(n Node, d int) bool {
-						if n == t.to {
-							nodeTargetDist = d
-							return true
-						}
-						return false
-					},
-				)
-				if err != nil {
-					results <- -1
-					continue
-				}
-				results <- nodeTargetDist
-			}
-		}()
-	}
-
-	go func() {
-		for _, p := range sampleNodes {
-			tasks <- task{from: p[0], to: p[1]}
-		}
-		close(tasks)
-	}()
-
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
+	var mu sync.Mutex
 	dists := make([]int, 0, len(sampleNodes))
-	for d := range results {
-		if d >= 0 {
-			dists = append(dists, d)
-		}
+
+	for _, p := range sampleNodes {
+		p := p
+		wp.Submit(func() error {
+			var dist int
+			_, err := algo.BFS(
+				[]Node{p[0]},
+				g.Adj,
+				nil,
+				nil,
+				func(n Node, d int) bool {
+					if n == p[1] {
+						dist = d
+						return true
+					}
+					return false
+				},
+			)
+			if err == nil {
+				mu.Lock()
+				dists = append(dists, dist)
+				mu.Unlock()
+			}
+			return nil
+		})
 	}
+
+	wp.Wait()
 
 	sort.Slice(dists, func(i, j int) bool {
 		return dists[i] < dists[j]
@@ -338,10 +314,7 @@ func (g *Graph) TrianglesNumber() (int64, error) {
 	if g.Directed {
 		return 0, fmt.Errorf("graph must be undirected")
 	}
-	workers := runtime.NumCPU()
-
 	var triangles int64
-	var wg sync.WaitGroup
 	var mu sync.Mutex
 
 	nodes := make([]Node, 0, len(g.Nodes))
@@ -349,38 +322,42 @@ func (g *Graph) TrianglesNumber() (int64, error) {
 		nodes = append(nodes, node)
 	}
 
-	processChunk := func(start, end int) {
-		defer wg.Done()
-		var localTriangles int64
-		for i := start; i < end; i++ {
-			node1 := nodes[i]
-			neighbors := g.Adj[node1]
-			for node2 := range neighbors {
-				if node2 > node1 {
-					for node3 := range g.Adj[node2] {
-						if _, ok := neighbors[node3]; ok && node3 > node2 {
-							localTriangles++
-						}
-					}
-				}
-			}
-		}
-		mu.Lock()
-		triangles += localTriangles
-		mu.Unlock()
-	}
-
+	workers := runtime.NumCPU()
 	chunkSize := (len(nodes) + workers - 1) / workers
+
+	wp := workerpool.NewWorkerPool(workers, len(nodes)/chunkSize+1)
+	defer wp.Shutdown()
+
 	for i := 0; i < len(nodes); i += chunkSize {
+		start := i
 		end := i + chunkSize
 		if end > len(nodes) {
 			end = len(nodes)
 		}
-		wg.Add(1)
-		go processChunk(i, end)
+		wp.Submit(func() error {
+			var local int64
+			for j := start; j < end; j++ {
+				node1 := nodes[j]
+				neighbors := g.Adj[node1]
+				for node2 := range neighbors {
+					if node2 > node1 {
+						for node3 := range g.Adj[node2] {
+							if _, ok := neighbors[node3]; ok && node3 > node2 {
+								local++
+							}
+						}
+					}
+				}
+			}
+			mu.Lock()
+			triangles += local
+			mu.Unlock()
+			return nil
+		})
 	}
 
-	wg.Wait()
+	wp.Wait()
+
 	return triangles, nil
 }
 
