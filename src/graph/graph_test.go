@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const FILEPATH = "../datasets/directed/web-Google.txt"
+const FILEPATH = "../datasets/very_large_graphs/vk.txt"
 
 var graph *Graph
 
@@ -56,12 +56,7 @@ func TestGraph_GetDistancePercentile(t *testing.T) {
 			return
 		}
 		wcc = SortComponents(wcc, true)
-		percentile90, err := GetDistancePercentile(
-			wcc[0],
-			graph.Adj,
-			0.9,
-			500,
-		)
+		percentile90, err := graph.GetDistancePercentile(wcc[0], 0.9, 500)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,16 +92,22 @@ func TestGraph_GetSnowballGraph(t *testing.T) {
 		randomNode := wcc[0][rand.IntN(len(wcc[0]))]
 		got := subgraph.GetDiameterDoubleSweep(randomNode)
 		t.Logf("Diameter: %d", got)
-		percentile90, err := GetDistancePercentile(
-			wcc[0],
-			subgraph.Adj,
-			0.9,
-			500,
-		)
+		percentile90, err := subgraph.GetDistancePercentile(wcc[0], 0.9, 500)
 		if err != nil {
 			t.Errorf("GetDistancePercentile() error in subgraph = %v", err)
 			return
 		}
 		t.Logf("90 percentile: %.2f", percentile90)
+	})
+}
+
+func TestGraph_TrianglesNumber(t *testing.T) {
+	t.Run("Count triangles", func(t *testing.T) {
+		n, err := graph.TrianglesNumber()
+		if err != nil {
+			t.Errorf("TrianglesNumber() error = %v", err)
+			return
+		}
+		t.Logf("Number of triangles: %d", n)
 	})
 }

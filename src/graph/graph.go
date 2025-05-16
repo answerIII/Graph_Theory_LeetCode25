@@ -258,9 +258,8 @@ func generateSampleNodes(
 	return res
 }
 
-func GetDistancePercentile(
+func (g *Graph) GetDistancePercentile(
 	component []Node,
-	edges map[Node]map[Node]struct{},
 	percentile float64,
 	sampleN int,
 ) (float64, error) {
@@ -285,7 +284,7 @@ func GetDistancePercentile(
 				var nodeTargetDist int
 				_, err := algo.BFS(
 					[]Node{t.from},
-					edges,
+					g.Adj,
 					nil,
 					nil,
 					func(n Node, d int) bool {
@@ -333,6 +332,56 @@ func GetDistancePercentile(
 	ans := float64(dists[floor_i]) + (i-float64(floor_i))*float64(dists[floor_i+1]-dists[floor_i])
 
 	return ans, nil
+}
+
+func (g *Graph) TrianglesNumber() (int64, error) {
+	if g.Directed {
+		return 0, fmt.Errorf("graph must be undirected")
+	}
+	workers := runtime.NumCPU()
+
+	var triangles int64
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	nodes := make([]Node, 0, len(g.Nodes))
+	for node := range g.Nodes {
+		nodes = append(nodes, node)
+	}
+
+	processChunk := func(start, end int) {
+		defer wg.Done()
+		var localTriangles int64
+		for i := start; i < end; i++ {
+			node1 := nodes[i]
+			neighbors := g.Adj[node1]
+			for node2 := range neighbors {
+				if node2 > node1 {
+					for node3 := range g.Adj[node2] {
+						if _, ok := neighbors[node3]; ok && node3 > node2 {
+							localTriangles++
+						}
+					}
+				}
+			}
+		}
+		mu.Lock()
+		triangles += localTriangles
+		mu.Unlock()
+	}
+
+	chunkSize := (len(nodes) + workers - 1) / workers
+	for i := 0; i < len(nodes); i += chunkSize {
+		end := i + chunkSize
+		if end > len(nodes) {
+			end = len(nodes)
+		}
+		wg.Add(1)
+		go processChunk(i, end)
+	}
+
+	wg.Wait()
+	return triangles, nil
 }
 
 func generateSnowballSample(
