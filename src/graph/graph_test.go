@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const FILEPATH = "../datasets/directed/web-Google.txt"
+const FILEPATH = "../datasets/directed/Wiki-Vote.txt"
 
 var graph *Graph
 
@@ -114,7 +114,7 @@ func TestGraph_TrianglesNumber(t *testing.T) {
 
 func TestGraph_GetAverageClusteringCoefficient(t *testing.T) {
 	t.Run("Average clustering coefficient", func(t *testing.T) {
-		avgCC, err := graph.GetAverageClusteringCoefficient()
+		avgCC, err := graph.GetAverageClusteringCoefficient(nil)
 		if err != nil {
 			t.Errorf("GetAverageClusteringCoefficient() error = %v", err)
 			return

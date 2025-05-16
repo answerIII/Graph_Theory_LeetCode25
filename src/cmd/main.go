@@ -89,7 +89,7 @@ func main() {
 	}
 	writef("Количество треугольников: %d\n", triangles)
 
-	avgCC, err := ugraph.GetAverageClusteringCoefficient()
+	avgCC, err := ugraph.GetAverageClusteringCoefficient(nil)
 	if err != nil {
 		_ = fmt.Errorf("raised error: %v", err)
 	}
@@ -100,6 +100,12 @@ func main() {
 		_ = fmt.Errorf("raised error: %v", err)
 	}
 	writef("Глобальный коэффициент кластеризации: %.4f\n", glbCC)
+
+	avgCcWcc, err := ugraph.GetAverageClusteringCoefficient(wcc[0])
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("Средний коэффициент кластеризации для максимальной WCC: %.4f\n", avgCcWcc)
 }
 
 func getFileNameWithoutExt(path string) string {

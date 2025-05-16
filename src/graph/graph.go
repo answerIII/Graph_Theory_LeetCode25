@@ -245,17 +245,21 @@ func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
 	return float64(2*edges) / float64(k*(k-1)), nil
 }
 
-func (g *Graph) GetAverageClusteringCoefficient() (float64, error) {
+func (g *Graph) GetAverageClusteringCoefficient(nodes []Node) (float64, error) {
 	if g.Directed {
 		return 0, fmt.Errorf("graph must be undirected")
 	}
 
+	if nodes == nil {
+		nodes = g.nodesSlice()
+	}
+
 	var sum float64
 	var mu sync.Mutex
-	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(g.Nodes))
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(nodes))
 	defer wp.Shutdown()
 
-	for node := range g.Nodes {
+	for _, node := range nodes {
 		node := node
 		wp.Submit(func() error {
 			loc, err := g.GetLocalClusteringCoefficient(node)
@@ -271,7 +275,7 @@ func (g *Graph) GetAverageClusteringCoefficient() (float64, error) {
 
 	wp.Wait()
 
-	return sum / float64(g.NumberOfNodes()), nil
+	return sum / float64(len(nodes)), nil
 }
 
 func (g *Graph) GetGlobalClusteringCoefficient(triangles int64) (float64, error) {
