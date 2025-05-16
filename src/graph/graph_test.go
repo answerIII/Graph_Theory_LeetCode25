@@ -68,3 +68,45 @@ func TestGraph_GetDistancePercentile(t *testing.T) {
 		t.Logf("90-percentile in largest WCC: %2.f", percentile90)
 	})
 }
+
+func TestGraph_GetSnowballGraph(t *testing.T) {
+	t.Run("Test Generate Snowball Graph", func(t *testing.T) {
+		wcc, err := graph.FindWCC()
+		if err != nil {
+			t.Errorf("FindWCC() error = %v", err)
+			return
+		}
+		wcc = SortComponents(wcc, true)
+
+		subgraph, err := GetSnowballGraph(wcc[0], graph.Adj, 500)
+		if err != nil {
+			t.Errorf("GetSnowballGraph() error = %v", err)
+			return
+		}
+
+		wcc, err = subgraph.FindWCC()
+		if err != nil {
+			t.Errorf("FindWCC() error in subgraph = %v", err)
+			return
+		}
+		wcc = SortComponents(wcc, true)
+
+		t.Logf("Subgraph info:\n")
+		t.Logf("Number of nodes: %d\n", subgraph.NumberOfNodes())
+		t.Logf("Number of edges: %d\n", subgraph.NumberOfEdges())
+		randomNode := wcc[0][rand.IntN(len(wcc[0]))]
+		got := subgraph.GetDiameterDoubleSweep(randomNode)
+		t.Logf("Diameter: %d", got)
+		percentile90, err := GetDistancePercentile(
+			wcc[0],
+			subgraph.Adj,
+			0.9,
+			500,
+		)
+		if err != nil {
+			t.Errorf("GetDistancePercentile() error in subgraph = %v", err)
+			return
+		}
+		t.Logf("90 percentile: %.2f", percentile90)
+	})
+}

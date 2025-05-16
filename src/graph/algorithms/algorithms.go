@@ -85,7 +85,7 @@ func BFS[T constraints.Ordered](
 	nodes []T,
 	edges map[T]map[T]struct{},
 	used map[T]struct{},
-	onVisit func(T, int),
+	onVisit func(T, T, int),
 	stopCond func(T, int) bool,
 ) (map[T]int, error) {
 	if used == nil {
@@ -101,12 +101,6 @@ func BFS[T constraints.Ordered](
 
 		for len(queue) > 0 {
 			u := queue[0]
-			if onVisit != nil {
-				onVisit(u, distances[u])
-			}
-			if stopCond != nil && stopCond(u, distances[u]) {
-				return distances, nil
-			}
 			queue = queue[1:]
 
 			neighbors := make([]T, 0, len(edges[u]))
@@ -122,6 +116,12 @@ func BFS[T constraints.Ordered](
 					used[neighbor] = struct{}{}
 					queue = append(queue, neighbor)
 					distances[neighbor] = distances[u] + 1
+					if onVisit != nil {
+						onVisit(neighbor, u, distances[neighbor])
+					}
+					if stopCond != nil && stopCond(neighbor, distances[neighbor]) {
+						return distances, nil
+					}
 				}
 			}
 		}

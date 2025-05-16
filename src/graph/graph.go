@@ -202,7 +202,7 @@ func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
 		distance int
 	}{randomNode, 0}
 
-	updFarNode := func(node Node, dist int) {
+	updFarNode := func(node, parent Node, dist int) {
 		if dist > farNode.distance {
 			farNode.node = node
 			farNode.distance = dist
@@ -333,6 +333,56 @@ func GetDistancePercentile(
 	ans := float64(dists[floor_i]) + (i-float64(floor_i))*float64(dists[floor_i+1]-dists[floor_i])
 
 	return ans, nil
+}
+
+func generateSnowballSample(
+	component []Node,
+	edges map[Node]map[Node]struct{},
+) []Node {
+	startNode := component[rand.IntN(len(component))]
+	neighbors := make([]Node, 0, len(edges[startNode]))
+	for k := range edges[startNode] {
+		neighbors = append(neighbors, k)
+	}
+
+	nodes := make([]Node, 0, 3)
+	nodes = append(nodes, startNode)
+	nodes = append(nodes, neighbors[rand.IntN(len(neighbors))])
+	if len(neighbors) > 1 {
+		newNode := neighbors[rand.IntN(len(neighbors))]
+		for newNode == nodes[1] {
+			newNode = neighbors[rand.IntN(len(neighbors))]
+		}
+		nodes = append(nodes, newNode)
+	}
+	return nodes
+}
+
+func GetSnowballGraph(
+	component []Node,
+	edges map[Node]map[Node]struct{},
+	maxNodeN int,
+) (*Graph, error) {
+	snowballSample := generateSnowballSample(component, edges)
+
+	subgraph := NewGraph(false)
+
+	subgraph.AddNode(snowballSample[0])
+	stopCond := func(node Node, length int) bool {
+		return subgraph.NumberOfNodes() >= min(maxNodeN, len(component))
+	}
+
+	onVisit := func(node, parent Node, length int) {
+		subgraph.AddNode(node)
+		subgraph.AddEdge(node, parent)
+	}
+
+	_, err := algo.BFS(snowballSample, edges, nil, onVisit, stopCond)
+	if err != nil {
+		return nil, err
+	}
+
+	return subgraph, nil
 }
 
 func FromFile(filePath string, directed bool) (*Graph, error) {

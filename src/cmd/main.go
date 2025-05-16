@@ -59,6 +59,34 @@ func main() {
 	randomNode := wcc[0][rand.IntN(len(wcc[0])-1)]
 	diameter := ugraph.GetDiameterDoubleSweep(randomNode)
 	writef("Диаметр максимальной WCC, вычисленный методом The Double Sweep: %d\n", diameter)
+
+	percentile90, err := graph.GetDistancePercentile(
+		wcc[0],
+		ugraph.Adj,
+		0.9,
+		500,
+	)
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("90 процентиль расстояния между вершинами графа: %.2f\n", percentile90)
+
+	snowballGraph, err := graph.GetSnowballGraph(wcc[0], ugraph.Adj, 500)
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	wccSnowball, err := snowballGraph.FindWCC()
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	randomNode = wccSnowball[0][rand.IntN(len(wccSnowball[0])-1)]
+	diameter = snowballGraph.GetDiameterDoubleSweep(randomNode)
+	percentile90, err = graph.GetDistancePercentile(wccSnowball[0], snowballGraph.Adj, 0.9, 500)
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("Диаметр максимальной WCC, вычисленный методом Snowball и The Double Sweep: %d\n", diameter)
+	writef("90 процентиль расстояния между вершинами графа, вычисленный методом Snowball: %.2f\n", percentile90)
 }
 
 func getFileNameWithoutExt(path string) string {
