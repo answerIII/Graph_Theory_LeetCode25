@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"os"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -263,6 +264,8 @@ func GetDistancePercentile(
 	percentile float64,
 	sampleN int,
 ) (float64, error) {
+	workerCount := runtime.NumCPU()
+
 	sampleNodes := generateSampleNodes(component, sampleN)
 
 	type task struct {
@@ -274,7 +277,7 @@ func GetDistancePercentile(
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < sampleN; i++ {
+	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
