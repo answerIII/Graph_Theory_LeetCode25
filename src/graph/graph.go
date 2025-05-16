@@ -318,20 +318,22 @@ func (g *Graph) ProcessNodesDegrees(filePath string) (minDeg int, avgDeg float64
 		degreesFrequency[degree]++
 	}
 
-	file, err := os.Create(filePath)
-	if err != nil {
-		return 0, 0, 0, err
-	}
-	defer file.Close()
-
-	_, err = fmt.Fprint(file, "# degree frequency\n")
-	if err != nil {
-		return 0, 0, 0, err
-	}
-	for degree, freq := range degreesFrequency {
-		_, err := fmt.Fprintf(file, "%d %d\n", degree, freq)
+	if filePath != "" {
+		file, err := os.Create(filePath)
 		if err != nil {
 			return 0, 0, 0, err
+		}
+		defer file.Close()
+
+		_, err = fmt.Fprint(file, "# degree frequency\n")
+		if err != nil {
+			return 0, 0, 0, err
+		}
+		for degree, freq := range degreesFrequency {
+			_, err := fmt.Fprintf(file, "%d %d\n", degree, freq)
+			if err != nil {
+				return 0, 0, 0, err
+			}
 		}
 	}
 

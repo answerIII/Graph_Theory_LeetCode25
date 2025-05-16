@@ -106,6 +106,13 @@ func main() {
 		_ = fmt.Errorf("raised error: %v", err)
 	}
 	writef("Средний коэффициент кластеризации для максимальной WCC: %.4f\n", avgCcWcc)
+	minD, avgD, maxD, err := ugraph.ProcessNodesDegrees("")
+	if err != nil {
+		_ = fmt.Errorf("raised error: %v", err)
+	}
+	writef("Минимальная степень узлов: %d\n", minD)
+	writef("Средняя степень узлов: %.2f\n", avgD)
+	writef("Максимальная степень узлов: %d\n", maxD)
 }
 
 func getFileNameWithoutExt(path string) string {
