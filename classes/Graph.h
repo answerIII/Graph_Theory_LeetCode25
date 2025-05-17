@@ -72,17 +72,18 @@ class DirectedGraph : public Graph {
         for (auto& [num,node] : nodes) {
             if (!node.marked) {
                 std::vector<Node*> component;
-                std::stack<Node*> stack;
-                stack.push(&node);
+                std::queue<Node*> queue;
+                queue.push(&node);
+                node.marked = true;
                 int nodeCount = 0;
-                while (!stack.empty()) {
-                    Node* currentNode = stack.top(); stack.pop();
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
                     component.push_back(currentNode);
                     ++nodeCount;
-                    currentNode->marked = true;
-                    for (int neighborhood : paths[currentNode->num]) {
+                    for (int neighborhood : undirectedPaths[currentNode->num]) {
                         if (nodes[neighborhood].marked != true) {
-                            stack.push(&nodes[neighborhood]);
+                            nodes[neighborhood].marked = true;
+                            queue.push(&nodes[neighborhood]);
                         }
                     }
                 }
@@ -156,15 +157,16 @@ class DirectedGraph : public Graph {
             Node* node = *it;
             if (!node->marked) {
                 std::vector <Node*> component;
-                std::stack <Node*> stack;
-                stack.push(node);
-                while (!stack.empty()) {
-                    Node* currentNode = stack.top(); stack.pop();
+                std::queue <Node*> queue;
+                queue.push(node);
+                node->marked = true;
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
                     component.push_back(currentNode);
-                    currentNode->marked = true;
                     for (int neighborhood : transposePaths[currentNode->num]) {
                         if (nodes[neighborhood].marked != true) {
-                            stack.push(&nodes[neighborhood]);
+                            nodes[neighborhood].marked = true;
+                            queue.push(&nodes[neighborhood]);
                         }
                     }
                 }
@@ -183,7 +185,8 @@ class DirectedGraph : public Graph {
 
         if (weekComponents.empty()) initWeekComponents();
 
-        int randomIndex = (rand()+1718) % weekComponents[0].size();
+        int randomIndex = 1718 % weekComponents[0].size();
+        std::cout << weekComponents[0].size() << std::endl;
         Node* r  = weekComponents[0][randomIndex];
         std::pair<int, Node*> a = getFarthestVertex(r);
         std::pair<int, Node*> b = getFarthestVertex(a.second);
@@ -324,12 +327,12 @@ class DirectedGraph : public Graph {
 
 public:
 
-    int getWeekComponentCount() {
+    size_t getWeekComponentCount() {
         if (weekComponents.empty()) initWeekComponents();
         return weekComponents.size();
     }
 
-    int getStrongestComponentCount() {
+    size_t getStrongestComponentCount() {
         if (strongComponents.empty()) initStrongComponents();
         return strongComponents.size();
     }
@@ -358,14 +361,24 @@ public:
         if (percentileB == 0) init90PercentileB();
         return percentileB;
     }
+
     int get90PercentileC() {
         if (percentileC == 0) init90PercentileC();
         return percentileC;
     }
 
+    size_t getCountNodesInLargestWCC() {
+        if (weekComponents.empty()) initWeekComponents();
+        return weekComponents[0].size();
+    }
+
+    size_t getCountNodesInLargestSCC() {
+        if (weekComponents.empty()) initStrongComponents();
+        return strongComponents[0].size();
+    }
+
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
-
 };
 
 class UndirectedGraph : public Graph {

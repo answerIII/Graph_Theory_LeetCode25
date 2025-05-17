@@ -5,11 +5,11 @@
 class Parser {
 public:
     virtual ~Parser() = default;
-    virtual Graph parse(const char* file, bool directed) = 0;
+    virtual Graph* parse(const char* file, bool directed) = 0;
 };
 class TxtParser : public Parser {
 public:
-    Graph parse(const char* file, bool directed) override {
+    Graph* parse(const char* file, bool directed) override {
         std::ifstream inFile(file);
         if (!inFile) {
             throw std::runtime_error("Failed to open file");
@@ -50,7 +50,7 @@ public:
             paths[from].push_back(to);
             if (!directed){paths[to].push_back(from);}
         }
-        return Graph(vertexes, paths, vertexCount,edgeCount);
+        return new Graph(vertexes, paths, vertexCount,edgeCount);
     }
 };
 #endif //PARSER_H

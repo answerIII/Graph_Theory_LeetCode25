@@ -7,10 +7,15 @@ int main(const int argc, const char *argv[]) {
     validateArgs(argc, argv);
     bool directed = (std::string(argv[2]) == std::string("directed"));
     TxtParser parser;
-    Graph graph(parser.parse(argv[1], directed));
-    DirectedGraph directedGraph(graph);
+    Graph* graph(parser.parse(argv[1], directed));
+
+    DirectedGraph directedGraph(*graph);
+    std::cout << directedGraph.getCountNodesInLargestSCC() << std::endl;
+    std::cout << directedGraph.getCountNodesInLargestWCC() << std::endl;
     std::cout << directedGraph.getApproximateDiameter() << std::endl;
-    std::cout << directedGraph.get90PercentileB() << std::endl;
-    std::cout << directedGraph.get90PercentileC() << std::endl;
+    std::cout << directedGraph.getGraphDiameter() << std::endl;
+
+
+    delete graph;
     return 0;
 }
