@@ -1,35 +1,34 @@
 package graph
 
 import (
-	"golang.org/x/exp/constraints"
 	"sort"
 )
 
-func DFS[T constraints.Ordered](
-	nodes []T,
-	edges map[T]map[T]struct{},
-	used map[T]struct{},
-	onIn, onOut func(T),
-) [][]T {
+func DFS(
+	graph *Graph,
+	startNodes []Node,
+	used map[Node]struct{},
+	onIn, onOut func(Node),
+) [][]Node {
 	if used == nil {
-		used = make(map[T]struct{})
+		used = make(map[Node]struct{})
 	}
 
-	var components [][]T
+	var components [][]Node
 
-	for _, node := range nodes {
+	for _, node := range startNodes {
 		if _, ok := used[node]; ok {
 			continue
 		}
 
 		var stack []struct {
-			node        T
+			node        Node
 			isProcessed bool
 		}
-		var path []T
+		var path []Node
 
 		stack = append(stack, struct {
-			node        T
+			node        Node
 			isProcessed bool
 		}{node, false})
 		used[node] = struct{}{}
@@ -51,14 +50,11 @@ func DFS[T constraints.Ordered](
 				}
 
 				stack = append(stack, struct {
-					node        T
+					node        Node
 					isProcessed bool
 				}{u, true})
 
-				neighbors := make([]T, 0, len(edges[u]))
-				for v := range edges[u] {
-					neighbors = append(neighbors, v)
-				}
+				neighbors := graph.GetNeighborsRandomSlice(u)
 				sort.Slice(neighbors, func(i, j int) bool {
 					return neighbors[i] < neighbors[j]
 				})
@@ -66,7 +62,7 @@ func DFS[T constraints.Ordered](
 				for _, v := range neighbors {
 					if _, ok := used[v]; !ok {
 						stack = append(stack, struct {
-							node        T
+							node        Node
 							isProcessed bool
 						}{v, false})
 						used[v] = struct{}{}
@@ -81,32 +77,29 @@ func DFS[T constraints.Ordered](
 	return components
 }
 
-func BFS[T constraints.Ordered](
-	nodes []T,
-	edges map[T]map[T]struct{},
-	used map[T]struct{},
-	onVisit func(T, T, int),
-	stopCond func(T, int) bool,
-) (map[T]int, error) {
+func BFS(
+	graph *Graph,
+	startNodes []Node,
+	used map[Node]struct{},
+	onVisit func(Node, Node, int),
+	stopCond func(Node, int) bool,
+) (map[Node]int, error) {
 	if used == nil {
-		used = make(map[T]struct{})
+		used = make(map[Node]struct{})
 	}
 
-	distances := make(map[T]int)
+	distances := make(map[Node]int)
 
-	for _, node := range nodes {
+	for _, node := range startNodes {
 		distances[node] = 0
-		queue := []T{node}
+		queue := []Node{node}
 		used[node] = struct{}{}
 
 		for len(queue) > 0 {
 			u := queue[0]
 			queue = queue[1:]
 
-			neighbors := make([]T, 0, len(edges[u]))
-			for v := range edges[u] {
-				neighbors = append(neighbors, v)
-			}
+			neighbors := graph.GetNeighborsRandomSlice(u)
 			sort.Slice(neighbors, func(i, j int) bool {
 				return neighbors[i] < neighbors[j]
 			})

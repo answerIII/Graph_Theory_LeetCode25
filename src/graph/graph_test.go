@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const FILEPATH = "../datasets/very_large_graphs/com-orkut.ungraph.txt"
+const FILEPATH = "../datasets/directed/web-Stanford.txt"
 
 var graph *Graph
 
@@ -75,7 +75,7 @@ func TestGraph_GetSnowballGraph(t *testing.T) {
 		}
 		wcc = SortComponents(wcc, true)
 
-		subgraph, err := GetSnowballGraph(wcc[0], graph.Adj, 500)
+		subgraph, err := GetSnowballGraph(graph, wcc[0], 500)
 		if err != nil {
 			t.Errorf("GetSnowballGraph() error = %v", err)
 			return
