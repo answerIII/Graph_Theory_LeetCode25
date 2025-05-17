@@ -25,6 +25,7 @@ func main() {
 	outputPath := os.Args[2]
 	graphName := getFileNameWithoutExt(filePath)
 
+	log.Printf("Создание файла: %s\n", outputPath)
 	file, err := os.Create(outputPath)
 	if err != nil {
 		log.Fatalf("Error creating output file: %v\n", err)
@@ -35,25 +36,38 @@ func main() {
 		_, _ = fmt.Fprintf(file, format, args...)
 	}
 
+	log.Println("Чтение и создание графа из файла")
 	ugraph, sccCount, maxSccSize := loadAndPrepareGraph(filePath)
 
+	log.Println("Поиск компонент слабой связности в неорграфе")
 	wcc := getWCC(ugraph)
 	randomNode := getRandomNode(wcc[0])
+	log.Println("Расчет диаметра методом Double Sweep")
 	maxWCCDiameterTDS := ugraph.GetDiameterDoubleSweep(randomNode)
 
+	log.Printf("Расчет %.2f процентиля\n", Percentile*100)
 	percentile := getPercentile(ugraph, wcc[0])
+	log.Println("Генерация подграфа методом Snowball")
 	snowball := getSnowball(ugraph, wcc[0])
+	log.Println("Расчет диаметра методом Double Sweep на snowball подграфе")
 	maxWCCDiameterSTDS := ugraph.GetDiameterDoubleSweep(getRandomNode(snowball))
+	log.Printf("Расчет %.2f процентиля на snowball подграфе\n", Percentile*100)
 	snowballPercentile := getPercentile(ugraph, snowball)
 
+	log.Println("Подсчет треугольников в неорграфе")
 	triangles := getTriangles(ugraph)
+	log.Println("Нахождение среднего коэффициента кластеризации на неорграфе")
 	avgCC := getAvgCC(ugraph, nil)
+	log.Println("Нахождение глобального коэффициента кластеризации на неорграфе")
 	globalCC := getGlobalCC(ugraph, triangles)
+	log.Println("Нахождение среднего коэффициента кластеризации на наибольшей компоненте слабой связности")
 	avgCcWcc := getAvgCC(ugraph, wcc[0])
 
+	log.Println("Расчет степеней вершин неорграфа")
 	minD, avgD, maxD := getDegrees(ugraph)
 
 	// Output summary
+	log.Println("Запись сводной информации о графе в файл")
 	writef("Сводная информация о графе %s:\n\n", graphName)
 	writef("Количество вершин: %d\n", ugraph.NumberOfNodes())
 	writef("Количество рёбер: %d\n", ugraph.NumberOfEdges())
@@ -90,12 +104,15 @@ func loadAndPrepareGraph(path string) (*graph.Graph, int, int) {
 		log.Fatalf("Error loading graph: %v", err)
 	}
 
+	log.Println("Нахождение компонент сильной связности")
 	scc, err := g.FindSCC()
 	if err != nil {
 		log.Fatalf("Error finding SCC: %v", err)
 	}
 
+	log.Println("Сортировка компонент сильной связности")
 	scc = graph.SortComponents(scc, true)
+	log.Println("Преобразование орграфа в неорграф")
 	return g.CastToUndirected(), len(scc), len(scc[0])
 }
 
@@ -120,7 +137,7 @@ func getPercentile(g *graph.Graph, nodes []graph.Node) float64 {
 }
 
 func getSnowball(g *graph.Graph, base []graph.Node) []graph.Node {
-	snowballGraph, err := graph.GetSnowballGraph(base, g.Adj, SnowballSize)
+	snowballGraph, err := graph.GetSnowballGraph(g, base, SnowballSize)
 	if err != nil {
 		log.Printf("Error building snowball: %v", err)
 	}
