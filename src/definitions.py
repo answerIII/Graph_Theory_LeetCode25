@@ -1,6 +1,30 @@
 from os import path
 
+MAX_RECURSION_LIMIT = 4000000
+
 PROJECT_ROOT_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+
+DIRECTED_FILE_NAMES = [
+    "Wiki-Vote.txt",
+    "soc-wiki-Vote.mtx",
+    "web-Google.txt",
+    "web-NotreDame.txt",
+    "web-Stanford.txt",
+]
+
+UNDIRECTED_FILE_NAMES = [
+    "CA-AstroPh.txt",
+    "CA-GrQc.txt",
+    "Email-EuAll.txt",
+    "ca-coauthors-dblp.txt",
+    "musae_git_edges.csv"
+]
+
+LARGE_UNDIRECTED_FILE_NAMES = [
+    "com-orkut.ungraph.txt",
+    # "com-youtube.ungraph.txt",
+    # "vk.csv"
+]
 
 DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/directed/"
 DATASETS_UNDIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/undirected/"

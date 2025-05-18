@@ -60,7 +60,7 @@ def reformatCSVGraphFile(input_file_path: str, output_file_path: str) -> None:
     input_file.seek(0)
     output_file = open(Path(output_file_path), mode='w')
     input_file.readline()
-    output_file.write(f"{len(new_nodes_id_map)} {total_edges}\n")
+    output_file.write(f"{len(new_nodes_id_map)},{total_edges}\n")
     for input_file_line in input_file:
         node1, node2, *_ = map(int, input_file_line.split(sep=","))
         output_file.write(
@@ -123,12 +123,12 @@ mtx_dataset_path_pairs = [
 
 
 if __name__ == "__main__":
-    for input_file_path, output_file_path in txt_datasets_path_pairs:
-        print(f"Processing: {input_file_path}")
-        reformatTXTGraphFile(input_file_path, output_file_path)
+    # for input_file_path, output_file_path in txt_datasets_path_pairs:
+    #     print(f"Processing: {input_file_path}")
+    #     reformatTXTGraphFile(input_file_path, output_file_path)
     for input_file_path, output_file_path in csv_datasets_path_pairs:
         print(f"Processing: {input_file_path}")
         reformatCSVGraphFile(input_file_path, output_file_path)
-    for input_file_path, output_file_path in mtx_dataset_path_pairs:
-        print(f"Processing: {input_file_path}")
-        reformatMTXGraphFile(input_file_path, output_file_path)
+    # for input_file_path, output_file_path in mtx_dataset_path_pairs:
+    #     print(f"Processing: {input_file_path}")
+    #     reformatMTXGraphFile(input_file_path, output_file_path)
