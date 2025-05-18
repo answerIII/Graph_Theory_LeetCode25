@@ -40,11 +40,11 @@ def getNodesMapping(input_file: TextIO, separator: Optional[str] = None) \
     return new_nodes_id_map, total_edges
 
 
-def reformatTXTGraphFile(input_file: str, output_file: str) -> None:
-    input_file = open(Path(input_file), mode='r')
+def reformatTXTGraphFile(input_file_path: str, output_file_path: str) -> None:
+    input_file = open(Path(input_file_path), mode='r')
     new_nodes_id_map, _ = getNodesMapping(input_file)
     input_file.seek(0)
-    output_file = open(Path(output_file), mode='w')
+    output_file = open(Path(output_file_path), mode='w')
     output_file.write(input_file.readline())
     for input_file_line in input_file:
         node1, node2 = map(int, input_file_line.split())
@@ -54,11 +54,11 @@ def reformatTXTGraphFile(input_file: str, output_file: str) -> None:
     input_file.close()
 
 
-def reformatCSVGraphFile(input_file: str, output_file: str) -> None:
-    input_file = open(Path(input_file), mode='r')
+def reformatCSVGraphFile(input_file_path: str, output_file_path: str) -> None:
+    input_file = open(Path(input_file_path), mode='r')
     new_nodes_id_map, total_edges = getNodesMapping(input_file, separator=",")
     input_file.seek(0)
-    output_file = open(Path(output_file), mode='w')
+    output_file = open(Path(output_file_path), mode='w')
     input_file.readline()
     output_file.write(f"{len(new_nodes_id_map)} {total_edges}\n")
     for input_file_line in input_file:
@@ -69,11 +69,11 @@ def reformatCSVGraphFile(input_file: str, output_file: str) -> None:
     input_file.close()
 
 
-def reformatMTXGraphFile(input_file: str, output_file: str) -> None:
-    input_file = open(Path(input_file), mode='r')
+def reformatMTXGraphFile(input_file_path: str, output_file_path: str) -> None:
+    input_file = open(Path(input_file_path), mode='r')
     new_nodes_id_map, _ = getNodesMapping(input_file)
     input_file.seek(0)
-    output_file = open(Path(output_file), mode='w')
+    output_file = open(Path(output_file_path), mode='w')
     sourse_nodes, dest_nodes, total_edges = map(
         int, input_file.readline().split())
     total_nodes = max(sourse_nodes, dest_nodes)
@@ -123,12 +123,12 @@ mtx_dataset_path_pairs = [
 
 
 if __name__ == "__main__":
-    for input_file, output_file in txt_datasets_path_pairs:
-        print(f"Processing: {input_file}")
-        reformatTXTGraphFile(input_file, output_file)
-    for input_file, output_file in csv_datasets_path_pairs:
-        print(f"Processing: {input_file}")
-        reformatCSVGraphFile(input_file, output_file)
-    for input_file, output_file in mtx_dataset_path_pairs:
-        print(f"Processing: {input_file}")
-        reformatMTXGraphFile(input_file, output_file)
+    for input_file_path, output_file_path in txt_datasets_path_pairs:
+        print(f"Processing: {input_file_path}")
+        reformatTXTGraphFile(input_file_path, output_file_path)
+    for input_file_path, output_file_path in csv_datasets_path_pairs:
+        print(f"Processing: {input_file_path}")
+        reformatCSVGraphFile(input_file_path, output_file_path)
+    for input_file_path, output_file_path in mtx_dataset_path_pairs:
+        print(f"Processing: {input_file_path}")
+        reformatMTXGraphFile(input_file_path, output_file_path)
