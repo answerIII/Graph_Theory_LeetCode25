@@ -55,6 +55,7 @@ public:
 };
 
 class DirectedGraph : public Graph {
+
     std::unordered_map<int, std::vector<int>> transposePaths;
     std::unordered_map<int, std::vector<int>> undirectedPaths;
     std::vector<std::vector<Node*>>  strongComponents;
@@ -64,6 +65,9 @@ class DirectedGraph : public Graph {
     int approximateDiameter = 0;
     int percentileB = 0;
     int percentileC = 0;
+    int trianglesCount = 0;
+
+    bool degreesInit = false;
 
     void initWeekComponents() {
 
@@ -113,6 +117,12 @@ class DirectedGraph : public Graph {
             for (int v : neigh) {
                 transposePaths[v].push_back(u);
             }
+        }
+    }
+
+    void initVertexDegrees() {
+        for (auto& [num, node]: nodes) {
+            node.degree = (int)undirectedPaths[num].size();
         }
     }
 
@@ -191,10 +201,7 @@ class DirectedGraph : public Graph {
         std::pair<int, Node*> b = getFarthestVertexInsideWWC(a.second);
         approximateDiameter = b.first;
     }
-    /// dangerous !!! might be weekComponents.size() * 1000 space !!!!! should be optimizated
-    /// VERY VERY BAD
-    /// DONT START IT !!!!
-    /// YOUR COMPUTER GET DOWN
+
     void init90PercentileB() {
 
         if (weekComponents.empty()) initWeekComponents();
@@ -302,7 +309,7 @@ class DirectedGraph : public Graph {
         int index90 = (int)(0.9 * distances.size());
         percentileB = distances[index90];
     }
-    //require optimization
+
     void init90PercentileC() {
 
         if (weekComponents.empty()) initWeekComponents();
@@ -383,6 +390,12 @@ class DirectedGraph : public Graph {
         sort(distances.begin(), distances.end());
         int index90 = (int)(0.9 * distances.size());
         percentileC = distances[index90];
+    }
+
+    void initTringlesCount() {
+        if (weekComponents.empty()) initWeekComponents();
+        if (!degreesInit) initVertexDegrees(); degreesInit = true;
+
     }
 
     std::pair<int, Node*> getFarthestVertex(Node* node) {
@@ -495,6 +508,9 @@ public:
 
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
+    int getTriangels() {
+
+    }
 };
 
 class UndirectedGraph : public Graph {

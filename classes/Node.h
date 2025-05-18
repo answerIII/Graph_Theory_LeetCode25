@@ -7,5 +7,6 @@
 struct Node {
     int num;
     bool marked;
+    int degree;
 };
 #endif //NODE_H
