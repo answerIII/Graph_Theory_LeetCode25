@@ -205,25 +205,25 @@ class DirectedGraph : public Graph {
         if (componentSize < 500) samples = componentSize;
         std::vector<int> distances;
         distances.reserve(samples);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, componentSize - 1);
 
         //mark week component, work only with theLargestWCC nodes
         for (Node* node : weekComponents[0]) {
             node->marked = true;
         }
 
+        //make calculation parralel i have 12 logic threads
+        int numThreads = std::min(samples, 12);
+        std::mutex distMutex;
+
         //unsing a bfs try to find the distance
         //between two random nodes inside the LargestWCC
         //put result to distances
-        for (int i =0; i < samples; ++i) {
-
-            int index = rand() % componentSize;
-            Node* u = weekComponents[0][index];
-            index = rand() % componentSize;
-            Node* v = weekComponents[0][index];
-
+        auto worker = [&](Node* u, Node* v) {
             std::queue<Node*> queue;
-            std::unordered_map<int,int> lengths;
-            lengths.reserve(samples);
+            std::unordered_map<int, int> lengths;
             lengths[u->num] = 0;
             queue.push(u);
             while (!queue.empty()) {
@@ -235,8 +235,67 @@ class DirectedGraph : public Graph {
                     queue.push(&nodes[neighborhood]);
                 }
             }
-            distances.push_back(lengths[v->num]);
+            // thead safety add len
+            std::lock_guard<std::mutex> lock(distMutex);
+            if (lengths.contains(v->num)) {
+                distances.push_back(lengths[v->num]);
+            }
+        };
+
+        std::vector<std::thread> threads;
+        int perThread = samples / numThreads;
+        int remainder = samples % numThreads;
+        int start = 0;
+
+        //how many times the thread should compute  worker(u, v);
+        auto workerBatch = [&](int count) {
+            for (int i = 0; i < count; ++i) {
+                Node* u = weekComponents[0][dis(gen)];
+                Node* v = weekComponents[0][dis(gen)];
+                worker(u, v);
+            }
+        };
+
+        for (int i = 0; i < numThreads; ++i) {
+            int count = start + perThread + (i < remainder ? 1 : 0);
+            threads.emplace_back(workerBatch, count);
         }
+
+        for (auto& t : threads) t.join();
+
+        if (distances.empty()) {
+            percentileB = -1;
+            return;
+        }
+
+
+
+        // //unsing a bfs try to find the distance
+        // //between two random nodes inside the LargestWCC
+        // //put result to distances
+        // for (int i =0; i < samples; ++i) {
+        //
+        //     int index = rand() % componentSize;
+        //     Node* u = weekComponents[0][index];
+        //     index = rand() % componentSize;
+        //     Node* v = weekComponents[0][index];
+        //
+        //     std::queue<Node*> queue;
+        //     std::unordered_map<int,int> lengths;
+        //     lengths.reserve(samples);
+        //     lengths[u->num] = 0;
+        //     queue.push(u);
+        //     while (!queue.empty()) {
+        //         Node* currentNode = queue.front(); queue.pop();
+        //         if (currentNode->num == v->num) break;
+        //         for (int neighborhood : undirectedPaths[currentNode->num]) {
+        //             if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
+        //             lengths[neighborhood] = lengths[currentNode->num] + 1;
+        //             queue.push(&nodes[neighborhood]);
+        //         }
+        //     }
+        //     distances.push_back(lengths[v->num]);
+        // }
 
         sort(distances.begin(), distances.end());
         int index90 = (int)(0.9 * distances.size());
