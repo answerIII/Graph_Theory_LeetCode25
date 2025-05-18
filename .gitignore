@@ -32,6 +32,6 @@ venv/
 *.egg-info/
 .eggs/
 
-data/directed/
-data/undirected/
-data/very_large_graphs/
+data/directed/*
+data/undirected/*
+data/very_large_graphs/*
