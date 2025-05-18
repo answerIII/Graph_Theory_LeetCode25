@@ -186,10 +186,9 @@ class DirectedGraph : public Graph {
         if (weekComponents.empty()) initWeekComponents();
 
         int randomIndex = 1718 % weekComponents[0].size();
-        std::cout << weekComponents[0].size() << std::endl;
         Node* r  = weekComponents[0][randomIndex];
-        std::pair<int, Node*> a = getFarthestVertex(r);
-        std::pair<int, Node*> b = getFarthestVertex(a.second);
+        std::pair<int, Node*> a = getFarthestVertexInsideWWC(r);
+        std::pair<int, Node*> b = getFarthestVertexInsideWWC(a.second);
         approximateDiameter = b.first;
     }
     /// dangerous !!! might be weekComponents.size() * 1000 space !!!!! should be optimizated
@@ -200,36 +199,43 @@ class DirectedGraph : public Graph {
 
         if (weekComponents.empty()) initWeekComponents();
 
-        int samples = vertexCount > 10000 ? 1000 : 500;
+        //calculate samples count
+        int samples = 500;
         int componentSize = weekComponents[0].size();
         if (componentSize < 500) samples = componentSize;
         std::vector<int> distances;
         distances.reserve(samples);
 
+        //mark week component, work only with theLargestWCC nodes
+        for (Node* node : weekComponents[0]) {
+            node->marked = true;
+        }
+
+        //unsing a bfs try to find the distance
+        //between two random nodes inside the LargestWCC
+        //put result to distances
         for (int i =0; i < samples; ++i) {
 
             int index = rand() % componentSize;
-            Node* node = weekComponents[0][index];
+            Node* u = weekComponents[0][index];
+            index = rand() % componentSize;
+            Node* v = weekComponents[0][index];
 
             std::queue<Node*> queue;
             std::unordered_map<int,int> lengths;
             lengths.reserve(samples);
-            lengths[node->num] = 0;
-            queue.push(node);
+            lengths[u->num] = 0;
+            queue.push(u);
             while (!queue.empty()) {
                 Node* currentNode = queue.front(); queue.pop();
-                currentNode->marked = true;
+                if (currentNode->num == v->num) break;
                 for (int neighborhood : undirectedPaths[currentNode->num]) {
-                    if (nodes[neighborhood].marked) continue;
-                    nodes[neighborhood].marked = true;
+                    if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
                     lengths[neighborhood] = lengths[currentNode->num] + 1;
                     queue.push(&nodes[neighborhood]);
                 }
             }
-            for (auto& [num, len]:lengths) {
-                distances.push_back(len);
-            }
-            removeMarks();
+            distances.push_back(lengths[v->num]);
         }
 
         sort(distances.begin(), distances.end());
@@ -317,6 +323,38 @@ class DirectedGraph : public Graph {
             for (int neighborhood : undirectedPaths[currentNode->num]) {
                 if (nodes[neighborhood].marked) continue;
                 nodes[neighborhood].marked = true;
+                lengths[neighborhood] = lengths[currentNode->num] + 1;
+                queue.push(&nodes[neighborhood]);
+            }
+        }
+        removeMarks();
+        return farthestVertex;
+    }
+
+    std::pair<int, Node*> getFarthestVertexInsideWWC(Node* node) {
+        removeMarks();
+        //mark all nodes belong to largestWCC
+        for (Node* wccNode : weekComponents[0]) {
+            wccNode->marked = true;
+        }
+        //find the farthest from the node
+        std::pair farthestVertex(0,node);
+        std::queue<Node*> queue;
+        std::unordered_map<int,int> lengths(nodes.size());
+        std::unordered_set<int> markedV(nodes.size());
+        lengths[node->num] = 0;
+        queue.push(node);
+        node->marked = true;
+        markedV.insert(node->num);
+        while (!queue.empty()) {
+            Node* currentNode = queue.front(); queue.pop();
+            if (farthestVertex.first < lengths[currentNode->num]) {
+                farthestVertex.first = lengths[currentNode->num];
+                farthestVertex.second = currentNode;
+            }
+            for (int neighborhood : undirectedPaths[currentNode->num]) {
+                if (!nodes[neighborhood].marked || markedV.contains(nodes[neighborhood].num)) continue;
+                markedV.insert(nodes[neighborhood].num);
                 lengths[neighborhood] = lengths[currentNode->num] + 1;
                 queue.push(&nodes[neighborhood]);
             }

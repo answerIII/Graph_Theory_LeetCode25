@@ -10,10 +10,7 @@ int main(const int argc, const char *argv[]) {
     Graph* graph(parser.parse(argv[1], directed));
 
     DirectedGraph directedGraph(*graph);
-    std::cout << directedGraph.getCountNodesInLargestSCC() << std::endl;
-    std::cout << directedGraph.getCountNodesInLargestWCC() << std::endl;
-    std::cout << directedGraph.getApproximateDiameter() << std::endl;
-    std::cout << directedGraph.getGraphDiameter() << std::endl;
+    std::cout << directedGraph.get90PercentileB() << std::endl;
 
 
     delete graph;
