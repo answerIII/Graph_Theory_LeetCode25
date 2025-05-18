@@ -2,15 +2,21 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-os.makedirs('data', exist_ok=True)
-os.makedirs('graphics', exist_ok=True)
+#os.makedirs('visualization/data', exist_ok=True)
+#os.makedirs('visualization/graphics', exist_ok=True)
+script_dir = os.path.dirname(__file__)
+data_dir = os.path.join(script_dir, 'data')
+graphics_dir = os.path.join(script_dir, 'graphics')
 
-data_files = [f for f in os.listdir('data') if f.endswith('.txt')]
+os.makedirs(graphics_dir, exist_ok=True)
+
+data_files = [f for f in os.listdir(data_dir)]
 
 for filename in data_files:
+    file_path = os.path.join(data_dir, filename)
     degrees = []
     frequencies = []
-    with open(f'data/{filename}', 'r') as f:
+    with open(file_path, 'r') as f:
         for line in f:
             if line.startswith('#') or not line.strip():
                 continue
@@ -44,5 +50,6 @@ for filename in data_files:
     plt.tight_layout()
 
     output_name = os.path.splitext(filename)[0] + '.png'
-    plt.savefig(f'graphics/{output_name}', dpi=300, bbox_inches='tight')
+    output_path = os.path.join(graphics_dir, output_name)
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
