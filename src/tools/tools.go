@@ -205,3 +205,34 @@ func invertEdgesInFile(pathIn, pathOut string) error {
 	}
 	return nil
 }
+
+func undirectEdgesInFile(pathIn, pathOut string) error {
+	err := convert(pathIn, pathOut,
+		func() (*Nodes, *Adjacency, EdgeFunction) {
+			mapper := map[int]int{}
+			nodes := Nodes{}
+			adj := Adjacency{}
+
+			mapperIdx := 0
+
+			return &nodes, &adj, func(u, v int) error {
+				if _, has := mapper[u]; !has {
+					mapper[u] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[u])
+				}
+				if _, has := mapper[v]; !has {
+					mapper[v] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[v])
+				}
+				adj[mapper[u]] = append(adj[mapper[u]], mapper[v])
+				adj[mapper[v]] = append(adj[mapper[v]], mapper[u])
+				return nil
+			}
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}

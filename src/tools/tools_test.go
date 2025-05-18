@@ -63,3 +63,14 @@ func Test_invertEdgesInFile(t *testing.T) {
 		}
 	})
 }
+
+func Test_undirectEdgesInFile(t *testing.T) {
+	t.Run("Undirect example file", func(t *testing.T) {
+		err := undirectEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
+		if err != nil {
+			t.Errorf("Error inverting edges in file %v", err)
+		} else {
+			t.Logf("Successfully invert edges from %s, to %s", FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
+		}
+	})
+}
