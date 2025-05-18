@@ -308,11 +308,16 @@ class DirectedGraph : public Graph {
         if (weekComponents.empty()) initWeekComponents();
 
         //create a snowball
-        int snowballSize = vertexCount > 10000 ? 1000 : 500;
+        int snowballSize = 500;
         int componentSize = weekComponents[0].size();
         if (componentSize < 500) snowballSize = componentSize;
-        std::vector<int> snowball;
+        std::vector<Node*> snowball;
         snowball.reserve(snowballSize);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, snowballSize - 1);
+        int numThreads = std::min(snowballSize, 12);
+        std::mutex distMutex;
 
         //pull a snowball;
         Node* node = weekComponents[0][0];
@@ -321,46 +326,59 @@ class DirectedGraph : public Graph {
         node->marked = true;
         while (!queue.empty() && snowball.size() <= snowballSize) {
             Node* currentNode = queue.front(); queue.pop();
-            snowball.push_back(currentNode->num);
+            snowball.push_back(currentNode);
             for (int neighborhood : undirectedPaths[currentNode->num]) {
                 if (nodes[neighborhood].marked) continue;
                 nodes[neighborhood].marked = true;
                 queue.push(&nodes[neighborhood]);
             }
         }
-        // DONT REMOVE marked because
-        // we should build distances for each node in range of snowball graph
-        // so i intend to consider only marked nodes below
-        // not -> removeMarks();
 
-        //just count all distances and calculate 90partentile
         std::vector<int> distances;
         distances.reserve(snowballSize);
 
-        for (int index : snowball) {
-            Node* node = &nodes[index];
+        auto worker = [&](Node* u, Node* v) {
             std::queue<Node*> queue;
-            std::unordered_map<int,int> lengths;
-            lengths[node->num] = 0;
-            queue.push(node);
+            std::unordered_map<int, int> lengths;
+            lengths[u->num] = 0;
+            queue.push(u);
             while (!queue.empty()) {
                 Node* currentNode = queue.front(); queue.pop();
+                if (currentNode->num == v->num) break;
                 for (int neighborhood : undirectedPaths[currentNode->num]) {
-                    // if not marked -> continue
-                    if (!nodes[neighborhood].marked) continue;
-
-                    //alternative way to mark
-                    if (lengths.contains(neighborhood)){continue;}
-
+                    if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
                     lengths[neighborhood] = lengths[currentNode->num] + 1;
                     queue.push(&nodes[neighborhood]);
                 }
             }
-            for (auto& [num, len]:lengths) {
-                distances.push_back(len);
+            // thead safety add len
+            std::lock_guard<std::mutex> lock(distMutex);
+            if (lengths.contains(v->num)) {
+                distances.push_back(lengths[v->num]);
             }
-            removeMarks();
+        };
+
+        //how many times the thread should compute  worker(u, v);
+        auto workerBatch = [&](int count) {
+            for (int i = 0; i < count; ++i) {
+                Node* u = snowball[dis(gen)];
+                Node* v = snowball[dis(gen)];
+                worker(u, v);
+            }
+        };
+
+        std::vector<std::thread> threads;
+        int perThread = snowballSize / numThreads;
+        int remainder = snowballSize % numThreads;
+        int start = 0;
+
+        for (int i = 0; i < numThreads; ++i) {
+            int count = start + perThread + (i < remainder ? 1 : 0);
+            //emplace_back like push_back, but object creating inside vector
+            threads.emplace_back(workerBatch, count);
         }
+
+        for (auto& t : threads) t.join();
 
         sort(distances.begin(), distances.end());
         int index90 = (int)(0.9 * distances.size());
