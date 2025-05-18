@@ -67,8 +67,6 @@ class DirectedGraph : public Graph {
     int percentileC = 0;
     int trianglesCount = 0;
 
-    bool degreesInit = false;
-
     void initWeekComponents() {
 
         if (undirectedPaths.empty()) { initUndirectedPaths(); }
@@ -117,12 +115,6 @@ class DirectedGraph : public Graph {
             for (int v : neigh) {
                 transposePaths[v].push_back(u);
             }
-        }
-    }
-
-    void initVertexDegrees() {
-        for (auto& [num, node]: nodes) {
-            node.degree = (int)undirectedPaths[num].size();
         }
     }
 
@@ -394,8 +386,17 @@ class DirectedGraph : public Graph {
 
     void initTringlesCount() {
         if (weekComponents.empty()) initWeekComponents();
-        if (!degreesInit) initVertexDegrees(); degreesInit = true;
 
+        //make directed graph from undirected, direct from week(less degree) node to strong
+        std::unordered_map<int, std::vector<int>> directedPaths;
+        directedPaths.reserve(paths.size());
+        for (auto& [num, vec] : paths) {
+            for (int neighbour : vec) {
+                // if (nodes[num].degree <= nodes[neighbour].degree) {
+                //     directedPaths[num].push_back(neighbour);
+                // }
+            }
+        }
     }
 
     std::pair<int, Node*> getFarthestVertex(Node* node) {
