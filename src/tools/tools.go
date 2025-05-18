@@ -4,10 +4,9 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"graph_theory/graph"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -82,26 +81,49 @@ func sortNodesInFile(pathIn, pathOut string) error {
 	}
 	defer fileOut.Close()
 
+	scanner := bufio.NewScanner(fileIn)
 	writer := bufio.NewWriter(fileOut)
 
-	g, err := graph.FromFile(pathIn, true)
+	mapper := map[int]int{}
+	nodes := []int{}
+	adj := map[int][]int{}
 
-	nodes := make([]graph.Node, 0, len(g.Nodes))
-	for k := range g.Nodes {
-		nodes = append(nodes, k)
+	mapperIdx := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "#") || line == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		u, err1 := strconv.Atoi(parts[0])
+		v, err2 := strconv.Atoi(parts[1])
+		if err1 != nil || err2 != nil {
+			continue
+		}
+		if _, has := mapper[u]; !has {
+			mapper[u] = mapperIdx
+			mapperIdx++
+			nodes = append(nodes, mapper[u])
+		}
+		if _, has := mapper[v]; !has {
+			mapper[v] = mapperIdx
+			mapperIdx++
+			nodes = append(nodes, mapper[v])
+		}
+		adj[mapper[u]] = append(adj[mapper[u]], mapper[v])
 	}
 
-	sort.Slice(nodes, func(i, j int) bool { return nodes[i] < nodes[j] })
+	slices.Sort(nodes)
 
 	for u := range nodes {
-		adj := make([]graph.Node, 0, len(g.Adj[nodes[u]]))
-		for v := range g.Adj[nodes[u]] {
-			adj = append(adj, v)
-		}
-		sort.Slice(adj, func(i, j int) bool { return adj[i] < adj[j] })
-
-		for v := range adj {
-			_, err := writer.WriteString(strconv.Itoa(int(nodes[u])) + " " + strconv.Itoa(int(adj[v])) + "\n")
+		slices.Sort(adj[u])
+		for v := range adj[u] {
+			_, err := writer.WriteString(strconv.Itoa(int(nodes[u])) + " " +
+				strconv.Itoa(int(adj[u][v])) + "\n")
 			if err != nil {
 				return errors.New("error while writing a file")
 			}
