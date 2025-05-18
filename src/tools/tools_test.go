@@ -13,6 +13,9 @@ const FILEPATHOUT_MUSAE = "../datasets/undirected/musae_git_edges.txt"
 const FILEPATHIN_WIKI = "../datasets/directed/Wiki-Vote.txt"
 const FILEPATHOUT_WIKI = "../datasets/directed/Wiki-Vote-sorted.txt"
 
+const FILEPATHIN_EXAMPLE = "../datasets/directed/example.txt"
+const FILEPATHOUT_EXAMPLE = "../datasets/directed/example-inverted.txt"
+
 func Test_convertCSVtoTxt(t *testing.T) {
 	t.Run("Convert vk file", func(t *testing.T) {
 		err := sortNodesInFile(
@@ -46,6 +49,17 @@ func Test_sortNodesInFile(t *testing.T) {
 			t.Errorf("Error sorting a file %v", err)
 		} else {
 			t.Logf("Successfully sorted %s to %s", FILEPATHIN_WIKI, FILEPATHOUT_WIKI)
+		}
+	})
+}
+
+func Test_invertEdgesInFile(t *testing.T) {
+	t.Run("Invert example file", func(t *testing.T) {
+		err := invertEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
+		if err != nil {
+			t.Errorf("Error inverting edges in file %v", err)
+		} else {
+			t.Logf("Successfully invert edges from %s, to %s", FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
 		}
 	})
 }
