@@ -1,4 +1,6 @@
-**/datasets/
+**/datasets/**/*
+!**/datasets/directed/
+!**/datasets/directed/example.txt
 .idea/
 
 # Byte-compiled / optimized / DLL files
