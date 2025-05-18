@@ -15,7 +15,7 @@ const FILEPATHOUT_WIKI = "../datasets/directed/Wiki-Vote-sorted.txt"
 
 func Test_convertCSVtoTxt(t *testing.T) {
 	t.Run("Convert vk file", func(t *testing.T) {
-		err := convertCSVtoTxt(
+		err := sortNodesInFile(
 			FILEPATHIN_VK,
 			FILEPATHOUT_VK,
 		)
@@ -27,7 +27,7 @@ func Test_convertCSVtoTxt(t *testing.T) {
 	})
 
 	t.Run("Convert musae file", func(t *testing.T) {
-		err := convertCSVtoTxt(
+		err := sortNodesInFile(
 			FILEPATHIN_MUSAE,
 			FILEPATHOUT_MUSAE,
 		)

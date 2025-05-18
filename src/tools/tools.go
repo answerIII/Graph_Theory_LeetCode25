@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -11,28 +12,21 @@ import (
 	"strings"
 )
 
-func convertCSVtoTxt(pathIn, pathOut string) error {
-	if filepath.Ext(pathIn) != ".csv" {
-		return errors.New("input file must have a .csv extension")
-	}
-	if filepath.Ext(pathOut) != ".txt" {
-		return errors.New("output file must have a .txt extension")
-	}
+type Nodes []int
+type Adjacency map[int][]int
+type EdgeFunction func(u, v int) error
+type Converter func() (*Nodes, *Adjacency, EdgeFunction)
 
-	fileIn, err := os.Open(pathIn)
-	if err != nil {
-		return errors.New("input file must have a .csv extension")
-	}
-	defer fileIn.Close()
+var SUPPORTED_EXTENSIONS = []string{".csv", ".txt"}
 
-	fileOut, err := os.Create(pathOut)
-	if err != nil {
-		return errors.New("output file must have a .txt extension")
-	}
-	defer fileOut.Close()
+type Parser interface {
+	Parse(fileIn io.Reader, f EdgeFunction) error
+}
 
+type CSVParser struct{}
+
+func (p CSVParser) Parse(fileIn io.Reader, f EdgeFunction) error {
 	scanner := bufio.NewScanner(fileIn)
-	writer := bufio.NewWriter(fileOut)
 
 	scanner.Scan()
 
@@ -44,9 +38,13 @@ func convertCSVtoTxt(pathIn, pathOut string) error {
 			return fmt.Errorf("invalid line format: %s", line)
 		}
 
-		_, err := writer.WriteString(parts[0] + " " + parts[1] + "\n")
-		if err != nil {
-			return fmt.Errorf("failed to write to output file: %w", err)
+		u, err1 := strconv.Atoi(parts[0])
+		v, err2 := strconv.Atoi(parts[1])
+		if err1 != nil || err2 != nil {
+			continue
+		}
+		if err := f(u, v); err != nil {
+			return fmt.Errorf("error while processing file: %w", err)
 		}
 	}
 
@@ -54,41 +52,13 @@ func convertCSVtoTxt(pathIn, pathOut string) error {
 		return fmt.Errorf("error reading input file: %w", err)
 	}
 
-	if err := writer.Flush(); err != nil {
-		return fmt.Errorf("error flushing output buffer: %w", err)
-	}
-
 	return nil
 }
 
-func sortNodesInFile(pathIn, pathOut string) error {
-	if filepath.Ext(pathIn) != ".txt" {
-		return errors.New("input file must have a .txt extension")
-	}
-	if filepath.Ext(pathOut) != ".txt" {
-		return errors.New("output file must have a .txt extension")
-	}
+type TXTParser struct{}
 
-	fileIn, err := os.Open(pathIn)
-	if err != nil {
-		return errors.New("input file must have a .txt extension")
-	}
-	defer fileIn.Close()
-
-	fileOut, err := os.Create(pathOut)
-	if err != nil {
-		return errors.New("output file must have a .txt extension")
-	}
-	defer fileOut.Close()
-
+func (p TXTParser) Parse(fileIn io.Reader, f EdgeFunction) error {
 	scanner := bufio.NewScanner(fileIn)
-	writer := bufio.NewWriter(fileOut)
-
-	mapper := map[int]int{}
-	nodes := []int{}
-	adj := map[int][]int{}
-
-	mapperIdx := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -104,31 +74,134 @@ func sortNodesInFile(pathIn, pathOut string) error {
 		if err1 != nil || err2 != nil {
 			continue
 		}
-		if _, has := mapper[u]; !has {
-			mapper[u] = mapperIdx
-			mapperIdx++
-			nodes = append(nodes, mapper[u])
+		if err := f(u, v); err != nil {
+			return fmt.Errorf("error while processing file: %w", err)
 		}
-		if _, has := mapper[v]; !has {
-			mapper[v] = mapperIdx
-			mapperIdx++
-			nodes = append(nodes, mapper[v])
-		}
-		adj[mapper[u]] = append(adj[mapper[u]], mapper[v])
 	}
 
-	slices.Sort(nodes)
+	return nil
+}
 
-	for u := range nodes {
-		slices.Sort(adj[u])
-		for v := range adj[u] {
-			_, err := writer.WriteString(strconv.Itoa(int(nodes[u])) + " " +
-				strconv.Itoa(int(adj[u][v])) + "\n")
+func parser(pathIn string, f EdgeFunction) error {
+	ext := filepath.Ext(pathIn)
+	if !slices.Contains(SUPPORTED_EXTENSIONS, ext) {
+		return errors.New(ext + " files are unsupported")
+	}
+
+	fileIn, err := os.Open(pathIn)
+	if err != nil {
+		return errors.New("can't open a file " + pathIn)
+	}
+	defer fileIn.Close()
+
+	var parser Parser
+
+	switch ext {
+	case ".txt":
+		parser = TXTParser{}
+	case ".csv":
+		parser = CSVParser{}
+	default:
+		return errors.New("unsupported file type")
+	}
+
+	return parser.Parse(fileIn, f)
+}
+
+func convert(pathIn, pathOut string, converter Converter) error {
+	ext := filepath.Ext(pathOut)
+	if !slices.Contains(SUPPORTED_EXTENSIONS, ext) {
+		return errors.New(ext + " files are unsupported")
+	}
+
+	fileOut, err := os.Create(pathOut)
+	if err != nil {
+		return errors.New("can't open a file " + pathOut)
+	}
+	defer fileOut.Close()
+
+	writer := bufio.NewWriter(fileOut)
+
+	nodes, adj, edgeFunc := converter()
+
+	if err = parser(pathIn, edgeFunc); err != nil {
+		return err
+	}
+
+	slices.Sort(*nodes)
+
+	for u := range *nodes {
+		slices.Sort((*adj)[u])
+		for v := range (*adj)[u] {
+			_, err := writer.WriteString(strconv.Itoa(int((*nodes)[u])) + " " +
+				strconv.Itoa(int((*adj)[u][v])) + "\n")
 			if err != nil {
 				return errors.New("error while writing a file")
 			}
 		}
-		writer.Flush()
+		if err := writer.Flush(); err != nil {
+			return fmt.Errorf("error flushing output buffer: %w", err)
+		}
+	}
+	return nil
+}
+
+func sortNodesInFile(pathIn, pathOut string) error {
+	err := convert(pathIn, pathOut,
+		func() (*Nodes, *Adjacency, EdgeFunction) {
+			mapper := map[int]int{}
+			nodes := Nodes{}
+			adj := Adjacency{}
+
+			mapperIdx := 0
+
+			return &nodes, &adj, func(u, v int) error {
+				if _, has := mapper[u]; !has {
+					mapper[u] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[u])
+				}
+				if _, has := mapper[v]; !has {
+					mapper[v] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[v])
+				}
+				adj[mapper[u]] = append(adj[mapper[u]], mapper[v])
+				return nil
+			}
+		})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func invertEdgesInFile(pathIn, pathOut string) error {
+	err := convert(pathIn, pathOut,
+		func() (*Nodes, *Adjacency, EdgeFunction) {
+			mapper := map[int]int{}
+			nodes := Nodes{}
+			adj := Adjacency{}
+
+			mapperIdx := 0
+
+			return &nodes, &adj, func(u, v int) error {
+				if _, has := mapper[u]; !has {
+					mapper[u] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[u])
+				}
+				if _, has := mapper[v]; !has {
+					mapper[v] = mapperIdx
+					mapperIdx++
+					nodes = append(nodes, mapper[v])
+				}
+				adj[mapper[v]] = append(adj[mapper[v]], mapper[u])
+				return nil
+			}
+		})
+	if err != nil {
+		return err
 	}
 	return nil
 }
