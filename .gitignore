@@ -1,0 +1,4 @@
+datasets/
+reformatted_datasets/
+
+**/__pycache__/
