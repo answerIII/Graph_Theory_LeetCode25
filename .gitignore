@@ -31,3 +31,7 @@ venv/
 # Virtual environments
 *.egg-info/
 .eggs/
+
+data/directed/
+data/undirected/
+data/very_large_graphs/
