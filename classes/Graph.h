@@ -258,6 +258,7 @@ class DirectedGraph : public Graph {
 
         for (int i = 0; i < numThreads; ++i) {
             int count = start + perThread + (i < remainder ? 1 : 0);
+            //emplace_back like push_back, but object creating inside vector
             threads.emplace_back(workerBatch, count);
         }
 
