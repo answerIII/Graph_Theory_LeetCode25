@@ -7,7 +7,7 @@ import (
 )
 
 func (g *Graph) DegreeNode(n Node) int {
-	return len(g.Adj[n])
+	return len(g.Adj.neighbors(n))
 }
 
 func (g *Graph) NumberOfNodes() int {
@@ -17,7 +17,7 @@ func (g *Graph) NumberOfNodes() int {
 func (g *Graph) NumberOfEdges() int {
 	edges := 0
 	for node := range g.Nodes {
-		neighbors := g.GetNeighborsMap(node)
+		neighbors := g.Adj.neighbors(node)
 		edges += len(neighbors)
 	}
 	if !g.Directed {
@@ -46,7 +46,7 @@ func (g *Graph) ProcessNodesDegrees(filePath string) (minDeg int, avgDeg float64
 	maxDegree := 0
 
 	for node := range g.Nodes {
-		degree := len(g.Adj[node])
+		degree := len(g.Adj.neighbors(node))
 		if degree < minDegree {
 			minDegree = degree
 		}

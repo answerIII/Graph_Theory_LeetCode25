@@ -1,9 +1,5 @@
 package graph
 
-import (
-	"sort"
-)
-
 func DFS(
 	graph *Graph,
 	startNodes []Node,
@@ -54,10 +50,7 @@ func DFS(
 					isProcessed bool
 				}{u, true})
 
-				neighbors := graph.GetNeighborsRandomSlice(u)
-				sort.Slice(neighbors, func(i, j int) bool {
-					return neighbors[i] < neighbors[j]
-				})
+				neighbors := graph.Adj.neighbors(u)
 
 				for _, v := range neighbors {
 					if _, ok := used[v]; !ok {
@@ -99,10 +92,7 @@ func BFS(
 			u := queue[0]
 			queue = queue[1:]
 
-			neighbors := graph.GetNeighborsRandomSlice(u)
-			sort.Slice(neighbors, func(i, j int) bool {
-				return neighbors[i] < neighbors[j]
-			})
+			neighbors := graph.Adj.neighbors(u)
 
 			for _, neighbor := range neighbors {
 				if _, ok := used[neighbor]; !ok {

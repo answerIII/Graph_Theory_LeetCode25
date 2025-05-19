@@ -4,21 +4,18 @@ import (
 	"fmt"
 	"graph_theory/workerpool"
 	"runtime"
-	"sort"
+	"slices"
 	"sync"
 )
 
 func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
 
-	neighbors := g.GetNeighborsRandomSlice(node)
+	neighbors := g.Adj.neighbors(node)
 	k := len(neighbors)
 	if k < 2 {
 		return 0, nil
 	}
 	edges := 0
-	sort.Slice(neighbors, func(i, j int) bool {
-		return neighbors[i] > neighbors[j]
-	})
 
 	for u := 0; u < len(neighbors)-1; u++ {
 		for v := u + 1; v < len(neighbors); v++ {
@@ -79,7 +76,7 @@ func (g *Graph) GetGlobalClusteringCoefficient(triangles int64) (float64, error)
 
 	sum := 0.0
 	for node := range g.Nodes {
-		l := len(g.Adj[node])
+		l := len(g.Adj.neighbors(node))
 		sum += float64(l * (l - 1) / 2)
 	}
 	return float64(3*triangles) / sum, nil
@@ -113,11 +110,11 @@ func (g *Graph) TrianglesNumber() (int64, error) {
 			var local int64
 			for j := start; j < end; j++ {
 				node1 := nodes[j]
-				neighbors := g.GetNeighborsMap(node1)
-				for node2 := range neighbors {
+				neighbors := g.Adj.neighbors(node1)
+				for _, node2 := range neighbors {
 					if node2 > node1 {
-						for node3 := range g.Adj[node2] {
-							if _, ok := neighbors[node3]; ok && node3 > node2 {
+						for _, node3 := range g.Adj.neighbors(node2) {
+							if _, ok := slices.BinarySearch(neighbors, node3); ok && node3 > node2 {
 								local++
 							}
 						}

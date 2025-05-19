@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"graph_theory/graph"
+	"graph_theory/tools"
 	"log"
 	"math/rand/v2"
 	"os"
@@ -24,6 +25,9 @@ func main() {
 	filePath := os.Args[1]
 	outputPath := os.Args[2]
 	graphName := getFileNameWithoutExt(filePath)
+	sortedGraph := getFileDestinationWithoutExt(filePath) + "-sorted.txt"
+	invertedGraph := getFileDestinationWithoutExt(filePath) + "-inverted.txt"
+	undirectedGraph := getFileDestinationWithoutExt(filePath) + "-undirected.txt"
 
 	log.Printf("Создание файла: %s\n", outputPath)
 	file, err := os.Create(outputPath)
@@ -36,8 +40,14 @@ func main() {
 		_, _ = fmt.Fprintf(file, format, args...)
 	}
 
+	log.Println("Создание вспомогательных файлов")
+	tools.SortNodesInFile(filePath, sortedGraph)
+	tools.InvertEdgesInFile(filePath, invertedGraph)
+	tools.UndirectEdgesInFile(filePath, undirectedGraph)
+
 	log.Println("Чтение и создание графа из файла")
-	ugraph, sccCount, maxSccSize := loadAndPrepareGraph(filePath)
+	sccCount, maxSccSize := loadAndPrepareGraph(sortedGraph, invertedGraph)
+	ugraph, err := graph.FromFile(undirectedGraph, false)
 
 	log.Println("Поиск компонент слабой связности в неорграфе")
 	wcc := getWCC(ugraph)
@@ -96,24 +106,27 @@ func getFileNameWithoutExt(path string) string {
 	return base[:len(base)-len(filepath.Ext(base))]
 }
 
+func getFileDestinationWithoutExt(path string) string {
+	return path[:len(path)-len(filepath.Ext(path))]
+}
+
 // Graph processing helpers
 
-func loadAndPrepareGraph(path string) (*graph.Graph, int, int) {
-	g, err := graph.FromFile(path, true)
+func loadAndPrepareGraph(sortedGraph, invertedGraph string) (int, int) {
+	g, err := graph.FromFile(sortedGraph, true)
 	if err != nil {
 		log.Fatalf("Error loading graph: %v", err)
 	}
 
 	log.Println("Нахождение компонент сильной связности")
-	scc, err := g.FindSCC()
+	scc, err := g.FindSCC(invertedGraph)
 	if err != nil {
 		log.Fatalf("Error finding SCC: %v", err)
 	}
 
 	log.Println("Сортировка компонент сильной связности")
 	scc = graph.SortComponents(scc, true)
-	log.Println("Преобразование орграфа в неорграф")
-	return g.CastToUndirected(), len(scc), len(scc[0])
+	return len(scc), len(scc[0])
 }
 
 func getWCC(g *graph.Graph) [][]graph.Node {

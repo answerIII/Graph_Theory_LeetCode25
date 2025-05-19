@@ -2,16 +2,26 @@ package graph
 
 import (
 	"bufio"
-	"fmt"
+	"math/rand"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Node int
 type Nodes map[Node]struct{}
-type Adjacency map[Node]map[Node]struct{}
+type Adjacency struct {
+	// value struct{}
+	to  []Node
+	ptr []int
+}
+
+func (a *Adjacency) neighbors(u Node) []Node {
+	return a.to[a.ptr[u]:a.ptr[u+1]]
+}
 
 type Graph struct {
 	Directed bool
@@ -22,17 +32,9 @@ type Graph struct {
 func NewGraph(directed bool) *Graph {
 	return &Graph{
 		Directed: directed,
-		Adj:      make(Adjacency),
+		Adj:      Adjacency{ptr: []int{0}},
 		Nodes:    make(Nodes),
 	}
-}
-
-func (g *Graph) adj() Adjacency {
-	return g.Adj
-}
-
-func (g *Graph) nodes() Nodes {
-	return g.Nodes
 }
 
 func (g *Graph) getNodesSlice() []Node {
@@ -47,35 +49,33 @@ func (g *Graph) getNodesSlice() []Node {
 }
 
 func (g *Graph) GetNeighborsRandomSlice(node Node) []Node {
-	neighbors := make([]Node, 0, len(g.Adj[node]))
-	for u := range g.Adj[node] {
-		neighbors = append(neighbors, u)
-	}
-	return neighbors
-}
+	neighbors := g.Adj.neighbors(node)
 
-func (g *Graph) GetNeighborsMap(node Node) map[Node]struct{} {
-	return g.Adj[node]
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(neighbors), func(i, j int) {
+		neighbors[i], neighbors[j] = neighbors[j], neighbors[i]
+	})
+
+	return neighbors
 }
 
 func (g *Graph) AddNode(n Node) {
 	if _, exists := g.Nodes[n]; !exists {
 		g.Nodes[n] = struct{}{}
-		g.Adj[n] = make(Nodes)
 	}
 }
 
-func (g *Graph) RemoveNode(n Node) {
-	if _, exists := g.Nodes[n]; exists {
-		delete(g.Nodes, n)
-		delete(g.Adj, n)
-		for _, neighbors := range g.Adj {
-			delete(neighbors, n)
-		}
-	} else {
-		panic(fmt.Sprintf("Node %d does not exist in the graph", n))
-	}
-}
+// func (g *Graph) RemoveNode(n Node) {
+// 	if _, exists := g.Nodes[n]; exists {
+// 		delete(g.Nodes, n)
+// 		delete(g.Adj, n)
+// 		for _, neighbors := range g.Adj {
+// 			delete(neighbors, n)
+// 		}
+// 	} else {
+// 		panic(fmt.Sprintf("Node %d does not exist in the graph", n))
+// 	}
+// }
 
 func (g *Graph) HasNode(n Node) bool {
 	_, exists := g.Nodes[n]
@@ -89,55 +89,54 @@ func (g *Graph) AddEdge(u, v Node) {
 	if _, ok := g.Nodes[v]; !ok {
 		g.AddNode(v)
 	}
-	if _, ok := g.Adj[u][v]; !ok {
-		g.Adj[u][v] = struct{}{}
-	}
-	if !g.Directed && u != v {
-		if _, ok := g.Adj[v][u]; !ok {
-			g.Adj[v][u] = struct{}{}
+	if int(u) != len(g.Adj.ptr)-1 {
+		nodesToInsert := int(u) - len(g.Adj.ptr) + 1
+		for i := 0; i < nodesToInsert; i++ {
+			g.Adj.ptr = append(g.Adj.ptr, len(g.Adj.to))
 		}
 	}
+	g.Adj.to = append(g.Adj.to, v)
 }
 
-func (g *Graph) RemoveEdge(u, v Node) {
-	delete(g.Adj[u], v)
-	if !g.Directed && u != v {
-		delete(g.Adj[v], u)
-	}
-}
+// func (g *Graph) RemoveEdge(u, v Node) {
+// 	delete(g.Adj[u], v)
+// 	if !g.Directed && u != v {
+// 		delete(g.Adj[v], u)
+// 	}
+// }
 
 func (g *Graph) HasEdge(u, v Node) bool {
-	_, exists := g.Adj[u][v]
+	exists := slices.Contains(g.Adj.neighbors(u), v)
 	return exists
 }
 
-func (g *Graph) Inverted() *Graph {
-	inverted := NewGraph(g.Directed)
-	for u := range g.Nodes {
-		neighbors := g.GetNeighborsMap(u)
-		for v := range neighbors {
-			inverted.AddEdge(v, u)
-		}
-	}
-	return inverted
-}
+// func (g *Graph) Inverted() *Graph {
+// 	inverted := NewGraph(g.Directed)
+// 	for u := range g.Nodes {
+// 		neighbors := g.GetNeighborsMap(u)
+// 		for v := range neighbors {
+// 			inverted.AddEdge(v, u)
+// 		}
+// 	}
+// 	return inverted
+// }
 
-func (g *Graph) CastToUndirected() *Graph {
-	if !g.Directed {
-		panic("Graph is already undirected")
-	}
-	ug := NewGraph(false)
-
-	for u := range g.Nodes {
-		neighbors := g.GetNeighborsMap(u)
-		for v := range neighbors {
-			ug.AddEdge(u, v)
-			ug.AddEdge(v, u)
-		}
-	}
-
-	return ug
-}
+// func (g *Graph) CastToUndirected() *Graph {
+// 	if !g.Directed {
+// 		panic("Graph is already undirected")
+// 	}
+// 	ug := NewGraph(false)
+//
+// 	for u := range g.Nodes {
+// 		neighbors := g.GetNeighborsMap(u)
+// 		for v := range neighbors {
+// 			ug.AddEdge(u, v)
+// 			ug.AddEdge(v, u)
+// 		}
+// 	}
+//
+// 	return ug
+// }
 
 func GetSnowballGraph(
 	baseGraph *Graph,
@@ -146,21 +145,52 @@ func GetSnowballGraph(
 ) (*Graph, error) {
 	snowballSample := generateSnowballSample(baseGraph, component)
 
-	subgraph := NewGraph(false)
+	mapper := map[Node]int{}
+	nodes := []int{}
+	adj := map[int][]int{}
 
-	subgraph.AddNode(snowballSample[0])
+	mapperIdx := 0
+
 	stopCond := func(node Node, length int) bool {
-		return subgraph.NumberOfNodes() >= min(maxNodeN, len(component))
+		return len(nodes) >= min(maxNodeN, len(component))
 	}
 
 	onVisit := func(node, parent Node, length int) {
-		subgraph.AddNode(node)
-		subgraph.AddEdge(node, parent)
+		if _, has := mapper[node]; !has {
+			mapper[node] = mapperIdx
+			mapperIdx++
+			nodes = append(nodes, mapper[node])
+		}
+		if _, has := mapper[parent]; !has {
+			mapper[parent] = mapperIdx
+			mapperIdx++
+			nodes = append(nodes, mapper[parent])
+		}
+		adj[mapper[node]] = append(adj[mapper[node]], mapper[parent])
+		adj[mapper[parent]] = append(adj[mapper[parent]], mapper[node])
 	}
 
 	_, err := BFS(baseGraph, snowballSample, nil, onVisit, stopCond)
 	if err != nil {
 		return nil, err
+	}
+	slices.Sort(nodes)
+	for _, u := range nodes {
+		slices.Sort(adj[u])
+	}
+
+	subgraph := NewGraph(false)
+
+	for _, u := range nodes {
+		for _, v := range adj[u] {
+			subgraph.AddEdge(Node(u), Node(v))
+			subgraph.AddEdge(Node(v), Node(u))
+		}
+	}
+
+	nodesToInsert := len(nodes) - len(subgraph.Adj.ptr) + 1
+	for i := 0; i < nodesToInsert; i++ {
+		subgraph.Adj.ptr = append(subgraph.Adj.ptr, len(subgraph.Adj.to))
 	}
 
 	return subgraph, nil
@@ -191,6 +221,10 @@ func FromFile(filePath string, directed bool) (*Graph, error) {
 			continue
 		}
 		graph.AddEdge(Node(u), Node(v))
+	}
+	nodesToInsert := len(graph.Nodes) - len(graph.Adj.ptr) + 1
+	for i := 0; i < nodesToInsert; i++ {
+		graph.Adj.ptr = append(graph.Adj.ptr, len(graph.Adj.to))
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err

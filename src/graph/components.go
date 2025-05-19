@@ -12,7 +12,7 @@ func (g *Graph) FindWCC() ([][]Node, error) {
 	return DFS(g, g.getNodesSlice(), nil, nil, nil), nil
 }
 
-func (g *Graph) FindSCC() ([][]Node, error) {
+func (g *Graph) FindSCC(pathIn string) ([][]Node, error) {
 	if !g.Directed {
 		return nil, errors.New("can't find SCC in undirected graph")
 	}
@@ -33,7 +33,11 @@ func (g *Graph) FindSCC() ([][]Node, error) {
 		return tout[nodes[i]] > tout[nodes[j]]
 	})
 
-	inverted := g.Inverted()
+	inverted, err := FromFile(pathIn, true)
+
+	if err != nil {
+		return nil, errors.New("can't create inverted graph")
+	}
 
 	return DFS(inverted, nodes, nil, nil, nil), nil
 }

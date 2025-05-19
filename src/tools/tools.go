@@ -108,6 +108,18 @@ func parser(pathIn string, f EdgeFunction) error {
 	return parser.Parse(fileIn, f)
 }
 
+func removeDuplicate[T comparable](sliceList []T) []T {
+	allKeys := make(map[T]bool)
+	list := []T{}
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
 func convert(pathIn, pathOut string, converter Converter) error {
 	ext := filepath.Ext(pathOut)
 	if !slices.Contains(SUPPORTED_EXTENSIONS, ext) {
@@ -131,6 +143,7 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	slices.Sort(*nodes)
 
 	for u := range *nodes {
+		(*adj)[u] = removeDuplicate((*adj)[u])
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
 			_, err := writer.WriteString(strconv.Itoa(int((*nodes)[u])) + " " +
@@ -146,7 +159,7 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	return nil
 }
 
-func sortNodesInFile(pathIn, pathOut string) error {
+func SortNodesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
 		func() (*Nodes, *Adjacency, EdgeFunction) {
 			mapper := map[int]int{}
@@ -176,7 +189,7 @@ func sortNodesInFile(pathIn, pathOut string) error {
 	return nil
 }
 
-func invertEdgesInFile(pathIn, pathOut string) error {
+func InvertEdgesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
 		func() (*Nodes, *Adjacency, EdgeFunction) {
 			mapper := map[int]int{}
@@ -206,7 +219,7 @@ func invertEdgesInFile(pathIn, pathOut string) error {
 	return nil
 }
 
-func undirectEdgesInFile(pathIn, pathOut string) error {
+func UndirectEdgesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
 		func() (*Nodes, *Adjacency, EdgeFunction) {
 			mapper := map[int]int{}

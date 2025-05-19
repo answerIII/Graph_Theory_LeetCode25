@@ -18,7 +18,7 @@ const FILEPATHOUT_EXAMPLE = "../datasets/directed/example-inverted.txt"
 
 func Test_convertCSVtoTxt(t *testing.T) {
 	t.Run("Convert vk file", func(t *testing.T) {
-		err := sortNodesInFile(
+		err := SortNodesInFile(
 			FILEPATHIN_VK,
 			FILEPATHOUT_VK,
 		)
@@ -30,7 +30,7 @@ func Test_convertCSVtoTxt(t *testing.T) {
 	})
 
 	t.Run("Convert musae file", func(t *testing.T) {
-		err := sortNodesInFile(
+		err := SortNodesInFile(
 			FILEPATHIN_MUSAE,
 			FILEPATHOUT_MUSAE,
 		)
@@ -44,7 +44,7 @@ func Test_convertCSVtoTxt(t *testing.T) {
 
 func Test_sortNodesInFile(t *testing.T) {
 	t.Run("Sort Wiki-Vote file", func(t *testing.T) {
-		err := sortNodesInFile(FILEPATHIN_WIKI, FILEPATHOUT_WIKI)
+		err := SortNodesInFile(FILEPATHIN_WIKI, FILEPATHOUT_WIKI)
 		if err != nil {
 			t.Errorf("Error sorting a file %v", err)
 		} else {
@@ -55,7 +55,7 @@ func Test_sortNodesInFile(t *testing.T) {
 
 func Test_invertEdgesInFile(t *testing.T) {
 	t.Run("Invert example file", func(t *testing.T) {
-		err := invertEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
+		err := InvertEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
 		if err != nil {
 			t.Errorf("Error inverting edges in file %v", err)
 		} else {
@@ -66,7 +66,7 @@ func Test_invertEdgesInFile(t *testing.T) {
 
 func Test_undirectEdgesInFile(t *testing.T) {
 	t.Run("Undirect example file", func(t *testing.T) {
-		err := undirectEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
+		err := UndirectEdgesInFile(FILEPATHIN_EXAMPLE, FILEPATHOUT_EXAMPLE)
 		if err != nil {
 			t.Errorf("Error inverting edges in file %v", err)
 		} else {
