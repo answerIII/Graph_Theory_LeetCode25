@@ -25,7 +25,11 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     
     print(f"кол-во комп. слабой свзяности = {week_component_count} (должно быть {correct_components})")
     print(f"дол в вершин в макс. по мощности компоненте = {len(week_max_component)/num_of_vertices}")
-
+    if directed:
+        print(f"кол-во компонент сильной свзяности = {strongly_connected_components(graph)} (должно быть {len(list(nx.strongly_connected_components(graph_with_correct_result)))})")
+   
     print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
     print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
     print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")
+
+    
