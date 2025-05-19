@@ -36,13 +36,13 @@ def weekly_connected_components(graph: dict) -> tuple[int, set]:
     max_component = max(components, key=len)  # компонентa с макс. числом вершин
     return count, max_component
 
-
                 
 def kosarju(graph: dict):
     """кол-во компонент сильной связности, исп. Косарайю"""
     visited = set()
     posled = []
     count = 0
+    components = []
     for v in graph:
         if v not in visited:
             dfs_iterative_with_time_out(graph, visited, v, posled)
@@ -51,14 +51,12 @@ def kosarju(graph: dict):
     for v in reversed(posled):
         if v not in visited:
             count+=1
-            dfs(reversed_graph,visited, v)
-    return count
-            
-            
-        
-           
+            components.append( dfs(reversed_graph,visited, v))
+    max_component_count = len(max(components, key=len))  # компонентa с макс. числом вершин
+
+    return count, max_component_count
             
 def strongly_connected_components(graph: dict):
     """для орграфов определить число компонент сильной связности"""
-    count = kosarju(graph)
-    return count
+    count, max_comp = kosarju(graph)
+    return count, max_comp

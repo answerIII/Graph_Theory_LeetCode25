@@ -29,12 +29,15 @@ def load_graph_from_file(filename: str, directed: bool = True):
 def dfs(graph: dict, visited: set, start):
     """простой обход"""
     stack  = [start]
+    component = set()
     while stack:
         v = stack.pop()
         if v not in visited:
             visited.add(v)
+            component.add(v)
             for neighbor in graph[v]:
                 stack.append(neighbor)
+    return component
 
 def dfs_iterative_with_component(graph: dict, visited: set, start):
     """возращаем компоненту которую обошли"""
