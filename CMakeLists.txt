@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.27)
 project(Graph_Theory_LeetCode25)
 
 set(CMAKE_CXX_STANDARD 23)

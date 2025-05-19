@@ -1,10 +1,14 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 #include <queue>
+#include <execution>
 #include <stack>
 
 #include "../libs.h"
 #include "Node.h"
+
+namespace stdr = std::ranges;
+
 class Graph {
 protected:
     std::unordered_map<int, std::vector<int>> paths;
@@ -95,7 +99,8 @@ class DirectedGraph : public Graph {
         std::sort(weekComponents.begin(), weekComponents.end(),
     [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
         return a.size() > b.size();}
-        );
+        );  
+        
         removeMarks();
     }
 
@@ -509,13 +514,189 @@ public:
 
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
-    int getTriangels() {
+    // int getTriangels() {
 
-    }
+    // }
+
+//   double getAverageClusteringCoefficient() {
+//     double totalCoefficient = 0.0;
+    
+//     // Инициализация наибольшей компоненты слабой связности
+//     initWeekComponents();
+
+//     int countedVertices = weekComponents[0].size();
+
+//     // Перебор всех вершин наибольшей компоненты слабой связности
+//     // for (Node* node : weekComponents[0]) {
+//     for (int x = 0; x < weekComponents[0].size(); x++) {
+//         Node *node = weekComponents[0][x];
+
+//         int u = node->num;
+        
+//         const std::vector<int>& neighbors = paths[u];
+
+//         int k = neighbors.size();
+
+//         int linkCount = 0;
+
+//         // Подсчет числа рёбер между соседями
+//         for (int i = 0; i < k; ++i) {
+//             for (int j = i + 1; j < k; ++j) {
+//                 int nj = neighbors[j];
+//                 int ni = neighbors[i];
+
+//                 // Проверка наличия обратной дуги (ориентированный граф)
+//                 if (std::find(paths[ni].begin(), paths[ni].end(), nj) != paths[ni].end()) {
+//                     linkCount++;
+//                 }
+//                 if (std::find(paths[nj].begin(), paths[nj].end(), ni) != paths[nj].end()) {
+//                     linkCount++;
+//                 }
+//             }
+//         }
+
+//         if (k < 2) continue;
+
+//         double Clu = (2.0 * linkCount) / (k * (k - 1));
+//         totalCoefficient += Clu;
+//     }
+
+//     std::cout << "Total vertices in largest WCC: " << countedVertices << std::endl;
+//     std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
+
+//     return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
+// }
+
+
+// double getAverageClusteringCoefficient() {
+//     double totalCoefficient = 0.0;
+
+//     // Инициализация наибольшей компоненты слабой связности
+//     initWeekComponents();
+
+//     int countedVertices = weekComponents[0].size();
+
+//     for (int x = 0; x < weekComponents[0].size(); x++) {
+//         Node* node = weekComponents[0][x];
+//         int u = node->num;
+
+//         std::unordered_set<int> neighborSet;
+
+//         // исходящие соседи
+//         for (int v : paths[u]) {
+//             neighborSet.insert(v);
+//         }
+
+//         // входящие соседи
+//         for (int v = 0; v < vertexCount; ++v) {
+//             for (int w : paths[v]) {
+//                 if (w == u) {
+//                     neighborSet.insert(v);
+//                 }
+//             }
+//         }
+
+//         std::vector<int> neighbors(neighborSet.begin(), neighborSet.end());
+//         int k = neighbors.size();
+
+//         if (k < 2) continue;
+
+//         int linkCount = 0;
+
+        // // Проверка наличия рёбер между всеми парами соседей
+        // for (int i = 0; i < k; ++i) {
+        //     int ni = neighbors[i];
+        //     std::unordered_set<int> ni_neighbors(paths[ni].begin(), paths[ni].end());
+
+        //     for (int j = i + 1; j < k; ++j) {
+        //         int nj = neighbors[j];
+
+        //         // Если есть хотя бы одно ребро между ni и nj
+        //         if (ni_neighbors.count(nj) || 
+        //             std::find(paths[nj].begin(), paths[nj].end(), ni) != paths[nj].end()) {
+        //             linkCount++;
+        //         }
+        //     }
+        // }
+
+//         double Clu = (2.0 * linkCount) / (k * (k - 1));
+//         totalCoefficient += Clu;
+//     }
+
+//     std::cout << "Total vertices in largest WCC: " << countedVertices << std::endl;
+//     std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
+
+//     return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
+// }
+
+double getAverageClusteringCoefficient() {
+    std::atomic<double> totalCoefficient = 0.0;
+
+    // Инициализация наибольшей компоненты слабой связности
+    initWeekComponents();
+
+    int countedVertices = weekComponents[0].size();
+
+    // for (int x = 0; x < weekComponents[0].size(); x++) {
+    //     Node* node = weekComponents[0][x];
+    // for (Node *node : weekComponents[0]) {}
+    // std::for_each(weekComponents[0].begin(), weekComponents[0].end(), [&](Node *node) {});
+    std::for_each(std::execution::par, weekComponents[0].begin(), weekComponents[0].end(), [&](Node *node) {
+    
+        int u = node->num;
+
+        // Собираем всех соседей (входящих и исходящих)
+        std::unordered_set<int> neighborSet;
+
+        // исходящие
+        for (int v : paths[u]) {
+            neighborSet.insert(v);
+        }
+
+        // входящие
+        for (int v = 0; v < vertexCount; ++v) {
+            for (int w : paths[v]) {
+                if (w == u) {
+                    neighborSet.insert(v);
+                }
+            }
+        }
+
+        std::vector<int> neighbors(neighborSet.begin(), neighborSet.end());
+        int k = neighbors.size();
+
+        if (k < 2) return;
+
+        int linkCount = 0;
+
+        // Считаем число связей между соседями (без учёта направления)
+        for (int i = 0; i < k; ++i) {
+            for (int j = i + 1; j < k; ++j) {
+                int ni = neighbors[i];
+                int nj = neighbors[j];
+
+                // Проверяем наличие ребра между соседями в любом направлении
+                linkCount += (stdr::contains(paths[ni], nj)) || (stdr::contains(paths[nj], ni));
+                
+            }
+        }
+
+        // Кластерный коэффициент вершины
+        double Clu = (2.0 * linkCount) / (k * (k - 1));
+        totalCoefficient += Clu;
+    });
+
+    std::cout << "Total vertices in largest WCC: " << countedVertices << std::endl;
+    std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
+
+    return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
+}
 };
 
 class UndirectedGraph : public Graph {
     std::vector<std::vector<Node*>>  strongComponents;
+    std::unordered_map<int, std::vector<int>> undirectedPaths;
+    std::vector<std::vector<Node*>>  weekComponents;
 
     double density = 0;
 
@@ -544,10 +725,11 @@ class UndirectedGraph : public Graph {
             }
         }
         removeMarks();
-        std::ranges::sort(strongComponents);
+        std::ranges::sort(strongComponents, std::greater<>{});
     }
 
 public:
+    UndirectedGraph(Graph& graph): Graph(graph) {}
 
     int getComponentsCount() {
         if (strongComponents.empty()) initComponents();
@@ -563,6 +745,134 @@ public:
         getComponentsCount();
         return strongComponents[0].size() / vertexCount;
     }
+
+// double getAverageClusteringCoefficient() {
+//     if (weekComponents.empty()) initWeekComponents(); // находим слабые компоненты
+
+//     const std::vector<Node*>& largestWCC = weekComponents[0];
+
+//     if (largestWCC.empty()) return 0.0;
+
+//     double totalClustering = 0.0;
+
+//     // Проходим по каждому узлу в компоненте
+//     for (Node* node : largestWCC) {
+//         int u = node->num;
+//         const std::vector<int>& neighbors = undirectedPaths[u];
+
+//         if (neighbors.size() < 2) {
+//             // Кластерный коэффициент равен 0, если у узла менее двух соседей
+//             continue;
+//         }
+
+//         int links = 0; // количество связей между соседями узла
+//         // Проверяем, есть ли ребро между каждой парой соседей
+//         for (size_t i = 0; i < neighbors.size(); ++i) {
+//             int vi = neighbors[i];
+//             for (size_t j = i + 1; j < neighbors.size(); ++j) {
+//                 int vj = neighbors[j];
+
+//                 // Проверяем, соединены ли vi и vj
+//                 const auto& vi_neighbors = undirectedPaths[vi];
+//                 if (std::find(vi_neighbors.begin(), vi_neighbors.end(), vj) != vi_neighbors.end()) {
+//                     ++links;
+//                 }
+//             }
+//         }
+
+//         // Возможное количество связей между соседями: C(k,2) = k*(k-1)/2
+//         int k = neighbors.size();
+//         double clusteringCoefficient = (2.0 * links) / (k * (k - 1));
+//         totalClustering += clusteringCoefficient;
+//     }
+
+//     return totalClustering / largestWCC.size();
+// }
+
+    void initUndirectedPaths() {
+        undirectedPaths.reserve(paths.size());
+        for (auto& [u, neigh] : paths) {
+            for (int v : neigh) {
+                undirectedPaths[u].push_back(v);
+                undirectedPaths[v].push_back(u);
+            }
+        }
+    }
+
+
+    void initWeekComponents() {
+
+        if (undirectedPaths.empty()) { initUndirectedPaths(); }
+
+        for (auto& [num,node] : nodes) {
+            if (!node.marked) {
+                std::vector<Node*> component;
+                std::queue<Node*> queue;
+                queue.push(&node);
+                node.marked = true;
+                int nodeCount = 0;
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
+                    component.push_back(currentNode);
+                    ++nodeCount;
+                    for (int neighborhood : undirectedPaths[currentNode->num]) {
+                        if (nodes[neighborhood].marked != true) {
+                            nodes[neighborhood].marked = true;
+                            queue.push(&nodes[neighborhood]);
+                        }
+                    }
+                }
+                weekComponents.push_back(component);
+            }
+        }
+        std::sort(weekComponents.begin(), weekComponents.end(),
+    [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
+        return a.size() > b.size();}
+        );  
+        
+        removeMarks();
+    }
+
+
+ double getAverageClusteringCoefficient() {
+    std::atomic<double> totalCoefficient = 0.0;
+
+    // Инициализация наибольшей компоненты связности (для неориентированного графа — просто компонент связности)
+    initWeekComponents();
+
+    int countedVertices = weekComponents[0].size();
+
+    std::for_each(std::execution::par, weekComponents[0].begin(), weekComponents[0].end(), [&](Node* node) {
+        int u = node->num;
+
+        // Все соседи вершины u
+        const std::vector<int>& neighbors = paths[u];
+        int k = neighbors.size();
+
+        int linkCount = 0;
+
+        // Проверяем количество связей между соседями
+        for (int i = 0; i < k; ++i) {
+            for (int j = i + 1; j < k; ++j) {
+                int ni = neighbors[i];
+                int nj = neighbors[j];
+
+                // Проверяем, связаны ли ni и nj
+                linkCount += (stdr::contains(paths[ni], nj)) || (stdr::contains(paths[nj], ni));
+
+            }
+        }
+        if (k < 2) return;
+        // Кластерный коэффициент вершины
+        double Clu = (2.0 * linkCount) / (k * (k - 1));
+        totalCoefficient += Clu;
+    });
+
+    std::cout << "Total vertices in largest CC: " << countedVertices << std::endl;
+    std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
+    std::cout<< "Average clustering coefficient: " << (countedVertices > 0 ? totalCoefficient / countedVertices : 0.0 ) << std::endl;
+    return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
+}
 
 };
 
