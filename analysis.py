@@ -1,4 +1,5 @@
 from A1 import *
+from A2 import *
 from basic import to_undirected
 import networkx as nx
 
@@ -11,6 +12,8 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     print(f"плотность = {density(num_of_edges, num_of_vertices)} (должно быть {nx.density(graph_with_correct_result)})")
     week_max_component : set  # самая большая компонента по количеству вершин
     week_component_count: int
+    undirected_graph = to_undirected(graph) if directed else graph
+
     if directed:
         week_component_count, week_max_component = weekly_connected_components(to_undirected(graph))
         correct_components = len(list(nx.weakly_connected_components(graph_with_correct_result)))
@@ -22,4 +25,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     
     print(f"кол-во комп. слабой свзяности = {week_component_count} (должно быть {correct_components})")
     print(f"дол в вершин в макс. по мощности компоненте = {len(week_max_component)/num_of_vertices}")
-    
+
+    print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
+    print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
+    print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")

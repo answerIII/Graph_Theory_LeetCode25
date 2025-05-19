@@ -1,5 +1,6 @@
 """функция для чтения графа и файла и сохранения его"""
 import networkx as nx # библиотека на Python для работы с графами
+import collections
 
 def load_graph_from_file(filename: str, directed: bool = True):
     """ граф ( словарь словарей ) будет храниться следующим образом:
@@ -54,3 +55,14 @@ def to_undirected(graph: dict[int, list[int]]) -> dict[int, set[int]]:
 
     return undirected_graph
                 
+def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> dict[int, int]:
+    distances = {start: 0}
+    queue = collections.deque([start])
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph.get(node, set()):
+            if component is None or neighbor in component:
+                if neighbor not in distances:
+                    distances[neighbor] = distances[node] + 1
+                    queue.append(neighbor)
+    return distances
