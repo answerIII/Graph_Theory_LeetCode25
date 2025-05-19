@@ -1,6 +1,6 @@
 from os import path
 
-MAX_RECURSION_LIMIT = 4000000
+MAX_RECURSION_LIMIT = 1000000
 
 PROJECT_ROOT_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
@@ -22,8 +22,8 @@ UNDIRECTED_FILE_NAMES = [
 
 LARGE_UNDIRECTED_FILE_NAMES = [
     "com-orkut.ungraph.txt",
-    # "com-youtube.ungraph.txt",
-    # "vk.csv"
+    "com-youtube.ungraph.txt",
+    "vk.csv"
 ]
 
 DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/directed/"
