@@ -26,11 +26,23 @@ def load_graph_from_file(filename: str, directed: bool = True):
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
     return nx.to_dict_of_lists(G), G
 
-def dfs_iterative(graph: dict, visited: set, start):
+def dfs(graph: dict, visited: set, start):
+    """простой обход"""
+    stack  = [start]
+    component = set()
+    while stack:
+        v = stack.pop()
+        if v not in visited:
+            visited.add(v)
+            component.add(v)
+            for neighbor in graph[v]:
+                stack.append(neighbor)
+    return component
+
+def dfs_iterative_with_component(graph: dict, visited: set, start):
     """возращаем компоненту которую обошли"""
     visited_vertices = set()
-    stack : list = []
-    stack.append(start)
+    stack  = [start]
     while stack:
         v = stack.pop()
         if v not in visited:
@@ -39,6 +51,21 @@ def dfs_iterative(graph: dict, visited: set, start):
             for neighbor in graph[v]:
                 stack.append(neighbor)
     return visited_vertices
+
+def dfs_iterative_with_time_out(graph: dict, visited: set, start, posled: list):
+    """запоминаем в каком порядке были обработаны вершины"""
+    stack = [(start, False)]
+    while stack:
+        v, processed = stack.pop()
+        if not processed:
+          if v not in visited:
+            visited.add(v)
+            stack.append((v, True))
+            for neighbor in reversed(graph.get(v, [])):
+                if neighbor not in visited:
+                    stack.append((neighbor,False))
+        else:
+            posled.append(v)
                 
 def to_undirected(graph: dict[int, list[int]]) -> dict[int, set[int]]:
     """орграф -> неорграф"""
@@ -54,7 +81,7 @@ def to_undirected(graph: dict[int, list[int]]) -> dict[int, set[int]]:
             undirected_graph[v].add(u)
 
     return undirected_graph
-                
+   
 def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> dict[int, int]:
     distances = {start: 0}
     queue = collections.deque([start])
@@ -66,3 +93,15 @@ def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> d
                     distances[neighbor] = distances[node] + 1
                     queue.append(neighbor)
     return distances
+   
+def reverse_graph(graph: dict):
+    reversed_graph = {}
+    for v in graph:
+        for neighbor in graph[v]:
+            if neighbor not in reversed_graph:
+                reversed_graph[neighbor]= []
+            reversed_graph[neighbor].append(v)
+    for v in graph:
+        if v not in reversed_graph:
+            reversed_graph[v] = []
+    return reversed_graph

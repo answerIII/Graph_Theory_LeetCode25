@@ -26,6 +26,10 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
     print(f"кол-во комп. слабой свзяности = {week_component_count} (должно быть {correct_components})")
     print(f"дол в вершин в макс. по мощности компоненте = {len(week_max_component)/num_of_vertices}")
+    if directed:
+        count, strong_max_comp_length = strongly_connected_components(graph)
+        print(f"кол-во компонент сильной свзяности = {count} (должно быть {len(list(nx.strongly_connected_components(graph_with_correct_result)))})")
+        print(f"доля вершин графа в наибольшей компоненте сильной связности = {strong_max_comp_length/num_of_vertices}")
     print("(A1)----------\n")
 
     print("(A2)----------")
