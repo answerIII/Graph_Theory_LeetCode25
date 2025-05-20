@@ -1,8 +1,8 @@
 from os import path
 
-MAX_RECURSION_LIMIT = 1000000
-
 PROJECT_ROOT_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+
+INF = 10**9
 
 DIRECTED_FILE_NAMES = [
     "Wiki-Vote.txt",
@@ -21,9 +21,9 @@ UNDIRECTED_FILE_NAMES = [
 ]
 
 LARGE_UNDIRECTED_FILE_NAMES = [
-    "com-orkut.ungraph.txt",
     "com-youtube.ungraph.txt",
     "vk.csv"
+    # "com-orkut.ungraph.txt",
 ]
 
 DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/directed/"
