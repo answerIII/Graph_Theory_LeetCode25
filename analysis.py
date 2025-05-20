@@ -56,28 +56,32 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     if directed:
         graph = to_undirected(graph)
     while True:
-        user_input = input("Введите процент рандомных вершин который будет удален (для остановки введите слово 'stop')\n")
+        user_input = input(
+            "Введите процент рандомных вершин который будет удален (для остановки введите слово 'stop')\n")
         graph_with_removed_vertices = {node: set(neighbors) for node, neighbors in graph.items()}
         if user_input.lower() == 'stop':
             break
         remove_random_vertices(graph_with_removed_vertices, int(user_input))
         count, max_component = weekly_connected_components(graph_with_removed_vertices)
-        fraction_after_remove = len(max_component)/ len(graph_with_removed_vertices)
-        print(f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
+        fraction_after_remove = len(max_component) / len(graph_with_removed_vertices)
+        print(
+            f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
         print("до удаления вершин:", len(graph))
         print("после удаления вершин:", len(graph_with_removed_vertices))
         print("размер наибольшей компоненты:", len(max_component))
     print("(B1)----------\n")
     print("\n(B2)----------")
     while True:
-        user_input = input("Введите процент вершин наибольшей степени который будет удален  (для остановки введите слово 'stop')\n")
+        user_input = input(
+            "Введите процент вершин наибольшей степени который будет удален  (для остановки введите слово 'stop')\n")
         graph_with_removed_vertices = {node: set(neighbors) for node, neighbors in graph.items()}
         if user_input.lower() == 'stop':
             break
         remove_top_degree_vertices(graph_with_removed_vertices, int(user_input))
         count, max_component = weekly_connected_components(graph_with_removed_vertices)
-        fraction_after_remove = len(max_component)/ len(graph_with_removed_vertices)
-        print(f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
+        fraction_after_remove = len(max_component) / len(graph_with_removed_vertices)
+        print(
+            f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
         print("до удаления вершин:", len(graph))
         print("после удаления вершин:", len(graph_with_removed_vertices))
         print("размер наибольшей компоненты:", len(max_component))
