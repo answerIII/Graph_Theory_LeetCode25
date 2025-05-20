@@ -1,0 +1,2 @@
+graph_id,directed,num_vertices,num_edges,density,weak_comp_count,weak_largest_comp_size,weak_largest_comp_frac,strong_comp_count,strong_largest_comp_frac
+txt.txt,directed,875713,5105039,-0.00264954,224,1.86694,1.86694,19158,0.00582383
