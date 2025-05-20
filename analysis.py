@@ -1,6 +1,7 @@
 from A1 import *
 from A2 import *
 from A3 import *
+from A4 import *
 from basic import to_undirected
 import networkx as nx
 
@@ -43,3 +44,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     print(f"средний кластерный коэффициент = {average_clustering(undirected_graph)}")
     print(f"глобальный кластерный коэффициент = {global_clustering(undirected_graph)}")
     print("(A3)----------\n")
+
+    print("(A4)----------")
+    print(f"средний кластерный коэффициент (для наибольшей компоненты слабой связанности) = {average_clustering_coefficient(undirected_graph)}")
+    print("(A4)----------\n")
