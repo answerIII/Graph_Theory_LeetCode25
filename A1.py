@@ -1,12 +1,3 @@
-"""Число вершин,
-число рёбер,
-плотность (отношение числа рёбер к максимально возможномучислу рёбер),
-число компонент слабой связности,
-долю вершин в максимальной по мощности
-компоненте слабой связности.
-Для ориентированных графов определить число компонент
-сильной связности и долю вершин графа в наибольшей компоненте сильной связности
-компоненте."""
 from basic import *
 def number_of_vertices(graph: dict) -> int:
     """число вершин"""
@@ -20,7 +11,7 @@ def number_of_edges(graph: dict, directed: bool) -> int:
     return sum(len(neighbors) for neighbors in graph.values())
 
 
-def density(num_of_edges: int, num_of_vertices: int) -> int:
+def density(num_of_edges: int, num_of_vertices: int) -> float:
     """плотность"""
     return num_of_edges / (num_of_vertices * (num_of_vertices - 1)) 
  
@@ -31,7 +22,7 @@ def weekly_connected_components(graph: dict) -> tuple[int, set]:
     count  = 0
     for v in graph:
         if v not in visited:
-            components.append( dfs_iterative_with_component(graph, visited, v))
+            components.append(dfs_iterative_with_component(graph, visited, v))
             count+=1
     max_component = max(components, key=len)  # компонентa с макс. числом вершин
     return count, max_component
