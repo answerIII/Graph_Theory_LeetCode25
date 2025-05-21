@@ -73,8 +73,7 @@ func FindDistance(graph *structs.Graph, source, target int) int {
 		vertexDist = bfsQueueDist[0][1]
 		for _, next := range graph.AdjList[vertex] {
 			if next == target {
-				vertexDist++
-				break
+				return vertexDist + 1
 			}
 			if _, ok := visited[next]; !ok {
 				visited[next] = struct{}{}
@@ -84,7 +83,7 @@ func FindDistance(graph *structs.Graph, source, target int) int {
 		bfsQueueDist = bfsQueueDist[1:]
 	}
 
-	return vertexDist
+	return -1
 }
 
 func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
@@ -115,10 +114,11 @@ func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
 				break
 			}
 		}
-		result[i] = []int{FindDistance(graph, source, target), source, target}
-		wg.Done()
-		// go func(i int) {
-		// }(i)
+		// result[i] = []int{FindDistance(graph, source, target), source, target}
+		go func(graph *structs.Graph, i, source, target int) {
+			result[i] = []int{FindDistance(graph, source, target), source, target}
+			wg.Done()
+		}(graph, i, source, target)
 	}
 
 	wg.Wait()
