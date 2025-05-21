@@ -1,7 +1,9 @@
 from typing import (
     Dict,
     TextIO,
-    Optional
+    Optional,
+    Set,
+    List
 )
 
 from definitions import (
@@ -20,8 +22,8 @@ def getNodesMapping(input_file: TextIO, separator: Optional[str] = None) \
     """
     Returns mapping from old_node_id to new_node_id
     """
-    unique_nodes = set()
-    sorted_nodes = list()
+    unique_nodes: Set[int] = set()
+    sorted_nodes: List[int] = list()
     input_file.readline()
     total_edges = 0
     for input_file_line in input_file:
@@ -34,7 +36,7 @@ def getNodesMapping(input_file: TextIO, separator: Optional[str] = None) \
             unique_nodes.add(node2)
             sorted_nodes.append(node2)
     sorted_nodes.sort()
-    new_nodes_id_map = dict()
+    new_nodes_id_map: Dict[int, int] = dict()
     for new_id, old_id in enumerate(sorted_nodes):
         new_nodes_id_map[old_id] = new_id
     return new_nodes_id_map, total_edges
@@ -123,12 +125,12 @@ mtx_dataset_path_pairs = [
 
 
 if __name__ == "__main__":
-    # for input_file_path, output_file_path in txt_datasets_path_pairs:
-    #     print(f"Processing: {input_file_path}")
-    #     reformatTXTGraphFile(input_file_path, output_file_path)
+    for input_file_path, output_file_path in txt_datasets_path_pairs:
+        print(f"Processing: {input_file_path}")
+        reformatTXTGraphFile(input_file_path, output_file_path)
     for input_file_path, output_file_path in csv_datasets_path_pairs:
         print(f"Processing: {input_file_path}")
         reformatCSVGraphFile(input_file_path, output_file_path)
-    # for input_file_path, output_file_path in mtx_dataset_path_pairs:
-    #     print(f"Processing: {input_file_path}")
-    #     reformatMTXGraphFile(input_file_path, output_file_path)
+    for input_file_path, output_file_path in mtx_dataset_path_pairs:
+        print(f"Processing: {input_file_path}")
+        reformatMTXGraphFile(input_file_path, output_file_path)

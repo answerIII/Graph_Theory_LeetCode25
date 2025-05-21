@@ -9,14 +9,14 @@ from typing import (
 )
 
 
-def getWeakComponentBFS(undir_adj_list: Tuple[Set[int]],
+def getWeakComponentBFS(undir_adj_list: Tuple[Set[int], ...],
                         visited: List[bool],
                         node_ind: int) -> List[int]:
     """
     Visit new weak component of graph, return visited nodes
     """
     visited[node_ind] = True
-    nodes_queue = deque()
+    nodes_queue: Deque[int] = deque()
     nodes_queue.append(node_ind)
     new_weak_component = [node_ind]
     while nodes_queue:
@@ -29,7 +29,7 @@ def getWeakComponentBFS(undir_adj_list: Tuple[Set[int]],
     return new_weak_component
 
 
-def getFurthestNodeBFS(undir_adj_list: Tuple[Set[int]],
+def getFurthestNodeBFS(undir_adj_list: Tuple[Set[int], ...],
                        start_node_ind: int) -> Tuple[int, int]:
     """
     Returns pair (furthest_node, distance) using given start_node_ind
@@ -37,7 +37,7 @@ def getFurthestNodeBFS(undir_adj_list: Tuple[Set[int]],
     furthest_node = start_node_ind
     distance = -1
     visited = [False for _ in range(len(undir_adj_list))]
-    nodes_queue = deque()
+    nodes_queue: Deque[int] = deque()
     visited[start_node_ind] = True
     nodes_queue.append(start_node_ind)
     while nodes_queue:
@@ -53,38 +53,65 @@ def getFurthestNodeBFS(undir_adj_list: Tuple[Set[int]],
     return (furthest_node, distance)
 
 
-def updateDistNodeSubsetBFS(undir_adj_list: Tuple[Set[int]],
-                            distance_matrix: List[List[int]],
+def updateDistNodeSubsetBFS(undir_adj_list: Tuple[Set[int], ...],
+                            distance_triangle: List[List[int]],
                             node_to_ind_map: Dict[int, int],
-                            start_node_ind: int) -> None:
+                            start_node_ind: int,
+                            nodes_to_update: int) -> None:
     """
-    Update distances for a subset of specified vertices
+    Update distances from start_node_ind to a subset of specified vertices
     """
     distance = -1
     visited = [False for _ in range(len(undir_adj_list))]
-    nodes_queue = deque()
+    nodes_queue: Deque[int] = deque()
     visited[start_node_ind] = True
     nodes_queue.append(start_node_ind)
     node1_ind = node_to_ind_map[start_node_ind]
-    nodes_to_update = len(distance_matrix)
     while nodes_queue and nodes_to_update > 0:
         queue_size = len(nodes_queue)
         distance += 1
         for _ in range(queue_size):
             new_node_ind = nodes_queue.popleft()
             if new_node_ind in node_to_ind_map:
-                nodes_to_update -= 1
                 node2_ind = node_to_ind_map[new_node_ind]
-                if distance_matrix[node1_ind][node2_ind] > distance:
-                    distance_matrix[node1_ind][node2_ind] = distance
-                    distance_matrix[node2_ind][node1_ind] = distance
+                if node1_ind <= node2_ind:
+                    nodes_to_update -= 1
+                    distance_triangle[node1_ind][node2_ind -
+                                                 node1_ind] = distance
             for neighbour_node_ind in undir_adj_list[new_node_ind]:
                 if not visited[neighbour_node_ind]:
                     visited[neighbour_node_ind] = True
                     nodes_queue.append(neighbour_node_ind)
 
 
-def launchNextBFSIteration(undir_adj_list: Tuple[Set[int]],
+def updateDistBFS(undir_adj_list: Tuple[Set[int], ...],
+                  distance_triangle: List[List[int]],
+                  start_node_ind: int,
+                  nodes_to_update: int) -> None:
+    """
+    Update distances from start_node_ind to all other nodes of undir_adj_list
+    """
+    distance = -1
+    visited = [False for _ in range(len(undir_adj_list))]
+    nodes_queue: Deque[int] = deque()
+    visited[start_node_ind] = True
+    nodes_queue.append(start_node_ind)
+    while nodes_queue and nodes_to_update > 0:
+        queue_size = len(nodes_queue)
+        distance += 1
+        for _ in range(queue_size):
+            new_node_ind = nodes_queue.popleft()
+            if start_node_ind <= new_node_ind:
+                nodes_to_update -= 1
+                distance_triangle[start_node_ind][new_node_ind -
+                                                  start_node_ind] = distance
+            for neighbour_node_ind in undir_adj_list[new_node_ind]:
+                if not visited[neighbour_node_ind]:
+                    visited[neighbour_node_ind] = True
+                    nodes_queue.append(neighbour_node_ind)
+
+
+def launchNextBFSIteration(undir_adj_list: Tuple[Set[int], ...],
                            calc_dist_list: List[Dict[int, int]],
                            nodes_queue_list: List[Deque[int]],
                            start_node_ind: int,
@@ -107,7 +134,7 @@ def updateDistList(uncalc_dist_list: List[Set[int]],
     """
     Returns number of elements inserted into dist_list
     """
-    new_calculated_distances_list = []
+    new_calculated_distances_list: List[int] = []
     for ind in uncalc_dist_list[start_node_ind]:
         if len(calc_dist_list[start_node_ind]) > len(calc_dist_list[ind]):
             for node, dist in calc_dist_list[ind].items():
@@ -129,21 +156,22 @@ def updateDistList(uncalc_dist_list: List[Set[int]],
     return appended
 
 
-def getDistancesListParallelBFS(undir_adj_list: Tuple[Set[int]],
+def getDistancesListParallelBFS(undir_adj_list: Tuple[Set[int], ...],
                                 index_to_node_map: List[int],
                                 selected_nodes_num: int) -> List[int]:
     """
     Returns list of distances between selected nodes
     Algorithm uses parallel launch of BFS from selected vertices
     """
-    uncalc_dist_list = [set() for _ in range(selected_nodes_num)]
+    uncalc_dist_list: List[Set[int]] = [set()
+                                        for _ in range(selected_nodes_num)]
     for i in range(selected_nodes_num):
         for j in range(selected_nodes_num):
             if i == j:
                 continue
             uncalc_dist_list[i].add(j)
     uncalc_dist_number = ((selected_nodes_num) * (selected_nodes_num - 1)) // 2
-    dist_list = []
+    dist_list: List[int] = []
     nodes_queue_list = [deque([index_to_node_map[i]])
                         for i in range(selected_nodes_num)]
     calc_dist_list = [{index_to_node_map[i]: 0}
@@ -152,7 +180,7 @@ def getDistancesListParallelBFS(undir_adj_list: Tuple[Set[int]],
     while uncalc_dist_number > 0:
         curr_dist += 1
         for start_node_ind in range(selected_nodes_num):
-            if uncalc_dist_list == 0:
+            if uncalc_dist_number == 0:
                 return dist_list
             if len(uncalc_dist_list[start_node_ind]) > 0:
                 launchNextBFSIteration(undir_adj_list, calc_dist_list,
@@ -164,29 +192,17 @@ def getDistancesListParallelBFS(undir_adj_list: Tuple[Set[int]],
     return dist_list
 
 
-def getDistancesListConsistentBFS(undir_adj_list: Dict[int, Set[int]]) \
-        -> List[int]:
-    """
-    Returns list of distances between selected nodes
-    Algorithm uses consistent launch of BFS from selected vertices
-    """
-    # TODO still needs to be implemented
-    dist_list = []
-    curr_distances = {}
-    return dist_list
-
-
-def getNodeListWithSnowballBFS(undir_adj_list: Tuple[Set[int]],
+def getNodeListWithSnowballBFS(undir_adj_list: Tuple[Set[int], ...],
                                init_adj_nodes_list: List[int],
                                max_subgraph_nodes: int) -> List[int]:
     """
     Returns list of nodes constructed by snowball subgraph method
     """
-    subgraph_nodes_list = []
+    subgraph_nodes_list: List[int] = []
     # We use a set instead of a list since the set of visited vertices
     # is limited by max_subgraph_nodes
-    visited = set()
-    nodes_queue = deque()
+    visited: Set[int] = set()
+    nodes_queue: Deque[int] = deque()
     for init_node in init_adj_nodes_list:
         visited.add(init_node)
         nodes_queue.append(init_node)

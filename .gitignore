@@ -4,3 +4,8 @@ datasets/
 reformatted_datasets/
 
 **/__pycache__/
+
+pyrightconfig.json
+
+*.png
+*.txt
