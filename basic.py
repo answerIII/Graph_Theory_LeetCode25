@@ -96,7 +96,7 @@ def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> d
    
 def bfs_with_path(graph: dict[int, set[int]], start: int, end: int):
     """бфс с запоминанием пути"""
-    queue = collections.deque([start]) # вершина и ее родитель
+    queue = collections.deque([start])
     parents = dict()
     parents[start] = None
     while queue:
@@ -118,24 +118,22 @@ def bfs_with_path(graph: dict[int, set[int]], start: int, end: int):
         path.append(cur_node)
     return path
 
-
-def bfs_with_path_and_distance(graph: dict[int, set[int]], start: int):
-    """бфс, который строит дерево кратчайших путей:
-    - distances[v] — расстояние от start до v
-    - parents[v] — родитель вершины v в дереве кратчайших путей
-    """
+def bfs_with_path_and_distance(graph: dict[int, set[int]], start: int) -> tuple[dict, dict]:
+    """бфс с построением дерева кратчайших путей.
+    Возвращает:
+    - parents: родитель каждой вершины в дереве (None для start),
+    - distances: расстояние от start до каждой вершины."""
     distances = {start: 0}
     queue = collections.deque([start])
-    parents = {start: None}
-
+    parents = dict()
+    parents[start] = None
     while queue:
         node = queue.popleft()
         for neighbor in graph.get(node, set()):
-            if neighbor not in parents:  # если ещё не посещали
-                distances[neighbor] = distances[node] + 1
-                parents[neighbor] = node
-                queue.append(neighbor)
-
+                if neighbor not in parents:
+                    distances[neighbor] = distances[node] + 1
+                    queue.append(neighbor)
+                    parents[neighbor] = node
     return parents, distances
 
 
