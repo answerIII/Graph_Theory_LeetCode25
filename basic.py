@@ -94,6 +94,31 @@ def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> d
                     queue.append(neighbor)
     return distances
    
+def bfs_with_path(graph: dict[int, set[int]], start: int, end: int):
+    """бфс с запоминанием пути"""
+    queue = collections.deque([start]) # вершина и ее родитель
+    parents = dict()
+    parents[start] = None
+    while queue:
+        node = queue.popleft()
+        if node == end:
+            break
+        for neighbor in graph.get(node, set()):
+                if neighbor not in parents:
+                    queue.append(neighbor)
+                    parents[neighbor] = node
+    
+    if end not in parents and start!=end :
+        return None
+                     
+    path = [end]
+    cur_node = end
+    while cur_node!= start:
+        cur_node = parents[cur_node]
+        path.append(cur_node)
+    return path
+
+
 def reverse_graph(graph: dict):
     reversed_graph = {}
     for v in graph:
