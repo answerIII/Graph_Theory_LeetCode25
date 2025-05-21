@@ -19,34 +19,39 @@ import {
     InputLabel,
     type SelectChangeEvent,
 } from '@mui/material';
-import { uploadGraph } from "../api/graphApi";
+import { encode } from '@msgpack/msgpack';
+// import { uploadGraph, streamGraph } from '../api/graphProto';
+import { selectDataset, uploadGraph } from '../api/graphApi';
 import GraphAnalyzer from './GraphAnalyzer';
 import type { Graph, Edge } from "../types/graph";
 
 
 // Тестовый граф
 const testGraph: Graph = {
-  directed: false,
-  numNodes: 10,
-  numEdges: 15,
-  edges: [
-    { from: 0, to: 1 },
-    { from: 0, to: 2 },
-    { from: 1, to: 2 },
-    { from: 1, to: 3 },
-    { from: 2, to: 3 },
-    { from: 3, to: 4 },
-    { from: 4, to: 5 },
-    { from: 5, to: 6 },
-    { from: 6, to: 7 },
-    { from: 7, to: 8 },
-    { from: 8, to: 9 },
-    { from: 9, to: 0 },
-    { from: 2, to: 4 },
-    { from: 4, to: 6 },
-    { from: 6, to: 8 },
-  ],
+    directed: false,
+    numNodes: 10,
+    numEdges: 15,
+    edges: [
+        { from: 0, to: 1 },
+        { from: 0, to: 2 },
+        { from: 1, to: 2 },
+        { from: 1, to: 3 },
+        { from: 2, to: 3 },
+        { from: 3, to: 4 },
+        { from: 4, to: 5 },
+        { from: 5, to: 6 },
+        { from: 6, to: 7 },
+        { from: 7, to: 8 },
+        { from: 8, to: 9 },
+        { from: 9, to: 0 },
+        { from: 2, to: 4 },
+        { from: 4, to: 6 },
+        { from: 6, to: 8 },
+    ],
 };
+
+// Список датасетов
+const datasets = ['CA-AstroPh', 'ca-coauthors-dblp', 'CA-GrQc', 'Email-EuAll', 'musae_git_edges'];
 
 const GraphUploader: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
@@ -55,7 +60,8 @@ const GraphUploader: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [graphInfo, setGraphInfo] = useState<Graph | null>(null);
     const [directed, setDirected] = useState<string>('');
-    const [downloadFormat, setDownloadFormat] = useState<'json' | 'csv'>('json');
+    const [downloadFormat, setDownloadFormat] = useState<'json' | 'csv' | 'msgpack'>('json');
+    // const [uploadMethod, setUploadMethod] = useState<'simple' | 'stream'>('simple');
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -73,8 +79,12 @@ const GraphUploader: React.FC = () => {
     };
 
     const handleFormatChange = (event: SelectChangeEvent) => {
-        setDownloadFormat(event.target.value as 'json' | 'csv');
+        setDownloadFormat(event.target.value as 'json' | 'csv' | 'msgpack');
     };
+
+    // const handleUploadMethodChange = (event: SelectChangeEvent) => {
+    //     setUploadMethod(event.target.value as 'simple' | 'stream');
+    // }
 
     const processFile = async (file: File): Promise<Graph> => {
 
@@ -168,7 +178,7 @@ const GraphUploader: React.FC = () => {
             return;
         }
         if (directed === '') {
-            setError('Пожалуйста, выебрите тип графа');
+            setError('Пожалуйста, выберите тип графа');
             return;
         }
 
@@ -197,6 +207,12 @@ const GraphUploader: React.FC = () => {
         setError(null);
 
         try {
+            // if (uploadMethod === 'simple'){
+            //     await uploadGraph(graphInfo);
+            // }
+            // else{
+            //     await streamGraph(graphInfo);
+            // }
             await uploadGraph(graphInfo);
             alert('Граф успешно отправлен на бэкенд!');
             setFile(null);
@@ -218,7 +234,7 @@ const GraphUploader: React.FC = () => {
             return;
         }
 
-        let content: string;
+        let content: string | Uint8Array;
         let contentType: string;
         let downloadFileName: string;
 
@@ -228,22 +244,41 @@ const GraphUploader: React.FC = () => {
             : safeFileName;
         const processedFileName = `processed_${baseName}`;
 
-        if (downloadFormat === 'json') {
-            content = JSON.stringify(graphInfo, null, 2);
-            contentType = 'application/json';
-            downloadFileName = `${processedFileName}.json`;
+        try {
+            if (downloadFormat === 'json' || downloadFormat === 'msgpack') {
+                const formattedGraph = {
+                    directed: graphInfo.directed,
+                    vertexCount: graphInfo.numNodes,
+                    edges: graphInfo.edges.map(e => [e.from, e.to]),
+                };
+                if (downloadFormat === 'json') {
+                    content = JSON.stringify(formattedGraph, null, 2);
+                    contentType = 'application/json';
+                    downloadFileName = `${processedFileName}.json`;
+                } else {
+                    content = encode(formattedGraph);
+                    contentType = 'application/octet-stream';
+                    downloadFileName = `${processedFileName}.msgpack`;
+                }
+            } 
+            else {
+                content = [
+                    `directed,${graphInfo.directed}`,
+                    `numNodes,${graphInfo.numNodes}`,
+                    `numEdges,${graphInfo.numEdges}`,
+                    `from,to`,
+                    ...graphInfo.edges.map(e => `${e.from},${e.to}`),
+                ].join('\n');
+                contentType = 'text/csv';
+                downloadFileName = `${processedFileName}.csv`;
+            }
+            
         }
-        else {
-            content = [
-                `directed,${graphInfo.directed}`,
-                `numNodes,${graphInfo.numNodes}`,
-                `numEdges,${graphInfo.numEdges}`,
-                `from,to`,
-                ...graphInfo.edges.map(e => `${e.from},${e.to}`),
-            ].join('\n');
-            contentType = 'text/csv';
-            downloadFileName = `${processedFileName}.csv`;
+        catch (error) {
+            setError(`Ошибка при создании ${downloadFormat.toUpperCase()}: файл слишком большой ` + error);
+            return;
         }
+
 
         const blob = new Blob([content], { type: contentType });
         const url = URL.createObjectURL(blob);
@@ -264,6 +299,23 @@ const GraphUploader: React.FC = () => {
         setError(null);
     }
 
+    const handleDatasetSelect = async (datasetName: string) => {
+        setLoading(true);
+        setError(null);
+        console.log(`Отправляем название датасета ${datasetName}`)
+        try{
+            // Отправляем название датасета на бэкенд
+            await selectDataset(datasetName);
+
+        }
+        catch(err: unknown){
+            setError((err as Error).message || `Ошибка обработки датасета ${datasetName}`);
+        }
+        finally{
+            setLoading(false);
+        }
+    }
+
     return (
         <Card sx={{ maxWidth: 700, mx: 'auto', mt: 4, boxShadow: 3 }}>
             <CardContent>
@@ -279,20 +331,39 @@ const GraphUploader: React.FC = () => {
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-                    <Box sx={{display: 'flex', gap: 2}}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
                         <TextField
-                        type="file"
-                        inputProps={{ accept: '.csv, .txt, .mtx' }}
-                        onChange={handleFileChange}
-                        fullWidth
-                        variant="outlined"
-                        label="Выберите файл"
-                        InputLabelProps={{ shrink: true }}
-                    />
-                    
-                    <Button variant="outlined" onClick={handleUseTestGraph}>
-                        Использовать тестовый граф
-                    </Button>
+                            type="file"
+                            inputProps={{ accept: '.csv, .txt, .mtx' }}
+                            onChange={handleFileChange}
+                            fullWidth
+                            variant="outlined"
+                            label="Выберите файл"
+                            InputLabelProps={{ shrink: true }}
+                        />
+
+                        <Button variant="outlined" onClick={handleUseTestGraph}>
+                            Использовать тестовый граф
+                        </Button>
+
+                    </Box>
+
+                    <Box sx={{display:'flex', flexDirection:'column', gap: 1}}>
+                        <Typography variant="h6"> Доступные датасеты</Typography>
+                        
+                        <Box sx={{isplay:'flex', gap: 1, flexWrap: 'wrap'}}>
+                            {datasets.map(dataset => (
+                                <Button
+                                    key={dataset}
+                                    variant="outlined"
+                                    onClick={() => handleDatasetSelect(dataset)}
+                                    disabled={loading}
+                                    sx={{margin: '10px'}}
+                                >
+                                    {dataset}
+                                </Button>
+                            ))}
+                        </Box>
 
                     </Box>
 
@@ -335,8 +406,24 @@ const GraphUploader: React.FC = () => {
                         >
                             <MenuItem value="json">JSON</MenuItem>
                             <MenuItem value="csv">CSV</MenuItem>
+                            <MenuItem value="msgpack">MessagePack</MenuItem>
                         </Select>
                     </FormControl>
+
+                    {/* <FormControl variant="outlined" sx={{maxWidth: 200}}>
+                        
+                        <InputLabel>Метод отправки</InputLabel>
+                        
+                        <Select
+                            value={uploadMethod}
+                            onChange={handleUploadMethodChange}
+                            label="Метод отправки"
+                        >
+                            <MenuItem value="simple">Простая</MenuItem>
+                            <MenuItem value="stream">Потоковая</MenuItem>
+                        </Select>
+
+                    </FormControl> */}
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
                         <Button
@@ -383,7 +470,7 @@ const GraphUploader: React.FC = () => {
                             {error}
                         </Alert>
                     )}
-                    {graphInfo && <GraphAnalyzer graph={graphInfo}/>}
+                    {graphInfo && <GraphAnalyzer graph={graphInfo} />}
                 </Box>
             </CardContent>
         </Card>
