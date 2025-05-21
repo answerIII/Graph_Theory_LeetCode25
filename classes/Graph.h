@@ -389,18 +389,56 @@ class DirectedGraph : public Graph {
         percentileC = distances[index90];
     }
 
-    void initTringlesCount() {
-        if (weekComponents.empty()) initWeekComponents();
+    void initTrianglesCount() {
+        trianglesCount = 0;
+        if (undirectedPaths.empty()) initUndirectedPaths();
 
-        //make directed graph from undirected, direct from week(less degree) node to strong
-        std::unordered_map<int, std::vector<int>> directedPaths;
-        directedPaths.reserve(paths.size());
-        for (auto& [num, vec] : paths) {
-            for (int neighbour : vec) {
-                // if (nodes[num].degree <= nodes[neighbour].degree) {
-                //     directedPaths[num].push_back(neighbour);
-                // }
+        std::mutex mtx;
+        std::unordered_map<int, std::unordered_set<int>> adj;
+        for (auto& [u, vec] : undirectedPaths) {
+            for (int v : vec) {
+                adj[u].insert(v);
             }
+        }
+        std::vector<int> nodesVec;
+        nodesVec.reserve(adj.size());
+        for (auto& [u, _] : adj) {
+            nodesVec.push_back(u);
+        }
+
+        int numThreads = 12;
+        int totalNodes = nodesVec.size();
+        int chunkSize = (totalNodes + numThreads - 1) / numThreads;
+
+        auto worker = [&](int start, int end) {
+            int localCount = 0;
+            for (int i = start; i < end && i < totalNodes; ++i) {
+                int u = nodesVec[i];
+                const auto& neighborsU = adj[u];
+                for (int v : neighborsU) {
+                    if (v <= u) continue;
+                    const auto& neighborsV = adj[v];
+                    for (int w : neighborsV) {
+                        if (w <= v || w == u) continue;
+                        if (neighborsU.count(w)) {
+                            ++localCount;
+                        }
+                    }
+                }
+            }
+            std::lock_guard<std::mutex> lock(mtx);
+            trianglesCount += localCount;
+        };
+
+        std::vector<std::thread> threads;
+        for (int i = 0; i < numThreads; ++i) {
+            int start = i * chunkSize;
+            int end = start + chunkSize;
+            threads.emplace_back(worker, start, end);
+        }
+
+        for (auto& t : threads) {
+            t.join();
         }
     }
 

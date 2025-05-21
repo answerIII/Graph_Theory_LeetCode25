@@ -11,7 +11,6 @@ int main(const int argc, const char *argv[]) {
     Graph* graph(parser.parse(argv[1], directed));
 
     DirectedGraph directedGraph(*graph);
-    std::cout << directedGraph.get90PercentileC() << std::endl;
 
     if (directed) {
         DirectedGraph directedGraph(*graph);
