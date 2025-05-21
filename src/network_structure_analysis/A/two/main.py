@@ -24,7 +24,7 @@ from definitions import (
     REF_DATASETS_LARGE_DIR
 )
 
-from network_structure_analysis.a.bfs import (
+from network_structure_analysis.A.two.bfs import (
     getWeakComponentBFS,
     getFurthestNodeBFS,
     updateDistNodeSubsetBFS,
@@ -33,7 +33,7 @@ from network_structure_analysis.a.bfs import (
     getNodeListWithSnowballBFS
 )
 
-from network_structure_analysis.a.create_induced_subgraph import (
+from network_structure_analysis.A.two.create_induced_subgraph import (
     createInducedSubgraph
 )
 
@@ -222,5 +222,5 @@ if __name__ == "__main__":
         processFile(REF_DATASETS_DIRECTED_DIR + directed_file_name)
     for undirected_file_name in UNDIRECTED_FILE_NAMES:
         processFile(REF_DATASETS_UNDIRECTED_DIR + undirected_file_name)
-    # for large_undirected_file_name in LARGE_UNDIRECTED_FILE_NAMES:
-    #     processFile(REF_DATASETS_LARGE_DIR + large_undirected_file_name)
+    for large_undirected_file_name in LARGE_UNDIRECTED_FILE_NAMES:
+        processFile(REF_DATASETS_LARGE_DIR + large_undirected_file_name)

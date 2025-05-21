@@ -14,5 +14,5 @@ node_id node_id\
 
 Run `python3 src/reformat_datasets.py`
 
-## Largest weak component
-PYTHONPATH=src pypy3 src/network_structure_analysis/a/2.py
+## Run task 1A2
+`PYTHONPATH=src pypy3 src/network_structure_analysis/A/two/main.py`

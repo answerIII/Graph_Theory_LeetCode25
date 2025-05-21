@@ -22,8 +22,8 @@ UNDIRECTED_FILE_NAMES = [
 
 LARGE_UNDIRECTED_FILE_NAMES = [
     "com-youtube.ungraph.txt",
-    "vk.csv"
-    "com-orkut.ungraph.txt",
+    "vk.csv",
+    "com-orkut.ungraph.txt"
 ]
 
 DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/directed/"
