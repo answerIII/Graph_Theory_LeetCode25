@@ -17,22 +17,23 @@ UNDIRECTED_FILE_NAMES = [
     "CA-GrQc.txt",
     "Email-EuAll.txt",
     "ca-coauthors-dblp.txt",
-    "musae_git_edges.csv"
+    "musae_git_edges.csv",
 ]
 
 LARGE_UNDIRECTED_FILE_NAMES = [
     "com-youtube.ungraph.txt",
     "vk.csv",
-    "com-orkut.ungraph.txt"
+    "com-orkut.ungraph.txt",
 ]
 
 DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/directed/"
 DATASETS_UNDIRECTED_DIR = PROJECT_ROOT_DIR + "/datasets/undirected/"
 DATASETS_LARGE_DIR = PROJECT_ROOT_DIR + "/datasets/very_large_graphs/"
 
-REF_DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + \
-    "/reformatted_datasets/directed/"
-REF_DATASETS_UNDIRECTED_DIR = PROJECT_ROOT_DIR + \
-    "/reformatted_datasets/undirected/"
-REF_DATASETS_LARGE_DIR = PROJECT_ROOT_DIR + \
-    "/reformatted_datasets/very_large_graphs/"
+REF_DATASETS_DIRECTED_DIR = PROJECT_ROOT_DIR + "/reformatted_datasets/directed/"
+REF_DATASETS_UNDIRECTED_DIR = (
+    PROJECT_ROOT_DIR + "/reformatted_datasets/undirected/"
+)
+REF_DATASETS_LARGE_DIR = (
+    PROJECT_ROOT_DIR + "/reformatted_datasets/very_large_graphs/"
+)

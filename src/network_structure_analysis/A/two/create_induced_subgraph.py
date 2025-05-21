@@ -1,19 +1,16 @@
-from typing import (
-    List,
-    Tuple,
-    Set,
-)
+from typing import List, Tuple, Set
 
 
-def createInducedSubgraph(undir_adj_list: Tuple[Set[int], ...],
-                          subgraph_nodes_list: List[int]) \
-        -> Tuple[Set[int], ...]:
+def createInducedSubgraph(
+    undir_adj_list: Tuple[Set[int], ...], subgraph_nodes_list: List[int]
+) -> Tuple[Set[int], ...]:
     """
     Create an induced subgraph from a given subgraph_nodes_list
     Returns a subgraph with renamed vertices
     """
-    undir_induced_subgraph: Tuple[Set[int], ...] = \
-        tuple(set() for _ in range(len(subgraph_nodes_list)))
+    undir_induced_subgraph: Tuple[Set[int], ...] = tuple(
+        set() for _ in range(len(subgraph_nodes_list))
+    )
     subgraph_nodes_list.sort()
     for i in range(len(subgraph_nodes_list) - 1):
         node1 = subgraph_nodes_list[i]
