@@ -119,6 +119,26 @@ def bfs_with_path(graph: dict[int, set[int]], start: int, end: int):
     return path
 
 
+def bfs_with_path_and_distance(graph: dict[int, set[int]], start: int):
+    """бфс, который строит дерево кратчайших путей:
+    - distances[v] — расстояние от start до v
+    - parents[v] — родитель вершины v в дереве кратчайших путей
+    """
+    distances = {start: 0}
+    queue = collections.deque([start])
+    parents = {start: None}
+
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph.get(node, set()):
+            if neighbor not in parents:  # если ещё не посещали
+                distances[neighbor] = distances[node] + 1
+                parents[neighbor] = node
+                queue.append(neighbor)
+
+    return parents, distances
+
+
 def reverse_graph(graph: dict):
     reversed_graph = {}
     for v in graph:

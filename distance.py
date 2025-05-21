@@ -1,6 +1,6 @@
 """Реализация пункта 2 и 3(исп.  Landmarks-LCA)"""
 import random
-from basic import bfs_with_path, bfs, to_undirected
+from basic import bfs_with_path, bfs, to_undirected, bfs_with_path_and_distance
 from collections import Counter
 """-----функции для выбора ориентиров-----"""
 #  на вход передаем количество используемых ориентиров
@@ -29,7 +29,6 @@ def best_coverage_selection(k: int, graph: dict):
     return coverage.most_common(k)
 
 
-
 def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
     min_distance = float('inf')
     
@@ -47,16 +46,15 @@ def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
                 
     return min_distance if min_distance != float('inf') else -1
 
-def landmarks_LCA(): 
-    return
 
 def print_distance(graph: dict, directed: bool = True):
     # Преобразуем граф в неориентированный, если он ориентированный
-    if directed:
+    """if directed:
         working_graph = to_undirected(graph)
     else:
-        working_graph = {node: set(neighbors) for node, neighbors in graph.items()}
-    
+        working_graph = {node: set(neighbors) for node, neighbors in graph.items()}"""
+        
+    working_graph = graph
     # Выбираем ориентиры (5% вершин, но не менее 5 и не более 50)
     num_landmarks = max(5, min(50, len(working_graph) // 20))
     landmarks = highest_degree_selection(num_landmarks, working_graph)
@@ -110,3 +108,30 @@ def print_distance(graph: dict, directed: bool = True):
     print(f"Reachable pairs (exact): {reachable_pairs}/5")
     print(f"Reachable pairs (estimated): {estimated_reachable}/5")
     print("----------------------------------")
+    
+    
+    
+    print("""\n\nC section""")
+    data = landmarks_LCA(graph, landmarks)
+    for a,b in test_pairs:
+        path_a = []
+        path_b = []
+        
+    
+    
+    
+def landmarks_LCA(graph:dict, landmarks: list, ): 
+    data = dict() #  дерево кратч путей и расстояния 
+    for l in landmarks:
+        parents, distances = bfs_with_path_and_distance(graph, l)
+        data[l] = { "parents": parents, "distances": distances}
+    return data
+
+def build_path(parents, vertice):
+    path = []
+    cur_node = vertice
+    while cur_node is not None:
+        path.append(cur_node)
+        cur_node = parents[cur_node]
+    return path
+    
