@@ -16,10 +16,16 @@ type GraphJSON struct {
 }
 
 type GraphMsg struct {
-	Directed bool
-	NumNodes int
-	Edges    []Edge
+	Directed    bool    `msgpack:"directed"`
+	VertexCount int     `msgpack:"vertexCount"`
+	Edges       [][]int `msgpack:"edges"`
 }
+
+// type GraphMsg struct {
+// 	Directed bool
+// 	NumNodes int
+// 	Edges    []Edge
+// }
 
 type Edge struct {
 	From int `json:"from"`

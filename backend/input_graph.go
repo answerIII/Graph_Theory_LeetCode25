@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/HikkMind/graph/structs"
-	"github.com/vmihailenco/msgpack"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 func readGraph(filename string) structs.Graph {
@@ -158,18 +158,30 @@ func readGraphMP(filename string) structs.Graph {
 		panic(err)
 	}
 
-	var graphMsg structs.GraphMsg
+	graphMsg := structs.GraphMsg{Edges: make([][]int, 0)}
 	err = msgpack.Unmarshal(dataMsg, &graphMsg)
 	if err != nil {
 		panic(err)
 	}
 
-	outputGraph := structs.Graph{Directed: graphMsg.Directed, VertexCount: graphMsg.NumNodes, EdgesCount: len(graphMsg.Edges), AdjList: make(map[int][]int)}
-	if outputGraph.Directed {
-		outputGraph.Edges = graphMsg.Edges
+	outputGraph := structs.Graph{
+		Directed:    graphMsg.Directed,
+		VertexCount: graphMsg.VertexCount,
+		EdgesCount:  len(graphMsg.Edges),
+		AdjList:     make(map[int][]int),
 	}
+	// if outputGraph.Directed {
+	// 	outputGraph.Edges = graphMsg.Edges
+	// }
 	for _, edge := range graphMsg.Edges {
-		u, v := edge.From, edge.To
+		//fmt.Println(edge)
+		u, v := edge[0], edge[1]
+		// u, v := edge.From, edge.To
+		// u, _ := strconv.Atoi(edge[0])
+		// v, _ := strconv.Atoi(edge[1])
+		if outputGraph.Directed {
+			outputGraph.Edges = append(outputGraph.Edges, structs.Edge{From: u, To: v})
+		}
 
 		if adj, ok := outputGraph.AdjList[u]; ok {
 			outputGraph.AdjList[u] = append(adj, v)
