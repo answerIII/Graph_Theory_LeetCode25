@@ -16,7 +16,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     num_of_edges = number_of_edges(graph, directed)
     print("(A1)----------")
     print(f"кол-во вершин = {num_of_vertices} (должно быть {graph_with_correct_result.number_of_nodes()})")
-    print(f"кол-во вершин =  {num_of_edges} (должно быть {graph_with_correct_result.number_of_edges()})")
+    print(f"кол-во ребер =  {num_of_edges} (должно быть {graph_with_correct_result.number_of_edges()})")
     print(f"плотность = {density(num_of_edges, num_of_vertices)} (должно быть {nx.density(graph_with_correct_result)})")
     week_max_component : set  # самая большая компонента по количеству вершин
     week_component_count: int
@@ -96,13 +96,14 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         if user_input.lower() == 'stop':
             break
         remove_random_vertices(graph_with_removed_vertices, int(user_input))
-        count, max_component = weekly_connected_components(graph_with_removed_vertices)
-        fraction_after_remove = len(max_component) / len(graph_with_removed_vertices)
+        count, max_component_after = weekly_connected_components(graph_with_removed_vertices)
+        fraction_after_remove = len(max_component_after) / len(graph_with_removed_vertices)
         print(
             f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
         print("до удаления вершин:", len(graph))
         print("после удаления вершин:", len(graph_with_removed_vertices))
-        print("размер наибольшей компоненты:", len(max_component))
+        print("размер наибольшей компоненты до удаления:", len(max_component_after))
+        print("размер наибольшей компоненты после удаления:", len(max_component_after))
     print("(B1)----------\n")
     print("\n(B2)----------")
     while True:

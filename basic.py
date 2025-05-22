@@ -94,6 +94,49 @@ def bfs(graph: dict[int, set[int]], start: int, component: set[int] = None) -> d
                     queue.append(neighbor)
     return distances
    
+def bfs_with_path(graph: dict[int, set[int]], start: int, end: int):
+    """бфс с запоминанием пути"""
+    queue = collections.deque([start])
+    parents = dict()
+    parents[start] = None
+    while queue:
+        node = queue.popleft()
+        if node == end:
+            break
+        for neighbor in graph.get(node, set()):
+                if neighbor not in parents:
+                    queue.append(neighbor)
+                    parents[neighbor] = node
+    
+    if end not in parents and start!=end :
+        return None
+                     
+    path = [end]
+    cur_node = end
+    while cur_node!= start:
+        cur_node = parents[cur_node]
+        path.append(cur_node)
+    return path
+
+def bfs_with_path_and_distance(graph: dict[int, set[int]], start: int) -> tuple[dict, dict]:
+    """бфс с построением дерева кратчайших путей.
+    Возвращает:
+    - parents: родитель каждой вершины в дереве (None для start),
+    - distances: расстояние от start до каждой вершины."""
+    distances = {start: 0}
+    queue = collections.deque([start])
+    parents = dict()
+    parents[start] = None
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph.get(node, set()):
+                if neighbor not in parents:
+                    distances[neighbor] = distances[node] + 1
+                    queue.append(neighbor)
+                    parents[neighbor] = node
+    return parents, distances
+
+
 def reverse_graph(graph: dict):
     reversed_graph = {}
     for v in graph:
