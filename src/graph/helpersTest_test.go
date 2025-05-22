@@ -29,7 +29,7 @@ const (
 	ugraphCaGrqcFilepath          = "../datasets/undirected/aux_graphs/CA-GrQc-undirected.txt"
 	ugraphEmailEuAllFilepath      = "../datasets/undirected/aux_graphs/Email-EuAll-undirected.txt"
 	ugraphMusaeGitEdgesFilepath   = "../datasets/undirected/aux_graphs/musae_git_edges-undirected.txt"
-	ugraphYoutubeUngraphFilepath  = "../datasets/very_large_graphs/aux_graphs/com-youtube-ungraph-undirected.txt"
+	ugraphYoutubeUngraphFilepath  = "../datasets/very_large_graphs/aux_graphs/com-youtube.ungraph-undirected.txt"
 	ugraphVkFilepath              = "../datasets/very_large_graphs/aux_graphs/vk-undirected.txt"
 	ugraphOrkkutFilepath          = "../datasets/very_large_graphs/aux_graphs/com-orkut.ungraph-undirected.txt"
 
@@ -44,7 +44,7 @@ const (
 	invertedCaGrqcFilepath          = "../datasets/undirected/aux_graphs/CA-GrQc-inverted.txt"
 	invertedEmailEuAllFilepath      = "../datasets/undirected/aux_graphs/Email-EuAll-inverted.txt"
 	invertedMusaeGitEdgesFilepath   = "../datasets/undirected/aux_graphs/musae-git-edges-inverted.txt"
-	invertedYoutubeUngraphFilepath  = "../datasets/very_large_graphs/aux_graphs/com-youtube-ungraph-inverted.txt"
+	invertedYoutubeUngraphFilepath  = "../datasets/very_large_graphs/aux_graphs/com-youtube.ungraph-inverted.txt"
 	invertedVkFilepath              = "../datasets/very_large_graphs/aux_graphs/vk-inverted.txt"
 	invertedOrkkutFilepath          = "../datasets/very_large_graphs/aux_graphs/com-orkut.ungraph-inverted.txt"
 )

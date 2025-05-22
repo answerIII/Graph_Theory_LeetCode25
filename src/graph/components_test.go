@@ -16,10 +16,40 @@ func TestGraph_FindSCC(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name:      "Graph wiki-vote",
+			name:      "Graph Wiki-Vote",
 			graphPath: wikiVoteFilepath,
 			args:      args{invertedGraphPath: invertedWikiVoteFilepath},
-			want:      5788,
+			want:      5816,
+		},
+		{
+			name:      "Graph soc-wiki-Vote",
+			graphPath: socWikiVoteFilepath,
+			args:      args{invertedGraphPath: invertedSocWikiVoteFilepath},
+			want:      889,
+		},
+		{
+			name:      "Graph web-Google",
+			graphPath: webGoogleFilepath,
+			args:      args{invertedGraphPath: invertedWebGoogleFilepath},
+			want:      371764,
+		},
+		{
+			name:      "Graph web-NotreDame",
+			graphPath: webNotreDameFilepath,
+			args:      args{invertedGraphPath: invertedWebNotreDameFilepath},
+			want:      203609,
+		},
+		{
+			name:      "Graph web-Stanford",
+			graphPath: webStanfordFilepath,
+			args:      args{invertedGraphPath: invertedWebStanfordFilepath},
+			want:      29914,
+		},
+		{
+			name:      "Graph com-youtube",
+			graphPath: youtubeUngraphFilepath,
+			args:      args{invertedGraphPath: invertedYoutubeUngraphFilepath},
+			want:      1134890,
 		},
 	}
 	for _, tt := range tests {

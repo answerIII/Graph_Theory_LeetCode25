@@ -11,9 +11,8 @@ func DFS(
 	}
 
 	var components [][]Node
-
 	for _, node := range startNodes {
-		if _, ok := used[node]; ok {
+		if _, has := used[node]; has {
 			continue
 		}
 
@@ -27,7 +26,6 @@ func DFS(
 			node        Node
 			isProcessed bool
 		}{node, false})
-		used[node] = struct{}{}
 
 		for len(stack) > 0 {
 			lastIdx := len(stack) - 1
@@ -44,11 +42,15 @@ func DFS(
 				if onIn != nil {
 					onIn(u)
 				}
-
+				if _, has := used[u]; has {
+					continue
+				}
 				stack = append(stack, struct {
 					node        Node
 					isProcessed bool
 				}{u, true})
+
+				used[u] = struct{}{}
 
 				neighbors := graph.Adj.neighbors(u)
 
@@ -58,7 +60,6 @@ func DFS(
 							node        Node
 							isProcessed bool
 						}{v, false})
-						used[v] = struct{}{}
 					}
 				}
 			}
