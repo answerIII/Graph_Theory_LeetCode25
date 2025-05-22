@@ -2,10 +2,13 @@ from A1 import *
 from A2 import *
 from A3 import *
 from A4 import *
+from A5 import *
 from B import *
 
 from basic import to_undirected
 import networkx as nx
+import matplotlib.pyplot as plt
+import math
 
 """тут когда все методы для пункта 1 сделаем напишем код который соберет все и выведет анализ графа"""
 def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Graph):
@@ -51,6 +54,37 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     print("(A4)----------")
     print(f"средний кластерный коэффициент (для наибольшей компоненты слабой связанности) = {average_clustering_coefficient(undirected_graph)}")
     print("(A4)----------\n")
+
+    print("(A5)----------")
+    min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
+
+    print(f"Минимальная степень: {min_deg}")
+    print(f"Максимальная степень: {max_deg}")
+    print(f"Средняя степень: {avg_deg:.4f}")
+
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.bar(degree_prob.keys(), degree_prob.values(), width=0.80, color='b')
+    plt.title("Распределение степеней (обычная шкала)")
+    plt.xlabel("Степень")
+    plt.ylabel("Вероятность")
+
+    plt.subplot(1, 2, 2)
+    x_log = []
+    y_log = []
+    for k, v in degree_prob.items():
+        if k > 0 and v > 0:
+            x_log.append(math.log(k))
+            y_log.append(math.log(v))
+
+    plt.scatter(x_log, y_log)
+    plt.title("Распределение степеней (log - log шкала)")
+    plt.xlabel("log(Степень)")
+    plt.ylabel("log(Вероятность)")
+
+    plt.tight_layout()
+    plt.show()
+    print("(A5)----------\n")
 
     print("(B1)----------")
     if directed:
