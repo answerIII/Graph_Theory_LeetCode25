@@ -51,7 +51,7 @@ def getDiamAndPercentile(
         for j in range(1, total_nodes - i):
             sorted_dist.append(distance_triangle[i][j])
     sorted_dist.sort()
-    percentile_90_ind = round(total_nodes * 0.9)
+    percentile_90_ind = round(len(sorted_dist) * 0.9)
     return (sorted_dist[-1], sorted_dist[percentile_90_ind])
 
 
