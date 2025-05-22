@@ -113,10 +113,52 @@ def print_distance(graph: dict, directed: bool = True):
     
     print("""\n\nC section""")
     data = landmarks_LCA(graph, landmarks)
+    lca_distances = {}
     for a,b in test_pairs:
-        path_a = []
-        path_b = []
-        
+        min_dist = float('inf')
+        for l in landmarks:
+            parents = data[l]["parents"]
+            distances = data[l]["distances"]
+            
+            if a not in parents:
+                continue
+            path_a = build_path(parents, a)
+            path_b = build_path(parents, b)
+            
+            lca = find_lca(path_a, path_b)  #  первая общая вершина
+            if lca is None:
+                continue
+            
+            dist_a_landmark = distances[a]
+            dist_b_landmark = distances[b]
+            dist_lca_landmark = distances[lca]
+            dist_a_lca = dist_a_landmark - dist_lca_landmark
+            dist_b_lca = dist_b_landmark - dist_lca_landmark
+            min_dist = min(dist_a_lca+dist_b_lca, min_dist)
+        if min_dist != float('inf'):
+            lca_distances[a, b] = min_dist
+        else:
+             lca_distances[a, b] = -1
+    print("точное расстояние:")
+    print("----\t-----\t------------\n")
+    for (a, b), exact in exact_distances.items():
+        estimate =  lca_distances[a, b]
+        print(f"{u}-{v}\t{exact}\t{estimate}")
+    
+    # Средняя ошибка
+    total_error = 0
+    valid_pairs = 0
+    for (a, b), exact in exact_distances.items():
+        est = lca_distances[a, b]
+        if exact != -1 and est != -1:
+            total_error += abs(exact - est)
+            valid_pairs += 1
+    if valid_pairs > 0:
+        avg_error = total_error / valid_pairs
+        print(f"Average absolute error (LCA): {avg_error:.2f}\n")
+    else:
+        print("No valid pairs for LCA error calculation\n")
+
     
     
     
@@ -135,3 +177,9 @@ def build_path(parents, vertice):
         cur_node = parents[cur_node]
     return path
     
+def find_lca(path_a: list, path_b: list):
+    path_a2 = set(path_a)
+    for v in path_b:
+        if v in path_a2:
+            return v
+    return None
