@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"slices"
 	"sync"
+	"sync/atomic"
 )
 
 func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
@@ -86,8 +87,7 @@ func (g *Graph) TrianglesNumber() (int64, error) {
 	if g.Directed {
 		return 0, fmt.Errorf("graph must be undirected")
 	}
-	var triangles int64
-	var mu sync.Mutex
+	var triangles atomic.Int64
 
 	nodes := make([]Node, 0, len(g.Nodes))
 	for node := range g.Nodes {
@@ -121,14 +121,12 @@ func (g *Graph) TrianglesNumber() (int64, error) {
 					}
 				}
 			}
-			mu.Lock()
-			triangles += local
-			mu.Unlock()
+			triangles.Add(local)
 			return nil
 		})
 	}
 
 	wp.Wait()
 
-	return triangles, nil
+	return triangles.Load(), nil
 }

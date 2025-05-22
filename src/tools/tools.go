@@ -17,7 +17,7 @@ type Adjacency map[int][]int
 type EdgeFunction func(u, v int) error
 type Converter func() (*Nodes, *Adjacency, EdgeFunction)
 
-var SUPPORTED_EXTENSIONS = []string{".csv", ".txt"}
+var SUPPORTED_EXTENSIONS = []string{".csv", ".txt", ".mtx"}
 
 type Parser interface {
 	Parse(fileIn io.Reader, f EdgeFunction) error
@@ -97,7 +97,7 @@ func parser(pathIn string, f EdgeFunction) error {
 	var parser Parser
 
 	switch ext {
-	case ".txt":
+	case ".txt", ".mtx":
 		parser = TXTParser{}
 	case ".csv":
 		parser = CSVParser{}

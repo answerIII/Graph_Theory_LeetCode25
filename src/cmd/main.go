@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"graph_theory/graph"
 	"graph_theory/tools"
@@ -25,9 +26,13 @@ func main() {
 	filePath := os.Args[1]
 	outputPath := os.Args[2]
 	graphName := getFileNameWithoutExt(filePath)
-	sortedGraph := getFileDestinationWithoutExt(filePath) + "-sorted.txt"
-	invertedGraph := getFileDestinationWithoutExt(filePath) + "-inverted.txt"
-	undirectedGraph := getFileDestinationWithoutExt(filePath) + "-undirected.txt"
+	auxPath := getFileDestination(filePath) + "aux_graphs/"
+	if err := os.MkdirAll(auxPath, 0o775); err != nil {
+		log.Fatalf("Error creating directory: %v\n", err)
+	}
+	auxSortedGraph := auxPath + graphName + "-sorted.txt"
+	auxInvertedGraph := auxPath + graphName + "-inverted.txt"
+	auxUndirectedGraph := auxPath + graphName + "-undirected.txt"
 
 	log.Printf("Создание файла: %s\n", outputPath)
 	file, err := os.Create(outputPath)
@@ -41,13 +46,19 @@ func main() {
 	}
 
 	log.Println("Создание вспомогательных файлов")
-	tools.SortNodesInFile(filePath, sortedGraph)
-	tools.InvertEdgesInFile(filePath, invertedGraph)
-	tools.UndirectEdgesInFile(filePath, undirectedGraph)
+	if _, err := os.Stat(auxSortedGraph); errors.Is(err, os.ErrNotExist) {
+		tools.SortNodesInFile(filePath, auxSortedGraph)
+	}
+	if _, err := os.Stat(auxInvertedGraph); errors.Is(err, os.ErrNotExist) {
+		tools.InvertEdgesInFile(filePath, auxInvertedGraph)
+	}
+	if _, err := os.Stat(auxUndirectedGraph); errors.Is(err, os.ErrNotExist) {
+		tools.UndirectEdgesInFile(filePath, auxUndirectedGraph)
+	}
 
 	log.Println("Чтение и создание графа из файла")
-	sccCount, maxSccSize := loadAndPrepareGraph(sortedGraph, invertedGraph)
-	ugraph, err := graph.FromFile(undirectedGraph, false)
+	sccCount, maxSccSize := loadAndPrepareGraph(auxSortedGraph, auxInvertedGraph)
+	ugraph, err := graph.FromFile(auxUndirectedGraph, false)
 
 	log.Println("Поиск компонент слабой связности в неорграфе")
 	wcc := getWCC(ugraph)
@@ -67,11 +78,16 @@ func main() {
 	log.Println("Подсчет треугольников в неорграфе")
 	triangles := getTriangles(ugraph)
 	log.Println("Нахождение среднего коэффициента кластеризации на неорграфе")
-	avgCC := getAvgCC(ugraph, nil)
+	var avgCC, avgCcWcc float64
+	avgCC = getAvgCC(ugraph, nil)
 	log.Println("Нахождение глобального коэффициента кластеризации на неорграфе")
 	globalCC := getGlobalCC(ugraph, triangles)
 	log.Println("Нахождение среднего коэффициента кластеризации на наибольшей компоненте слабой связности")
-	avgCcWcc := getAvgCC(ugraph, wcc[0])
+	if len(wcc) == 1 {
+		avgCcWcc = avgCC
+	} else {
+		avgCcWcc = getAvgCC(ugraph, wcc[0])
+	}
 
 	log.Println("Расчет степеней вершин неорграфа")
 	minD, avgD, maxD := getDegrees(ugraph)
@@ -105,9 +121,8 @@ func getFileNameWithoutExt(path string) string {
 	base := filepath.Base(path)
 	return base[:len(base)-len(filepath.Ext(base))]
 }
-
-func getFileDestinationWithoutExt(path string) string {
-	return path[:len(path)-len(filepath.Ext(path))]
+func getFileDestination(path string) string {
+	return path[:len(path)-len(filepath.Base(path))]
 }
 
 // Graph processing helpers

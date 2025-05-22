@@ -1,20 +1,66 @@
 package graph
 
 import (
+	"errors"
 	"fmt"
+	"graph_theory/tools"
 	"log"
 	"math/rand/v2"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-const FILEPATH = "../datasets/directed/web-Stanford.txt"
+const (
+	exampleFilepath         = "../datasets/directed/example.txt"
+	socWikiVoteFilepath     = "../datasets/directed/soc-wiki-Vote.mtx"
+	webGoogleFilepath       = "../datasets/directed/web-Google.txt"
+	webNotreDameFilepath    = "../datasets/directed/web-NotreDame.txt"
+	webStanfordFilepath     = "../datasets/directed/web-Stanford.txt"
+	wikiVoteFilepath        = "../datasets/directed/Wiki-Vote.txt"
+	caAstroPhFilepath       = "../datasets/undirected/CA-AstroPh.txt"
+	caCoauthorsDblpFilepath = "../datasets/undirected/ca-coauthors-dblp.txt"
+	caGrqcFilepath          = "../datasets/undirected/CA-GrQc.txt"
+	emailEuAllFilepath      = "../datasets/undirected/Email-EuAll.txt"
+	musaeGitEdgesFilepath   = "../datasets/undirected/musae_git_edges.csv"
+	youtubeUngraphFilepath  = "../datasets/very_large_graphs/com-youtube.ungraph.txt"
+	vkFilepath              = "../datasets/very_large_graphs/vk.csv"
+)
 
-var graph *Graph
+var (
+	path                    string
+	graph                   *Graph
+	sortedGraphFilepath     string
+	invertedGraphFilepath   string
+	undirectedGraphFilepath string
+)
 
 func init() {
+	path = webStanfordFilepath
+
 	var err error
-	graph, err = FromFile(FILEPATH, false)
+
+	// example: /datasets/directed
+	filePath := path[:len(path)-len(filepath.Base(path))]
+	// example: web-Stanford
+	graphName := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+
+	auxPath := filePath + "aux_graphs/"
+	sortedGraphFilepath = auxPath + graphName + "-sorted.txt"
+	invertedGraphFilepath = auxPath + graphName + "-inverted.txt"
+	undirectedGraphFilepath = auxPath + graphName + "-undirected.txt"
+	if _, err := os.Stat(sortedGraphFilepath); errors.Is(err, os.ErrNotExist) {
+		tools.SortNodesInFile(path, sortedGraphFilepath)
+	}
+	if _, err := os.Stat(invertedGraphFilepath); errors.Is(err, os.ErrNotExist) {
+		tools.InvertEdgesInFile(path, invertedGraphFilepath)
+	}
+	if _, err := os.Stat(undirectedGraphFilepath); errors.Is(err, os.ErrNotExist) {
+		tools.UndirectEdgesInFile(path, undirectedGraphFilepath)
+	}
+
+	graph, err = FromFile(sortedGraphFilepath, false)
 	if err != nil {
 		log.Fatalf("Error reading graph file: %v\n", err)
 	}
@@ -22,7 +68,7 @@ func init() {
 
 func TestGraph_FindSCC(t *testing.T) {
 	t.Run("Test with real data", func(t *testing.T) {
-		got, err := graph.FindSCC()
+		got, err := graph.FindSCC(invertedGraphFilepath)
 		if err != nil {
 			t.Errorf("FindSCC() error = %v", err)
 			return
@@ -138,7 +184,7 @@ func TestGraph_GetGlobalClusteringCoefficient(t *testing.T) {
 
 func TestGraph_ProcessNodesDegrees(t *testing.T) {
 	t.Run("Process nodes degrees", func(t *testing.T) {
-		parts := strings.Split(FILEPATH, "/")
+		parts := strings.Split(path, "/")
 		path := fmt.Sprintf("../visualization/data/degrees-%s", parts[len(parts)-1])
 		minD, avgD, maxD, err := graph.ProcessNodesDegrees(path)
 		if err != nil {
