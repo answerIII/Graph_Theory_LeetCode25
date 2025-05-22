@@ -1,0 +1,11 @@
+{
+  "directed": 0,
+  "num_vertices": 5242,
+  "num_edges": 14496,
+  "density": 0.001,
+  "weak_comp_count": 1,
+  "weak_largest_comp_size": 5242,
+  "weak_largest_comp_frac": 1.0,
+  "strong_comp_count": 5242,
+  "strong_largest_comp_frac": 0.2
+}

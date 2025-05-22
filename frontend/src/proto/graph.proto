@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package graph;
+
+message Edge {
+  int32 from = 1;
+  int32 to = 2;
+}
+
+message Graph {
+  bool directed = 1;
+  int32 numNodes = 2;
+  int32 numEdges = 3;
+  repeated Edge edges = 4;
+}
+
+message GraphChunk {
+  repeated Edge edges = 1;
+}
+
+message UploadResponse {
+  string status = 1;
+  string message = 2;
+}
+
+service GraphService {
+  rpc UploadGraph (Graph) returns (UploadResponse);
+  rpc StreamGraph (stream GraphChunk) returns (UploadResponse);
+}
