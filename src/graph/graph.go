@@ -2,13 +2,10 @@ package graph
 
 import (
 	"bufio"
-	"math/rand"
 	"os"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Node int
@@ -39,24 +36,11 @@ func NewGraph(directed bool) *Graph {
 
 func (g *Graph) getNodesSlice() []Node {
 	nodes := make([]Node, 0, g.NumberOfNodes())
-	for node, _ := range g.Nodes {
+	for node := range g.Nodes {
 		nodes = append(nodes, node)
 	}
-	sort.Slice(nodes, func(i, j int) bool {
-		return nodes[i] < nodes[j]
-	})
+	slices.Sort(nodes)
 	return nodes
-}
-
-func (g *Graph) GetNeighborsRandomSlice(node Node) []Node {
-	neighbors := g.Adj.neighbors(node)
-
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.Shuffle(len(neighbors), func(i, j int) {
-		neighbors[i], neighbors[j] = neighbors[j], neighbors[i]
-	})
-
-	return neighbors
 }
 
 func (g *Graph) AddNode(n Node) {
@@ -91,7 +75,7 @@ func (g *Graph) AddEdge(u, v Node) {
 	}
 	if int(u) != len(g.Adj.ptr)-1 {
 		nodesToInsert := int(u) - len(g.Adj.ptr) + 1
-		for i := 0; i < nodesToInsert; i++ {
+		for range nodesToInsert {
 			g.Adj.ptr = append(g.Adj.ptr, len(g.Adj.to))
 		}
 	}
@@ -184,12 +168,11 @@ func GetSnowballGraph(
 	for _, u := range nodes {
 		for _, v := range adj[u] {
 			subgraph.AddEdge(Node(u), Node(v))
-			subgraph.AddEdge(Node(v), Node(u))
 		}
 	}
 
 	nodesToInsert := len(nodes) - len(subgraph.Adj.ptr) + 1
-	for i := 0; i < nodesToInsert; i++ {
+	for range nodesToInsert {
 		subgraph.Adj.ptr = append(subgraph.Adj.ptr, len(subgraph.Adj.to))
 	}
 
@@ -223,7 +206,7 @@ func FromFile(filePath string, directed bool) (*Graph, error) {
 		graph.AddEdge(Node(u), Node(v))
 	}
 	nodesToInsert := len(graph.Nodes) - len(graph.Adj.ptr) + 1
-	for i := 0; i < nodesToInsert; i++ {
+	for range nodesToInsert {
 		graph.Adj.ptr = append(graph.Adj.ptr, len(graph.Adj.to))
 	}
 	if err := scanner.Err(); err != nil {

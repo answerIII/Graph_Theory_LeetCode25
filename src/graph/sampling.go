@@ -41,7 +41,7 @@ func generateSnowballSample(
 	component []Node,
 ) []Node {
 	startNode := component[rand.IntN(len(component))]
-	neighbors := graph.GetNeighborsRandomSlice(startNode)
+	neighbors := graph.Adj.neighbors(startNode)
 
 	nodes := make([]Node, 0, 3)
 	nodes = append(nodes, startNode)
