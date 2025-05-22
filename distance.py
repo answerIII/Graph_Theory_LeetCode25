@@ -47,7 +47,7 @@ def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
     return min_distance if min_distance != float('inf') else -1
 
 
-def print_distance(graph: dict, directed: bool = True):
+def print_distance(graph: dict, directed: bool = True, landmark_selection_option = 2):
     # Преобразуем граф в неориентированный, если он ориентированный
     """if directed:
         working_graph = to_undirected(graph)
@@ -57,11 +57,18 @@ def print_distance(graph: dict, directed: bool = True):
     working_graph = graph
     # Выбираем ориентиры (5% вершин, но не менее 5 и не более 50)
     num_landmarks = max(5, min(50, len(working_graph) // 20))
-    landmarks = highest_degree_selection(num_landmarks, working_graph)
+    if landmark_selection_option == 1:
+        landmarks = random_selection(num_landmarks, working_graph)
+    if landmark_selection_option == 2:
+        landmarks = highest_degree_selection(num_landmarks, working_graph)
+    if landmark_selection_option == 3:
+        landmarks = best_coverage_selection(num_landmarks, working_graph)
+
+   
     
-    print("Landmarks-Basic Distance Estimation")
+    print("Landmarks-Basic")
     print("----------------------------------")
-    print(f"Selected {len(landmarks)} landmarks using highest degree selection\n")
+    print(f"Использовано {len(landmarks)} ориентиров\n")
     
     # Выбираем случайные 5 пар вершин для демонстрации
     nodes = list(working_graph.keys())
@@ -81,11 +88,11 @@ def print_distance(graph: dict, directed: bool = True):
         estimated_distances[u, v] = landmarks_basic(working_graph, landmarks, u, v)
     
     # Выводим результаты
-    print("Pair\tExact\tEstimated")
-    print("----\t-----\t---------\n")
+    print(f"{'Пара':<10}{'Реальное':<15}{'Оценка':<20}")
+    print("-" * 45)   
     for (u, v), exact in exact_distances.items():
         estimated = estimated_distances[u, v]
-        print(f"{u}-{v}\t{exact}\t{estimated}")
+        print(f"{f'{u}-{v}':<10}{str(exact):<15}{str(estimated):<20}")
     
     # Вычисляем среднюю ошибку
     total_error = 0
@@ -97,21 +104,21 @@ def print_distance(graph: dict, directed: bool = True):
     
     if valid_pairs > 0:
         avg_error = total_error / valid_pairs
-        print(f"Average absolute error: {avg_error:.2f}\n")
+        print(f"\nСредняя абсолютная ошибка (Basic): {avg_error:.2f}")
     else:
         print("No valid pairs for error calculation\n")
     
     # Дополнительная статистика
-    reachable_pairs = sum(1 for d in exact_distances.values() if d != -1)
-    estimated_reachable = sum(1 for d in estimated_distances.values() if d != -1)
+    # reachable_pairs = sum(1 for d in exact_distances.values() if d != -1)
+    # estimated_reachable = sum(1 for d in estimated_distances.values() if d != -1)
     
-    print(f"Reachable pairs (exact): {reachable_pairs}/5")
-    print(f"Reachable pairs (estimated): {estimated_reachable}/5")
-    print("----------------------------------")
+    # print(f"Reachable pairs (exact): {reachable_pairs}/5")
+    # print(f"Reachable pairs (estimated): {estimated_reachable}/5")
+    # print("----------------------------------")
     
     
     
-    print("""\n\nC section""")
+    print("\n\nLandmarks-LCA")
     data = landmarks_LCA(graph, landmarks)
     lca_distances = {}
     for a,b in test_pairs:
@@ -139,11 +146,11 @@ def print_distance(graph: dict, directed: bool = True):
             lca_distances[a, b] = min_dist
         else:
              lca_distances[a, b] = -1
-    print("точное расстояние:")
-    print("----\t-----\t------------\n")
+    print(f"{'Пара':<10}{'Реальное':<15}{'Оценка':<20}")
+    print("-" * 45)
     for (a, b), exact in exact_distances.items():
         estimate =  lca_distances[a, b]
-        print(f"{u}-{v}\t{exact}\t{estimate}")
+        print(f"{f'{a}-{b}':<10}{str(exact):<15}{str(estimate):<20}")
     
     # Средняя ошибка
     total_error = 0
@@ -155,7 +162,7 @@ def print_distance(graph: dict, directed: bool = True):
             valid_pairs += 1
     if valid_pairs > 0:
         avg_error = total_error / valid_pairs
-        print(f"Average absolute error (LCA): {avg_error:.2f}\n")
+        print(f"\nСредняя абсолютная ошибка (LCA): {avg_error:.2f}")
     else:
         print("No valid pairs for LCA error calculation\n")
 
