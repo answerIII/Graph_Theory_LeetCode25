@@ -2,6 +2,7 @@
 #define GRAPH_H
 #include <queue>
 #include <execution>
+#include <filesystem>
 #include <stack>
 
 #include "../libs.h"
@@ -442,6 +443,44 @@ class DirectedGraph : public Graph {
         }
     }
 
+    void removeNodes(int count, bool randomRemoving) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::vector<std::unordered_map<int, std::vector<int>>::iterator> iters;
+        for (auto it = paths.begin(); it != paths.end(); ++it) {
+            iters.push_back(it);
+        }
+
+        if (randomRemoving) {
+            while (count--) {
+                std::uniform_int_distribution<> dis(0, static_cast<int>(iters.size()) - 1);
+                int index = dis(gen);
+                paths.erase(iters[index]);
+                int key = iters[index]->first;
+                iters[index] = iters.back();
+                iters.pop_back();
+                nodes.erase(key);
+            }
+        } else {
+            std::vector<std::pair<int, std::vector<int>>> sortedPaths(paths.begin(), paths.end());
+            std::sort(sortedPaths.begin(), sortedPaths.end(),
+                [](const auto& a, const auto& b) {
+                    return a.second.size() < b.second.size();
+                });
+            while (count--) {
+                int key = sortedPaths.back().first;
+                sortedPaths.pop_back();
+                nodes.erase(key);
+                paths.erase(key);
+            }
+        }
+
+        undirectedPaths.clear();
+        transposePaths.clear();
+        strongComponents.clear();
+        weekComponents.clear();
+    }
+
     std::pair<int, Node*> getFarthestVertex(Node* node) {
         std::pair farthestVertex(0,node);
         std::queue<Node*> queue;
@@ -548,6 +587,18 @@ public:
     size_t getCountNodesInLargestSCC() {
         if (weekComponents.empty()) initStrongComponents();
         return strongComponents[0].size();
+    }
+
+    void removeRandomNodes(int count) {
+        if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
+
+        removeNodes(count, true);
+    }
+
+    void removeMostDegreesNodes(int count) {
+        if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
+
+        removeNodes(count, false);
     }
 
     DirectedGraph(Graph& graph)

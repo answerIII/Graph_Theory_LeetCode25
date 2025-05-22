@@ -12,15 +12,10 @@ int main(const int argc, const char *argv[]) {
 
     DirectedGraph directedGraph(*graph);
 
-    if (directed) {
-        DirectedGraph directedGraph(*graph);
-       // std::cout << "90 percentile B: " << directedGraph.get90PercentileB() << std::endl;
-        std::cout << "Average clustering coefficient: "<< directedGraph.getAverageClusteringCoefficient() << std::endl;
-    } else {
-        UndirectedGraph undirectedGraph(*graph);
-        std::cout << undirectedGraph.getAverageClusteringCoefficient();
-    }
-    //degree_distribution(argv[1], argv[2], directedGraph);
+    std::cout << "before : "<< directedGraph.getShareVertexInBeggestWeekComponent() << std::endl;
+    std::cout << "after : "<< directedGraph.get90PercentileB() << std::endl;
+    directedGraph.removeMostDegreesNodes(100000);
+    std::cout << "after : "<< directedGraph.get90PercentileB() << std::endl;
     delete graph;
     return 0;
 }
