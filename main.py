@@ -3,7 +3,7 @@ from analysis import *
 from distance import *
 def main():
     directed: bool = True
-    G, graph_with_correct_result = load_graph_from_file("data/undirected/ca-coauthors-dblp.txt", directed)
+    G, graph_with_correct_result = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)
     print("Section 1------\n")
     print_analysis(G, directed, graph_with_correct_result)
     print("\nSection 1------\n\n")

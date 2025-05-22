@@ -80,7 +80,8 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
     # Вычисляем точные расстояния с помощью BFS
     exact_distances = {}
     for u, v in test_pairs:
-        exact_distances[u, v] = len(bfs_with_path(working_graph, u, v)) - 1 if bfs_with_path(working_graph, u, v) else -1
+        path = bfs_with_path(working_graph, u, v)
+        exact_distances[u, v] = len(path) - 1 if path else -1
     
     # Вычисляем оценки расстояний с помощью Landmarks-Basic
     estimated_distances = {}
