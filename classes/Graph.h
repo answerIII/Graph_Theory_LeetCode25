@@ -1,9 +1,5 @@
 #ifndef GRAPH_H
 #define GRAPH_H
-#include <queue>
-#include <execution>
-#include <filesystem>
-#include <stack>
 
 #include "../libs.h"
 #include "Node.h"

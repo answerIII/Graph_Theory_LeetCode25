@@ -15,4 +15,8 @@
 #include <unordered_set>
 #include <random>
 #include <thread>
+#include <queue>
+#include <execution>
+#include <filesystem>
+#include <stack>
 #endif //LIBS_H
