@@ -18,8 +18,8 @@ func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
 	}
 	edges := 0
 
-	for u := 0; u < len(neighbors)-1; u++ {
-		for v := u + 1; v < len(neighbors); v++ {
+	for u := 0; u < k; u++ {
+		for v := u + 1; v < k; v++ {
 			if g.HasEdge(neighbors[v], neighbors[u]) {
 				edges++
 			}

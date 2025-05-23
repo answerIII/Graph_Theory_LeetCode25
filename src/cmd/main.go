@@ -8,7 +8,6 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
-	"path/filepath"
 )
 
 const (
@@ -25,8 +24,8 @@ func main() {
 
 	filePath := os.Args[1]
 	outputPath := os.Args[2]
-	graphName := getFileNameWithoutExt(filePath)
-	auxPath := getFileDestination(filePath) + "aux_graphs/"
+	graphName := tools.GetFileNameWithoutExt(filePath)
+	auxPath := tools.GetFileDestination(filePath) + "aux_graphs/"
 	if err := os.MkdirAll(auxPath, 0o775); err != nil {
 		log.Fatalf("Error creating directory: %v\n", err)
 	}
@@ -113,16 +112,6 @@ func main() {
 	writef("Минимальная степень узлов: %d\n", minD)
 	writef("Средняя степень узлов: %.2f\n", avgD)
 	writef("Максимальная степень узлов: %d\n", maxD)
-}
-
-// Utility
-
-func getFileNameWithoutExt(path string) string {
-	base := filepath.Base(path)
-	return base[:len(base)-len(filepath.Ext(base))]
-}
-func getFileDestination(path string) string {
-	return path[:len(path)-len(filepath.Base(path))]
 }
 
 // Graph processing helpers

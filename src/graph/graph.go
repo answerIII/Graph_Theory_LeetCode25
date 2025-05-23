@@ -90,7 +90,7 @@ func (g *Graph) AddEdge(u, v Node) {
 // }
 
 func (g *Graph) HasEdge(u, v Node) bool {
-	exists := slices.Contains(g.Adj.neighbors(u), v)
+	_, exists := slices.BinarySearch(g.Adj.neighbors(u), v)
 	return exists
 }
 
