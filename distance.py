@@ -2,6 +2,8 @@
 import random
 from basic import bfs_with_path, bfs, to_undirected, bfs_with_path_and_distance
 from collections import Counter
+from time import perf_counter
+
 """-----функции для выбора ориентиров-----"""
 #  на вход передаем количество используемых ориентиров
 # возвращаем выбранные ориентиры
@@ -55,6 +57,7 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
         working_graph = {node: set(neighbors) for node, neighbors in graph.items()}"""
         
     working_graph = graph
+    start = perf_counter()
     # Выбираем ориентиры (5% вершин, но не менее 5 и не более 50)
     num_landmarks = max(5, min(50, len(working_graph) // 20))
     if landmark_selection_option == 1:
@@ -63,11 +66,11 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
         landmarks = highest_degree_selection(num_landmarks, working_graph)
     if landmark_selection_option == 3:
         landmarks = best_coverage_selection(num_landmarks, working_graph)
-
+    end = perf_counter()
+    print(f"\n⏱ Время выбора ориентиров: {end - start:.6f} секунд")
    
-    
+
     print("Landmarks-Basic")
-    print("----------------------------------")
     print(f"Использовано {len(landmarks)} ориентиров\n")
     
     # Выбираем случайные 5 пар вершин для демонстрации
@@ -84,16 +87,17 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
         exact_distances[u, v] = len(path) - 1 if path else -1
     
     # Вычисляем оценки расстояний с помощью Landmarks-Basic
+    start = perf_counter()
     estimated_distances = {}
     for u, v in test_pairs:
         estimated_distances[u, v] = landmarks_basic(working_graph, landmarks, u, v)
-    
+    end = perf_counter()
     # Выводим результаты
-    print(f"{'Пара':<10}{'Реальное':<15}{'Оценка':<20}")
+    print(f"{'Пара':<20}{'Реальное':<20}{'Оценка':<20}")
     print("-" * 45)   
     for (u, v), exact in exact_distances.items():
         estimated = estimated_distances[u, v]
-        print(f"{f'{u}-{v}':<10}{str(exact):<15}{str(estimated):<20}")
+        print(f"{f'{u}, {v}':<20}{str(exact):<20}{str(estimated):<20}")
     
     # Вычисляем среднюю ошибку
     total_error = 0
@@ -108,7 +112,8 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
         print(f"\nСредняя абсолютная ошибка (Basic): {avg_error:.2f}")
     else:
         print("No valid pairs for error calculation\n")
-    
+    print(f"\n⏱ Время выполнения Landmarks-Basic: {end - start:.6f} секунд\n\n")
+
     # Дополнительная статистика
     # reachable_pairs = sum(1 for d in exact_distances.values() if d != -1)
     # estimated_reachable = sum(1 for d in estimated_distances.values() if d != -1)
@@ -117,9 +122,7 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
     # print(f"Reachable pairs (estimated): {estimated_reachable}/5")
     # print("----------------------------------")
     
-    
-    
-    print("\n\nLandmarks-LCA")
+    print("\n\n\nLandmarks-LCA")
     data = landmarks_LCA(graph, landmarks)
     lca_distances = {}
     for a,b in test_pairs:
@@ -128,7 +131,7 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
             parents = data[l]["parents"]
             distances = data[l]["distances"]
             
-            if a not in parents:
+            if a not in parents or b not in parents:
                 continue
             path_a = build_path(parents, a)
             path_b = build_path(parents, b)
@@ -147,11 +150,12 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
             lca_distances[a, b] = min_dist
         else:
              lca_distances[a, b] = -1
-    print(f"{'Пара':<10}{'Реальное':<15}{'Оценка':<20}")
+    end = perf_counter()
+    print(f"{'Пара':<20}{'Реальное':<20}{'Оценка':<20}")
     print("-" * 45)
     for (a, b), exact in exact_distances.items():
         estimate =  lca_distances[a, b]
-        print(f"{f'{a}-{b}':<10}{str(exact):<15}{str(estimate):<20}")
+        print(f"{f'{a}, {b}':<20}{str(exact):<20}{str(estimate):<20}")
     
     # Средняя ошибка
     total_error = 0
@@ -166,6 +170,7 @@ def print_distance(graph: dict, directed: bool = True, landmark_selection_option
         print(f"\nСредняя абсолютная ошибка (LCA): {avg_error:.2f}")
     else:
         print("No valid pairs for LCA error calculation\n")
+    print(f"\n⏱ Время выполнения Landmarks-LCA: {end - start:.6f} секунд")
 
     
     

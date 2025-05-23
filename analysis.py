@@ -9,12 +9,14 @@ from basic import to_undirected
 import networkx as nx
 import matplotlib.pyplot as plt
 import math
+from time import perf_counter
 
 """тут когда все методы для пункта 1 сделаем напишем код который соберет все и выведет анализ графа"""
 def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Graph):
     num_of_vertices = number_of_vertices(graph)
     num_of_edges = number_of_edges(graph, directed)
     print("(A1)----------")
+    start = perf_counter()
     print(f"кол-во вершин = {num_of_vertices} (должно быть {graph_with_correct_result.number_of_nodes()})")
     print(f"кол-во ребер =  {num_of_edges} (должно быть {graph_with_correct_result.number_of_edges()})")
     print(f"плотность = {density(num_of_edges, num_of_vertices)} (должно быть {nx.density(graph_with_correct_result)})")
@@ -37,25 +39,37 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         count, strong_max_comp_length = strongly_connected_components(graph)
         print(f"кол-во компонент сильной свзяности = {count} (должно быть {len(list(nx.strongly_connected_components(graph_with_correct_result)))})")
         print(f"доля вершин графа в наибольшей компоненте сильной связности = {strong_max_comp_length/num_of_vertices}")
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
     print("(A1)----------\n")
 
     print("(A2)----------")
+    start = perf_counter()
     print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
     print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
     print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A2: {end - start:.6f} секунд")
     print("(A2)----------\n")
 
     print("(A3)----------")
+    start = perf_counter()
     print(f"число треугольников = {count_triangles(undirected_graph)}")
     print(f"средний кластерный коэффициент = {average_clustering(undirected_graph)}")
     print(f"глобальный кластерный коэффициент = {global_clustering(undirected_graph)}")
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A3: {end - start:.6f} секунд")    
     print("(A3)----------\n")
 
     print("(A4)----------")
+    start = perf_counter()
     print(f"средний кластерный коэффициент (для наибольшей компоненты слабой связанности) = {average_clustering_coefficient(undirected_graph)}")
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A4: {end - start:.6f} секунд")
     print("(A4)----------\n")
-
+    
     print("(A5)----------")
+    start = perf_counter()
     min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
 
     print(f"Минимальная степень: {min_deg}")
@@ -84,7 +98,10 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
     plt.tight_layout()
     plt.show()
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A5: {end - start:.6f} секунд")
     print("(A5)----------\n")
+
 
     print("(B1)----------")
     if directed:
@@ -95,6 +112,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         graph_with_removed_vertices = {node: set(neighbors) for node, neighbors in graph.items()}
         if user_input.lower() == 'stop':
             break
+        start = perf_counter()
         remove_random_vertices(graph_with_removed_vertices, int(user_input))
         count, max_component_after = weekly_connected_components(graph_with_removed_vertices)
         fraction_after_remove = len(max_component_after) / len(graph_with_removed_vertices)
@@ -104,6 +122,9 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         print("после удаления вершин:", len(graph_with_removed_vertices))
         print("размер наибольшей компоненты до удаления:", len(max_component_after))
         print("размер наибольшей компоненты после удаления:", len(max_component_after))
+        end = perf_counter()
+        print(f"\n⏱ Время выполнения B1: {end - start:.6f} секунд\n\n")
+
     print("(B1)----------\n")
     print("\n(B2)----------")
     while True:
@@ -112,7 +133,10 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         graph_with_removed_vertices = {node: set(neighbors) for node, neighbors in graph.items()}
         if user_input.lower() == 'stop':
             break
+        
+        start = perf_counter()
         remove_top_degree_vertices(graph_with_removed_vertices, int(user_input))
+
         count, max_component = weekly_connected_components(graph_with_removed_vertices)
         fraction_after_remove = len(max_component) / len(graph_with_removed_vertices)
         print(
@@ -120,4 +144,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         print("до удаления вершин:", len(graph))
         print("после удаления вершин:", len(graph_with_removed_vertices))
         print("размер наибольшей компоненты:", len(max_component))
+        end = perf_counter()
+        print(f"\n⏱ Время выполнения B2: {end - start:.6f} секунд\n\n")
+
     print("\n(B2)----------")
