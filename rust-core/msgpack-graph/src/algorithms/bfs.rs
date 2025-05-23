@@ -8,10 +8,10 @@ pub fn bfs(graph: &Graph, start: usize) -> HashMap<usize, usize> {
     queue.push_back(start);
     while let Some(node) = queue.pop_front() {
         if let Some(neighbours) = graph.adjacency_list().get(&node) {
-            for neighbour in neighbours {
-                if let None = distances.get(neighbour) {
-                    distances.insert(*neighbour, distances[&node] + 1);
-                    queue.push_back(*neighbour);
+            for &neighbour in neighbours {
+                if !distances.contains_key(&neighbour) {
+                    distances.insert(neighbour, distances[&node] + 1);
+                    queue.push_back(neighbour);
                 }
             }
         }
