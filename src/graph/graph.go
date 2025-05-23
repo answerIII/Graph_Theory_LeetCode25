@@ -43,23 +43,40 @@ func (g *Graph) getNodesSlice() []Node {
 	return nodes
 }
 
-func (g *Graph) AddNode(n Node) {
-	if _, exists := g.Nodes[n]; !exists {
-		g.Nodes[n] = struct{}{}
-	}
-}
+func (g *Graph) RemoveNode(node Node) {
+	// update "ptr" slice
+	quantityEdgesInNodeRow := g.Adj.ptr[node+1] - g.Adj.ptr[node]
 
-// func (g *Graph) RemoveNode(n Node) {
-// 	if _, exists := g.Nodes[n]; exists {
-// 		delete(g.Nodes, n)
-// 		delete(g.Adj, n)
-// 		for _, neighbors := range g.Adj {
-// 			delete(neighbors, n)
-// 		}
-// 	} else {
-// 		panic(fmt.Sprintf("Node %d does not exist in the graph", n))
-// 	}
-// }
+	updPtr := 0
+	prevVal := 0
+	for i := 1; i < len(g.Adj.ptr); i++ { // iter over g.Adj.ptr
+		for j := prevVal; j < g.Adj.ptr[i]; j++ { // iter over [prevVal, g.Adj.ptr[i]) colIdx in g.Adj.to
+			if g.Adj.to[j] == node {
+				g.Adj.to[j] = -1 // mark deleted node
+				updPtr++
+			}
+		}
+		if Node(i-1) == node {
+			updPtr += quantityEdgesInNodeRow
+		}
+		prevVal = g.Adj.ptr[i]
+		g.Adj.ptr[i] -= updPtr
+	}
+
+	// remove -1 from "to" slice
+	writePtr := 0
+	for writePtr < len(g.Adj.to) && g.Adj.to[writePtr] != -1 {
+		writePtr++
+	}
+	for i := writePtr; i < len(g.Adj.to); i++ {
+		if g.Adj.to[i] != -1 {
+			g.Adj.to[writePtr] = g.Adj.to[i]
+			writePtr++
+		}
+	}
+	g.Adj.to = g.Adj.to[:writePtr]
+	delete(g.Nodes, node)
+}
 
 func (g *Graph) HasNode(n Node) bool {
 	_, exists := g.Nodes[n]
@@ -68,10 +85,10 @@ func (g *Graph) HasNode(n Node) bool {
 
 func (g *Graph) AddEdge(u, v Node) {
 	if _, ok := g.Nodes[u]; !ok {
-		g.AddNode(u)
+		g.Nodes[u] = struct{}{}
 	}
 	if _, ok := g.Nodes[v]; !ok {
-		g.AddNode(v)
+		g.Nodes[v] = struct{}{}
 	}
 	if int(u) != len(g.Adj.ptr)-1 {
 		nodesToInsert := int(u) - len(g.Adj.ptr) + 1
@@ -82,45 +99,10 @@ func (g *Graph) AddEdge(u, v Node) {
 	g.Adj.to = append(g.Adj.to, v)
 }
 
-// func (g *Graph) RemoveEdge(u, v Node) {
-// 	delete(g.Adj[u], v)
-// 	if !g.Directed && u != v {
-// 		delete(g.Adj[v], u)
-// 	}
-// }
-
 func (g *Graph) HasEdge(u, v Node) bool {
 	exists := slices.Contains(g.Adj.neighbors(u), v)
 	return exists
 }
-
-// func (g *Graph) Inverted() *Graph {
-// 	inverted := NewGraph(g.Directed)
-// 	for u := range g.Nodes {
-// 		neighbors := g.GetNeighborsMap(u)
-// 		for v := range neighbors {
-// 			inverted.AddEdge(v, u)
-// 		}
-// 	}
-// 	return inverted
-// }
-
-// func (g *Graph) CastToUndirected() *Graph {
-// 	if !g.Directed {
-// 		panic("Graph is already undirected")
-// 	}
-// 	ug := NewGraph(false)
-//
-// 	for u := range g.Nodes {
-// 		neighbors := g.GetNeighborsMap(u)
-// 		for v := range neighbors {
-// 			ug.AddEdge(u, v)
-// 			ug.AddEdge(v, u)
-// 		}
-// 	}
-//
-// 	return ug
-// }
 
 func GetSnowballGraph(
 	baseGraph *Graph,
