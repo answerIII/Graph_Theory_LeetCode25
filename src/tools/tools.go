@@ -108,11 +108,11 @@ func parser(pathIn string, f EdgeFunction) error {
 	return parser.Parse(fileIn, f)
 }
 
-func removeDuplicate[T comparable](sliceList []T) []T {
+func removeDuplicate[T comparable](sliceList []T, v T) []T {
 	allKeys := make(map[T]bool)
 	list := []T{}
 	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value {
+		if _, value := allKeys[item]; !value && item != v {
 			allKeys[item] = true
 			list = append(list, item)
 		}
@@ -143,7 +143,7 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	slices.Sort(*nodes)
 
 	for u := range *nodes {
-		(*adj)[u] = removeDuplicate((*adj)[u])
+		(*adj)[u] = removeDuplicate((*adj)[u], u)
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
 			_, err := writer.WriteString(strconv.Itoa(int((*nodes)[u])) + " " +
@@ -248,4 +248,12 @@ func UndirectEdgesInFile(pathIn, pathOut string) error {
 		return err
 	}
 	return nil
+}
+
+func GetFileNameWithoutExt(path string) string {
+	base := filepath.Base(path)
+	return base[:len(base)-len(filepath.Ext(base))]
+}
+func GetFileDestination(path string) string {
+	return path[:len(path)-len(filepath.Base(path))]
 }
