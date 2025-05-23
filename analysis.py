@@ -4,12 +4,14 @@ from A3 import *
 from A4 import *
 from A5 import *
 from B import *
-
 from basic import to_undirected
 import networkx as nx
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.use('TkAgg')  # или 'Qt5Agg'
 import math
 from time import perf_counter
+
 
 """тут когда все методы для пункта 1 сделаем напишем код который соберет все и выведет анализ графа"""
 def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Graph):
@@ -71,6 +73,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     print("(A5)----------")
     start = perf_counter()
     min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
+    end = perf_counter()
 
     print(f"Минимальная степень: {min_deg}")
     print(f"Максимальная степень: {max_deg}")
@@ -98,12 +101,14 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
     plt.tight_layout()
     plt.show()
-    end = perf_counter()
     print(f"\n⏱ Время выполнения A5: {end - start:.6f} секунд")
     print("(A5)----------\n")
 
 
     print("(B1)----------")
+    stats1 = dict()
+    stats2 = dict()
+
     if directed:
         graph = to_undirected(graph)
     while True:
