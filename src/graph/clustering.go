@@ -11,14 +11,19 @@ import (
 
 func (g *Graph) GetLocalClusteringCoefficient(node Node) (float64, error) {
 
-	neighbors := g.Adj.neighbors(node)
+	neighbors := slices.Clone(g.Adj.neighbors(node))
+
+	if idx, has := slices.BinarySearch(neighbors, node); has {
+		neighbors = slices.Delete(neighbors, idx, idx+1)
+	}
+
 	k := len(neighbors)
 	if k < 2 {
 		return 0, nil
 	}
 	edges := 0
 
-	for u := 0; u < k; u++ {
+	for u := range k {
 		for v := u + 1; v < k; v++ {
 			if g.HasEdge(neighbors[v], neighbors[u]) {
 				edges++

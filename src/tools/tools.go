@@ -108,11 +108,11 @@ func parser(pathIn string, f EdgeFunction) error {
 	return parser.Parse(fileIn, f)
 }
 
-func removeDuplicate[T comparable](sliceList []T, v T) []T {
+func removeDuplicate[T comparable](sliceList []T) []T {
 	allKeys := make(map[T]bool)
 	list := []T{}
 	for _, item := range sliceList {
-		if _, value := allKeys[item]; !value && item != v {
+		if _, value := allKeys[item]; !value {
 			allKeys[item] = true
 			list = append(list, item)
 		}
@@ -143,7 +143,7 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	slices.Sort(*nodes)
 
 	for u := range *nodes {
-		(*adj)[u] = removeDuplicate((*adj)[u], u)
+		(*adj)[u] = removeDuplicate((*adj)[u])
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
 			_, err := writer.WriteString(strconv.Itoa(int((*nodes)[u])) + " " +
