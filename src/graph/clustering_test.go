@@ -14,10 +14,58 @@ func TestGraph_GetAverageClusteringCoefficient(t *testing.T) {
 		wantErr    bool
 	}{
 		{
+			name:       "Graph web-Google",
+			uGraphPath: ugraphWebGoogleFilepath,
+			args:       args{nodes: nil},
+			want:       0.5143,
+		},
+		{
+			name:       "Graph web-NotreDame",
+			uGraphPath: ugraphWebNotreDameFilepath,
+			args:       args{nodes: nil},
+			want:       0.2346,
+		},
+		//{
+		//	name:       "Graph web-Stanford",
+		//	uGraphPath: ugraphWebStanfordFilepath,
+		//	args:       args{nodes: nil},
+		//	want:       0.5976,
+		//},
+		{
+			name:       "Graph CA-AstroPh",
+			uGraphPath: ugraphCaAstroPhFilepath,
+			args:       args{nodes: nil},
+			want:       0.6306,
+		},
+		{
+			name:       "Graph CA-GrQc",
+			uGraphPath: ugraphCaGrqcFilepath,
+			args:       args{nodes: nil},
+			want:       0.5296,
+		},
+		{
+			name:       "Graph Email-EuAll",
+			uGraphPath: ugraphEmailEuAllFilepath,
+			args:       args{nodes: nil},
+			want:       0.0671,
+		},
+		//{
+		//	name:       "Graph com-youtube",
+		//	uGraphPath: ugraphYoutubeUngraphFilepath,
+		//	args:       args{nodes: nil},
+		//	want:       0.0808,
+		//},
+		{
 			name:       "Graph wiki-vote",
 			uGraphPath: ugraphWikiVoteFilepath,
 			args:       args{nodes: nil},
 			want:       0.1409,
+		},
+		{
+			name:       "Graph soc-wiki-vote",
+			uGraphPath: ugraphSocWikiVoteFilepath,
+			args:       args{nodes: nil},
+			want:       0.1528,
 		},
 	}
 	for _, tt := range tests {
@@ -31,8 +79,8 @@ func TestGraph_GetAverageClusteringCoefficient(t *testing.T) {
 				t.Errorf("GetAverageClusteringCoefficient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("GetAverageClusteringCoefficient() got = %v, want %v", got, tt.want)
+			if roundFloat(got, 4) != roundFloat(tt.want, 4) {
+				t.Errorf("GetAverageClusteringCoefficient() got = %v, want %v", roundFloat(got, 4), roundFloat(tt.want, 4))
 			}
 		})
 	}
@@ -67,8 +115,8 @@ func TestGraph_GetGlobalClusteringCoefficient(t *testing.T) {
 				t.Errorf("GetGlobalClusteringCoefficient() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("GetGlobalClusteringCoefficient() got = %v, want %v", got, tt.want)
+			if roundFloat(got, 4) != roundFloat(tt.want, 4) {
+				t.Errorf("GetGlobalClusteringCoefficient() got = %v, want %v", roundFloat(got, 4), roundFloat(tt.want, 4))
 			}
 		})
 	}

@@ -16,7 +16,7 @@ func TestGraph_GetDiameterDoubleSweep(t *testing.T) {
 	}{
 		{
 			name:   "Graph wiki-vote",
-			fields: fields{wikiVoteFilepath},
+			fields: fields{ugraphWikiVoteFilepath},
 			want:   7,
 		},
 	}
@@ -32,11 +32,8 @@ func TestGraph_GetDiameterDoubleSweep(t *testing.T) {
 				return
 			}
 			wcc = SortComponents(wcc, true)
-			n := len(wcc[0])
-			if n > 1 {
-				n--
-			}
-			randomNode := wcc[0][rand.IntN(n)]
+
+			randomNode := wcc[0][rand.IntN(len(wcc[0]))]
 
 			if got := graph.GetDiameterDoubleSweep(randomNode); got != tt.want {
 				t.Errorf("GetDiameterDoubleSweep() = %v, want %v", got, tt.want)
