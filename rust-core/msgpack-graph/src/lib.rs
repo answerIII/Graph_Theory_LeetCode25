@@ -1,3 +1,4 @@
+pub mod algorithms;
 mod error;
 pub mod graph;
 
