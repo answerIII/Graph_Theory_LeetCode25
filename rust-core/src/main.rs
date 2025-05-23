@@ -16,14 +16,16 @@ fn main() -> msgpack_graph::Result<()> {
         Err(_) => {
             let raw_graph = RawGraph::from_msgpack(format!("../.storage/{}", filename))?;
             tracing::info!("Uploaded from: .storage/{}", filename);
-            tracing::info!(
-                "Nodes: {}, Edges: {}",
-                raw_graph.node_count(),
-                raw_graph.edge_count()
-            );
-            Graph::from(raw_graph)
+            let graph = Graph::from(raw_graph);
+            graph.to_msgpack(format!(".cache/{}", filename))?;
+            graph
         }
     };
-    tracing::info!("Loading time: {} ms", timestamp.elapsed().as_millis());
+    tracing::info!(
+        "Nodes: {}, Edges: {}",
+        graph.node_count(),
+        graph.edge_count()
+    );
+    tracing::info!("Graph loading time: {} ms", timestamp.elapsed().as_millis());
     Ok(())
 }

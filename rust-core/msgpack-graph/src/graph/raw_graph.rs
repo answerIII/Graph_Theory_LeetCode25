@@ -3,9 +3,9 @@ use std::{fs, path::Path};
 
 #[derive(Deserialize, Debug)]
 pub struct RawGraph {
-    node_count: usize,
-    edge_count: usize,
-    edges: Vec<[usize; 2]>,
+    pub(crate) node_count: usize,
+    pub(crate) edge_count: usize,
+    pub(crate) edges: Vec<[usize; 2]>,
 }
 
 impl RawGraph {
@@ -13,17 +13,5 @@ impl RawGraph {
         let bytes = fs::read(path)?;
         let raw_graph: RawGraph = rmp_serde::from_slice(&bytes)?;
         Ok(raw_graph)
-    }
-
-    pub fn node_count(&self) -> usize {
-        self.node_count
-    }
-
-    pub fn edge_count(&self) -> usize {
-        self.edge_count
-    }
-
-    pub fn edges(&self) -> &Vec<[usize; 2]> {
-        &self.edges
     }
 }
