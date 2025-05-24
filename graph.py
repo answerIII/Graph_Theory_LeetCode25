@@ -3,9 +3,10 @@ from collections import defaultdict, deque, Counter
 import numpy as np
 from random import randint, random, sample, choice
 import matplotlib.pyplot as plt
-
-
-np.random.seed(26)
+import heapq
+from multiprocessing import Pool, cpu_count
+from functools import partial
+import tqdm
 
 
 def make_graph(path, type='txt'):
@@ -507,16 +508,229 @@ def count_scc(graph):
     return components
 
 
-filenames = []
+def bfs_far_opt(graph, start):
+    """Оптимизированная BFS для вычисления расстояний от стартовой вершины."""
+    distances = {start: 0}
+    queue = deque([start])
+    
+    while queue:
+        u = queue.popleft()
+        for v in graph.get(u, set()):
+            if v not in distances:
+                distances[v] = distances[u] + 1
+                queue.append(v)
+    
+    farthest_node = max(distances.items(), key=lambda x: x[1])[0]
+    return farthest_node, distances
+
+
+def bfs_tree(graph, u):
+    dist = {u: 0}
+    queue = deque([u])
+
+    while queue:
+        cur = queue.popleft()
+
+        for v in graph.get(cur, set()):
+            if v not in dist:
+                dist[v] = dist[cur] + 1
+                queue.append(v)
+
+    return u, dist
+
+
+def process_landmark(graph, node):
+    # Обработка одной ландмарки для параллельного использования
+    return (node, bfs_tree(graph, node))
+
+
+def get_landmarks(graph, high_degree=8, random_n=8):
+    print('Processing landmarks')
+    landmarks = {}
+    nodes = []
+
+    if high_degree:
+        hd_nodes = [node for node, _ in sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)[:high_degree]]
+        nodes.extend(hd_nodes)
+
+    while random_n:
+        node = choice(list(graph.keys()))
+        if node not in nodes:
+            nodes.append(node)
+            random_n -= 1
+
+    with Pool(processes=4) as pool:
+        results = pool.map(partial(bfs_tree, graph), nodes)
+    
+    landmarks = dict(results)
+
+    return landmarks
+
+
+'''
+def bfs_tree(graph, u):
+    # BFS, который не возвращает самую дальнюю вершину
+    dist = {u: 0}
+    queue = deque([u])
+
+    while queue:
+        cur = queue.popleft()
+
+        for v in graph.get(cur, set()):
+            if v not in dist:
+                dist[v] = dist[cur] + 1
+                queue.append(v)
+
+    return u, dist
+
+
+def process_landmark(graph, node):
+    # Обработка одной ландмарки для параллельного использования
+    return (node, bfs_tree(graph, node))
+
+
+def get_landmarks(graph, high_degree=8, random_n=8, parallel=1):
+    print('Processing landmarks')
+    landmarks = {}
+    nodes = []
+
+    if high_degree:
+        hd_nodes = [node for node, _ in sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)[:high_degree]]
+        nodes.extend(hd_nodes)
+
+    while random_n:
+        node = choice(list(graph.keys()))
+        # Исключаем дубликаты
+        if node not in nodes:
+            nodes.append(node)
+            random_n -= 1
+
+    # По возможности используем параллельную обработку
+    with Pool(processes=parallel) as pool:
+        results = pool.map(partial(bfs_tree, graph), nodes)
+    
+    landmarks = dict(results)
+
+    return landmarks
+
+
+def a_star(graph, landmarks, start, goal):
+    closed = set()
+    open = []
+    h = lambda u, v : max([abs(landmarks[L][u] - landmarks[L][v]) for L in landmarks.keys()])
+    g = {start: 0}
+    heapq.heappush(open, (g[start] + h(start, goal), start))
+
+    while open:
+        f, u = heapq.heappop(open)
+        if u in closed:
+            continue
+        if u == goal:
+            return g[u]
+        for v in graph.get(u, set()):
+            if (v not in closed) and not (any(v in item for item in open)):
+                g[v] = g[u] + 1
+                heapq.heappush(open, (g[v] + h(v, goal), v))
+    return False
+
+
+def get_dist(graph, u, v):
+    _, dist = bfs_far(graph, u)
+    return dist[v]
+'''
+
+
+def a_star(graph, landmarks, start, goal):
+    closed = set()
+    n = len(graph)
+    open = []
+    h = lambda u, v : max([abs(landmarks[L][u] - landmarks[L][v]) for L in landmarks.keys()])
+    g = {start: 0}
+    heapq.heappush(open, (g[start] + h(start, goal), start))
+
+    while open:
+        print(f'{(len(closed) / n) * 100:.8f}%')
+        f, u = heapq.heappop(open)
+        if u in closed:
+            continue
+        if u == goal:
+            return g[u]
+        for v in graph.get(u, set()):
+            if (v not in closed) and not (any(v in item for item in open)):
+                g[v] = g[u] + 1
+                heapq.heappush(open, (g[v] + h(v, goal), v))
+    return False
+
+
+def a_star_opt(graph, landmarks, start, goal):
+    """Оптимизированная A* с эвристикой на основе контрольных точек."""
+    closed = set()
+    open_set = []
+    g_scores = {start: 0}
+    
+    # Кэширование эвристик для ускорения
+    h_cache = {}
+    
+    def heuristic(u, v):
+        if (u, v) not in h_cache:
+            max_diff = 0
+            for L in landmarks:
+                diff = abs(landmarks[L].get(u, float('inf')) - landmarks[L].get(v, float('inf')))
+                if diff > max_diff:
+                    max_diff = diff
+            h_cache[(u, v)] = max_diff
+        return h_cache[(u, v)]
+    
+    heapq.heappush(open_set, (heuristic(start, goal), start))
+    
+    while open_set:
+        f, u = heapq.heappop(open_set)
+        
+        if u == goal:
+            return g_scores[u]
+            
+        if u in closed:
+            continue
+            
+        closed.add(u)
+        
+        for v in graph.get(u, set()):
+            if v in closed:
+                continue
+                
+            tentative_g = g_scores[u] + 1  # Предполагаем вес ребра = 1
+            
+            if v not in g_scores or tentative_g < g_scores[v]:
+                g_scores[v] = tentative_g
+                f_score = tentative_g + heuristic(v, goal)
+                heapq.heappush(open_set, (f_score, v))
+    
+    return float('inf')  # Путь не найден
+
+
+def get_dist(graph, u, v):
+    _, dist = bfs_far(graph, u)
+    return dist[v]
+
+
+filenames = ['/home/eldar/Рабочий стол/Graphs/ca-coauthors-dblp.txt']
 
 with open('output.txt', 'w') as output:
     for filename in filenames:
-        output.write(filename + '\n')
+        print(filename + '\n')
 
+        print('Processing graph')
         graph, edges, _ = make_graph(filename, type=filename.split('.')[-1])
-        output.write(str(len(graph)) + '\n')
-        output.write(str(edges) + '\n')
+        
+        print('Processing components')
+        components = dfs_stack(graph)
+        
+        print('Processing largest component')
+        graph = subgraph(components, graph)   
 
+        '''
+        print(str(len(graph)) + '\n')
+        print(str(edges) + '\n')
         num_vertex = len(graph)
         max_num_vertex = num_vertex * (num_vertex - 1) // 2
         density = edges / max_num_vertex if max_num_vertex > 0 else 0.0
@@ -579,5 +793,17 @@ with open('output.txt', 'w') as output:
         fraction = max_size / num_vertex
         output.write(f'Доля вершин в компоненте слабой связности равна {fraction}' + '\n')
         output.write('\n')
+        '''
 
+        landmarks = get_landmarks(graph)
+        n = 10
+        pairs = [sample(graph.keys(), 2) for _ in range(n)]
+        right = 0
+
+        for u, v in tqdm.tqdm(pairs):
+            h = a_star_opt(graph, landmarks, u, v)
+            if h == get_dist(graph, u, v):
+                right += 1
+        
+        print(f'Correct: {int(right / n * 100)}%')
 
