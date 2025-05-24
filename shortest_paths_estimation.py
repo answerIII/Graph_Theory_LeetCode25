@@ -1,8 +1,10 @@
-import random
 from collections import deque
 import math
 import time
 from functools import wraps
+import multiprocessing
+import random
+import pandas as pd
 
 def load_graph(file, directed=False):
     edges = []
@@ -30,12 +32,31 @@ def load_graph(file, directed=False):
 
     return edges, nodes, adjacency
 
+# TIME MEASUREMENT
+recorder = {
+    'times': {},
+    'mae': {},
+}
+def timeit(step_name, recorder):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            t0 = time.perf_counter()
+            result = f(*args, **kwargs)
+            elapsed = time.perf_counter() - t0
+            recorder['times'].setdefault(step_name, []).append(elapsed)
+            return result
+        return wrapper
+    return decorator
+
 # SELECT LANDMARKS
+@timeit('select_landmarks')
 def select_landmarks_randomly(nodes, adjacency, k):
     len_nodes = len(nodes)
     if k > len_nodes:
         raise ValueError(f"you provided k={k} landmarks, but the graph has only {len_nodes} nodes")
     return random.sample(list(nodes), k)
+@timeit('select_landmarks')
 def select_landmarks_by_highest_degree(nodes, adjacency, k):
     if k > len(nodes):
         raise ValueError(f"you provided k={k}, but the graph has only {len(nodes)} nodes")
@@ -64,6 +85,7 @@ def shortest_path(adjacency, s, t):
                     return list(reversed(path))
                 queue.append(nbr)
     return []  # no path
+@timeit('select_landmarks')
 def select_landmarks_by_best_coverage(nodes, adjacency, k):
     M = 100  # number of sample paths to build coverage set
     nodes_list = list(nodes)
@@ -116,12 +138,14 @@ def run_bfs_n_return_distances(adjacency, source):
                 distances[v] = distances[u] + 1
                 queue.append(v)
     return distances
+@timeit('compute_landmark_distances')
 def compute_landmark_distances(adjacency, landmarks):
     landmark_distances = {}
     for cur_landmark in landmarks:
         landmark_distances[cur_landmark] = run_bfs_n_return_distances(adjacency, source=cur_landmark)
     return landmark_distances
-def estimate_distance(s, t, landmark_distances):
+@timeit('estimate_distance_basic')
+def estimate_distance_basic(s, t, landmark_distances):
     all_estimates = []
     for l, ld_l in landmark_distances.items():
         ds = ld_l.get(s, float('inf'))
@@ -129,13 +153,15 @@ def estimate_distance(s, t, landmark_distances):
         all_estimates.append(ds + dt)
     ans = min(all_estimates) if all_estimates else float('inf')
     return ans
+@timeit('landmarks_basic')
 def landmarks_basic(adjacency, nodes, s, t, k, select_landmarks_alg):
     landmarks = select_landmarks_alg(nodes, adjacency, k)
     landmark_distances = compute_landmark_distances(adjacency, landmarks)
-    distance = estimate_distance(s, t, landmark_distances)
+    distance = estimate_distance_basic(s, t, landmark_distances)
     return distance
 
 # LANDMARKS_SC
+@timeit('build_spt')
 def build_spt(adjacency, landmark):
     spt = {landmark: None}
     visited = {landmark}
@@ -150,6 +176,7 @@ def build_spt(adjacency, landmark):
                 queue.append(nbr)
 
     return spt
+@timeit('get_path')
 def get_path(s, target_path, spt):
     target_path_set = set(target_path) # so membership test is O(1)
 
@@ -158,6 +185,7 @@ def get_path(s, target_path, spt):
         s = spt[s]
         path.append(s)
     return path
+@timeit('distance_sc')
 def distance_sc(s, t, adjacency, spt_u, u):
     # π1: path from s up to landmark u
     pi1 = get_path(s, {u}, spt_u)        # [s, …, u]
@@ -181,6 +209,7 @@ def distance_sc(s, t, adjacency, spt_u, u):
                     best = curr
 
     return best
+@timeit('landmarks_sc')
 def landmarks_sc(adjacency, nodes, s, t, k, select_landmarks_alg):
     best = float('inf')
 
