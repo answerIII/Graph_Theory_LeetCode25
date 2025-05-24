@@ -10,11 +10,12 @@ import (
 	//"google.golang.org/appengine/log"
 )
 
-func FindMaxWCC(graph *structs.Graph) structs.AnswerA1 {
-	answer := structs.AnswerA1{WCC: structs.Graph{}}
-	answer.Density = float64(graph.EdgesCount) / (float64(graph.VertexCount) * float64(graph.VertexCount-1) / 2)
+func FindMaxWCC(graph *structs.Graph) (*structs.Graph, int) {
+	graphWCC := structs.Graph{Directed: false}
 
 	visited := make(map[int]struct{})
+
+	countWCC := 0
 
 	for vertex := range graph.AdjList {
 		tmpGraph := structs.Graph{AdjList: make(map[int][]int)}
@@ -22,7 +23,7 @@ func FindMaxWCC(graph *structs.Graph) structs.AnswerA1 {
 		if _, ok := visited[vertex]; ok {
 			continue
 		}
-		answer.WCCCount++
+		countWCC++
 
 		bfsQueue = append(bfsQueue, vertex)
 		tmpGraph.AdjList[vertex] = make([]int, 0)
@@ -45,26 +46,17 @@ func FindMaxWCC(graph *structs.Graph) structs.AnswerA1 {
 			bfsQueue = bfsQueue[1:]
 		}
 
-		if len(tmpGraph.AdjList) > answer.WCC.VertexCount {
-			answer.WCC = tmpGraph
-			answer.WCC.VertexCount = len(tmpGraph.AdjList)
+		if len(tmpGraph.AdjList) > graphWCC.VertexCount {
+			graphWCC = tmpGraph
+			graphWCC.VertexCount = len(tmpGraph.AdjList)
 		}
 	}
+	graphWCC.EdgesCount /= 2
 
-	answer.VertexCount = answer.WCC.VertexCount
-	answer.EdgesCount = answer.WCC.EdgesCount / 2
-	answer.ProportionWCC = float32(answer.VertexCount) / float32(graph.VertexCount)
-
-	if graph.Directed {
-		maxScc, SCCCount := findMaxSCC(graph)
-		answer.SCCCount = SCCCount
-		answer.ProportionSCC = float32(maxScc) / float32(graph.VertexCount)
-	}
-
-	return answer
+	return &graphWCC, countWCC
 }
 
-func findMaxSCC(graph *structs.Graph) (int, int) {
+func FindMaxSCC(graph *structs.Graph) (int, int) {
 
 	invGraph := InvertGraph(graph)
 	dfsResult := TimeDFS(&invGraph)
