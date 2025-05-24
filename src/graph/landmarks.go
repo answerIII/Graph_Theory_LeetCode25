@@ -15,10 +15,10 @@ import (
 	"sync"
 )
 
-func (graph *Graph) SelectRandomNodes(nodesN int) ([]Node, error) {
-	nodesLen := len(graph.Nodes)
+func (g *Graph) SelectRandomNodes(nodesN int) ([]Node, error) {
+	nodesLen := len(g.Nodes)
 	if nodesN < 0 || nodesN > nodesLen {
-		return nil, fmt.Errorf("Can't select %d nodes from graph with %d nodes", nodesN, nodesLen)
+		return nil, fmt.Errorf("can't select %d nodes from graph with %d nodes", nodesN, nodesLen)
 	}
 	used := make(map[int]bool)
 	randomNodes := make([]Node, 0, nodesN)
@@ -34,22 +34,22 @@ func (graph *Graph) SelectRandomNodes(nodesN int) ([]Node, error) {
 	return randomNodes, nil
 }
 
-func (graph *Graph) SelectHighestDegree(nodesN int) ([]Node, error) {
-	if nodesN < 0 || nodesN > len(graph.Nodes) {
-		return nil, fmt.Errorf("Can't select %d nodes from graph with %d nodes", nodesN, len(graph.Nodes))
+func (g *Graph) SelectHighestDegree(nodesN int) ([]Node, error) {
+	if nodesN < 0 || nodesN > len(g.Nodes) {
+		return nil, fmt.Errorf("can't select %d nodes from graph with %d nodes", nodesN, len(g.Nodes))
 	}
-	nodes := graph.getNodesSlice()
+	nodes := g.GetNodesSlice()
 
 	sort.Slice(nodes, func(i, j int) bool {
-		return graph.DegreeNode(nodes[i]) > graph.DegreeNode(nodes[j])
+		return g.DegreeNode(nodes[i]) > g.DegreeNode(nodes[j])
 	})
 
 	return nodes[:nodesN], nil
 }
 
-func (graph *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
-	if nodesN < 0 || nodesN > len(graph.Nodes) {
-		return nil, fmt.Errorf("Can't select %d nodes from graph with %d nodes", nodesN, len(graph.Nodes))
+func (g *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
+	if nodesN < 0 || nodesN > len(g.Nodes) {
+		return nil, fmt.Errorf("can't select %d nodes from graph with %d nodes", nodesN, len(g.Nodes))
 	}
 
 	type pair struct {
@@ -59,16 +59,15 @@ func (graph *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
 
 	used := make(map[pair]bool)
 	nodes := make([]Node, 0, nodesN)
-	nodesLen := len(graph.Nodes)
+	nodesLen := len(g.Nodes)
 
 	const PATHS_COUNT = 500
 
+	var mu sync.Mutex
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), PATHS_COUNT)
+	defer wp.Shutdown()
+
 	for len(nodes) < nodesN {
-		wp := workerpool.NewWorkerPool(runtime.NumCPU(), PATHS_COUNT)
-		defer wp.Shutdown()
-
-		var mu sync.Mutex
-
 		destinations := make([]pair, 0, PATHS_COUNT)
 		paths := make([][]Node, 0, PATHS_COUNT)
 
@@ -92,7 +91,7 @@ func (graph *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
 			wp.Submit(func() error {
 				parents := make(map[Node]Node)
 				_, err := BFS(
-					graph,
+					g,
 					[]Node{d.first},
 					nil,
 					func(node, parent Node, dist int) {
@@ -103,7 +102,7 @@ func (graph *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
 					},
 				)
 				if err != nil {
-					return fmt.Errorf("Error while finding shortest path: %v\n", err)
+					return fmt.Errorf("error while finding shortest path: %v\n", err)
 				}
 
 				path := []Node{d.second}
@@ -158,36 +157,45 @@ func (graph *Graph) SelectBestCoverage(nodesN int) ([]Node, error) {
 	return nodes, nil
 }
 
-func (graph *Graph) PrecomputeLandmarks(
+func (g *Graph) PrecomputeLandmarks(
 	landmarkFilePath string,
 	selectFunction func(*Graph, int) ([]Node, error),
 	nodesN int,
 ) error {
-	landmarks, err := selectFunction(graph, nodesN)
+	landmarks, err := selectFunction(g, nodesN)
 	if err != nil {
-		return errors.New("Can't select nodes for landmarks")
+		return errors.New("can't select nodes for landmarks")
 	}
 
 	landmarkFile, err := os.Create(landmarkFilePath)
 	if err != nil {
-		return errors.New("Can't create landmark file")
+		return errors.New("can't create landmark file")
 	}
 	defer landmarkFile.Close()
 
-	landmarkFile.WriteString(strconv.Itoa(len(graph.Nodes)) + "\n")
+	_, err = landmarkFile.WriteString(strconv.Itoa(len(g.Nodes)) + "\n")
+	if err != nil {
+		return err
+	}
 
 	for _, u := range landmarks {
-		dists, err := BFS(graph, []Node{u}, nil, nil, nil)
+		dists, err := BFS(g, []Node{u}, nil, nil, nil)
 
 		if err != nil {
-			return errors.New("Can't calculate distances for node " + strconv.Itoa(int(u)) + "\n")
+			return errors.New("can't calculate distances for node " + strconv.Itoa(int(u)) + "\n")
 		}
 		// landmarkFile.WriteString(strconv.Itoa(int(u)) + "\n")
-		for v := range graph.Nodes {
+		for v := range g.Nodes {
 			if value, has := dists[v]; has {
-				landmarkFile.WriteString(strconv.Itoa(value) + "\n")
+				_, err = landmarkFile.WriteString(strconv.Itoa(value) + "\n")
+				if err != nil {
+					return err
+				}
 			} else {
-				landmarkFile.WriteString(strconv.Itoa(-1) + "\n")
+				_, err = landmarkFile.WriteString(strconv.Itoa(-1) + "\n")
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -211,10 +219,10 @@ func LandmarkBasic(landmarkFilePath string, s, t int) (int, error) {
 	offset, err := strconv.Atoi(scanner.Text())
 
 	if s < 0 || s > offset {
-		return -1, fmt.Errorf("There is no node %d in graph", s)
+		return -1, fmt.Errorf("there is no node %d in graph", s)
 	}
 	if t < 0 || t > offset {
-		return -1, fmt.Errorf("There is no node %d in graph", t)
+		return -1, fmt.Errorf("there is no node %d in graph", t)
 	}
 
 	if s > t {
