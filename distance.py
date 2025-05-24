@@ -28,7 +28,8 @@ def best_coverage_selection(k: int, graph: dict):
     for path in paths:
         for v in path:
               coverage[v]+=1
-    return coverage.most_common(k)
+    return [v for v, _ in coverage.most_common(k)]
+
 
 
 def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:

@@ -107,7 +107,8 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     end = perf_counter()
     print(f"\n⏱ Время выполнения A4: {end - start:.6f} секунд")
     print("(A4)----------\n")
-    
+    if directed:
+        graph = to_undirected(graph)
     print("(A5)----------")
     start = perf_counter()
     min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
@@ -147,8 +148,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     stats1 = []
     stats2 = []
 
-    if directed:
-        graph = to_undirected(graph)
+    
         
     while True:
         user_input = input(
