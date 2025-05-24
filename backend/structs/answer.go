@@ -16,3 +16,10 @@ type AnswerA2 struct {
 	Diameter     int
 	Percentile90 float32
 }
+
+type AnswerA5 struct {
+	MinDegree         int
+	AvgDegree         float64
+	MaxDegree         int
+	ProbabilityDegree map[int]float64
+}
