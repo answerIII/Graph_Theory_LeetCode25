@@ -84,8 +84,9 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
     print("(A2)----------")
     start = perf_counter()
-    print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
-    print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
+    if (num_of_vertices < 300000):
+        print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
+        print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
     print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")
     end = perf_counter()
     print(f"\n⏱ Время выполнения A2: {end - start:.6f} секунд")
