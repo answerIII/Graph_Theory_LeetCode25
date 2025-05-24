@@ -56,7 +56,6 @@ public:
 };
 
 class DirectedGraph : public Graph {
-public:
     std::unordered_map<int, std::vector<int>> transposePaths;
     std::unordered_map<int, std::vector<int>> undirectedPaths;
     std::vector<std::vector<Node*>>  strongComponents;
@@ -66,7 +65,7 @@ public:
     int approximateDiameter = 0;
     int percentileB = 0;
     int percentileC = 0;
-    int trianglesCount = 0;
+    int trianglesCount = -1;
 
     std::unordered_map<int, int> trianglePerNode;
 
@@ -653,6 +652,11 @@ public:
         return strongComponents[0].size();
     }
 
+    int getTrianglesCount() {
+        if (trianglesCount == -1) initTrianglesCount();
+        return trianglesCount;
+    }
+
     void removeRandomNodes(int count) {
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
@@ -723,8 +727,8 @@ double getAverageClusteringCoefficient() {
     if (trianglePerNode.empty()) initTrianglesCount();
     if (undirectedPaths.empty()) initUndirectedPaths();
 
-    std::atomic<double> total = 0.0;
-    std::atomic<int> count = 0;
+    double total = 0.0;
+    int count = 0;
 
     std::for_each(std::execution::par, undirectedPaths.begin(), undirectedPaths.end(), [&](const auto &cpair) {
         const auto &[u, neighbors] = cpair;
@@ -740,7 +744,7 @@ double getAverageClusteringCoefficient() {
     return count > 0 ? total / count : 0.0;
 }
 
-double getAverageClusteringCoefficientofWCC() {
+double getAverageClusteringCoefficientOfWCC() {
     if (trianglePerNode.empty()) initTrianglesCount();
     if (undirectedPaths.empty()) initUndirectedPaths();
     if (weekComponents.empty()) initWeekComponents();
