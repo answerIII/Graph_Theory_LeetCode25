@@ -44,21 +44,19 @@ func (g *Graph) getNodesSlice() []Node {
 	return nodes
 }
 
-func (g *Graph) RemoveNode(node Node) {
+func (g *Graph) RemoveNodes(nodes map[Node]struct{}) {
 	// update "ptr" slice
-	quantityEdgesInNodeRow := g.Adj.ptr[node+1] - g.Adj.ptr[node]
-
 	updPtr := 0
 	prevVal := 0
 	for i := 1; i < len(g.Adj.ptr); i++ { // iter over g.Adj.ptr
+		currNode := Node(i - 1)
 		for j := prevVal; j < g.Adj.ptr[i]; j++ { // iter over [prevVal, g.Adj.ptr[i]) colIdx in g.Adj.to
-			if g.Adj.to[j] == node {
+			_, ok1 := nodes[g.Adj.to[j]]
+			_, ok2 := nodes[currNode]
+			if ok1 || ok2 {
 				g.Adj.to[j] = -1 // mark deleted node
 				updPtr++
 			}
-		}
-		if Node(i-1) == node {
-			updPtr += quantityEdgesInNodeRow
 		}
 		prevVal = g.Adj.ptr[i]
 		g.Adj.ptr[i] -= updPtr
@@ -76,7 +74,9 @@ func (g *Graph) RemoveNode(node Node) {
 		}
 	}
 	g.Adj.to = g.Adj.to[:writePtr]
-	delete(g.Nodes, node)
+	for node := range nodes {
+		delete(g.Nodes, node)
+	}
 }
 
 func (g *Graph) HasNode(n Node) bool {

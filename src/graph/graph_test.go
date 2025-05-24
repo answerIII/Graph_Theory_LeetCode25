@@ -64,48 +64,41 @@ func TestGetSnowballGraph(t *testing.T) {
 	}
 }
 
-func TestGraph_RemoveNode(t *testing.T) {
+func TestGraph_RemoveNodes(t *testing.T) {
 	tests := []struct {
 		name      string
 		graphPath string
-		node      Node
+		nodes     map[Node]struct{}
 		wantTo    []Node
 		wantPtr   []int
 	}{
 		{
-			name:      "Remove 0",
+			name:      "Remove 1 2",
 			graphPath: exampleFilepath,
-			node:      0,
-			wantTo:    []Node{1, 2, 3, 1, 3},
-			wantPtr:   []int{0, 0, 1, 1, 2, 3},
+			nodes:     map[Node]struct{}{1: {}, 2: {}},
+			wantTo:    []Node{0, 3},
+			wantPtr:   []int{0, 0, 0, 0, 0, 2},
+		},
+		{
+			name:      "Remove 1 2 3",
+			graphPath: exampleFilepath,
+			nodes:     map[Node]struct{}{1: {}, 2: {}, 3: {}},
+			wantTo:    []Node{0},
+			wantPtr:   []int{0, 0, 0, 0, 0, 1},
+		},
+		{
+			name:      "Remove 0 1 2 3 4",
+			graphPath: exampleFilepath,
+			nodes:     map[Node]struct{}{0: {}, 1: {}, 2: {}, 3: {}, 4: {}},
+			wantTo:    []Node{},
+			wantPtr:   []int{0, 0, 0, 0, 0, 0},
 		},
 		{
 			name:      "Remove 1",
 			graphPath: exampleFilepath,
-			node:      1,
-			wantTo:    []Node{2, 3, 0, 3},
+			nodes:     map[Node]struct{}{1: {}},
+			wantTo:    []Node{2, 0, 3},
 			wantPtr:   []int{0, 1, 1, 1, 1, 3},
-		},
-		{
-			name:      "Remove 2",
-			graphPath: exampleFilepath,
-			node:      2,
-			wantTo:    []Node{1, 3, 1, 0, 3},
-			wantPtr:   []int{0, 1, 2, 2, 3, 5},
-		},
-		{
-			name:      "Remove 3",
-			graphPath: exampleFilepath,
-			node:      3,
-			wantTo:    []Node{1, 2, 1, 0},
-			wantPtr:   []int{0, 2, 2, 2, 2, 3},
-		},
-		{
-			name:      "Remove 4",
-			graphPath: exampleFilepath,
-			node:      4,
-			wantTo:    []Node{1, 2, 3, 1, 0, 3},
-			wantPtr:   []int{0, 2, 3, 3, 4, 4},
 		},
 	}
 	for _, tt := range tests {
@@ -115,7 +108,7 @@ func TestGraph_RemoveNode(t *testing.T) {
 				t.Errorf("Error reading graph file: %v\n", err)
 			}
 
-			graph.RemoveNode(tt.node)
+			graph.RemoveNodes(tt.nodes)
 			if !reflect.DeepEqual(graph.Adj.ptr, tt.wantPtr) {
 				t.Errorf("ptr slice updated incorrectly. got = %v, want %v", graph.Adj.ptr, tt.wantPtr)
 			}
