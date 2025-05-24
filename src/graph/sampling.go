@@ -6,7 +6,7 @@ func generateSampleNodes(
 	nodes []Node,
 	sampleN int,
 ) [][]Node {
-	sampleN = int(min(int64(sampleN), int64(len(nodes))*int64(len(nodes)-1)))
+	sampleN = int(min(int64(sampleN), int64(len(nodes))*int64(len(nodes)-1)/2))
 	type pair struct {
 		u, v Node
 	}

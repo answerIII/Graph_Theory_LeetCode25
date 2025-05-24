@@ -40,7 +40,7 @@ func (g *Graph) GetAverageClusteringCoefficient(nodes []Node) (float64, error) {
 	}
 
 	if nodes == nil {
-		nodes = g.getNodesSlice()
+		nodes = g.GetNodesSlice()
 	}
 
 	var sum float64

@@ -9,7 +9,7 @@ func (g *Graph) FindWCC() ([][]Node, error) {
 	if g.Directed {
 		return nil, errors.New("can't find WCC in directed graph")
 	}
-	return DFS(g, g.getNodesSlice(), nil, nil, nil), nil
+	return DFS(g, g.GetNodesSlice(), nil, nil, nil), nil
 }
 
 func (g *Graph) FindSCC(invertedPath string) ([][]Node, error) {
@@ -17,7 +17,7 @@ func (g *Graph) FindSCC(invertedPath string) ([][]Node, error) {
 		return nil, errors.New("can't find SCC in undirected graph")
 	}
 
-	nodes := g.getNodesSlice()
+	nodes := g.GetNodesSlice()
 
 	tout := make(map[Node]int)
 	time := 0

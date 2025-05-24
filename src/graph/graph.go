@@ -38,7 +38,7 @@ func NewGraph(directed bool) *Graph {
 	}
 }
 
-func (g *Graph) getNodesSlice() []Node {
+func (g *Graph) GetNodesSlice() []Node {
 	nodes := make([]Node, 0, g.NumberOfNodes())
 	for node := range g.Nodes {
 		nodes = append(nodes, node)

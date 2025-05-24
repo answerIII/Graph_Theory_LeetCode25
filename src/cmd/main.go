@@ -88,10 +88,11 @@ func main() {
 	percentile := getPercentile(ugraph, wcc[0])
 	log.Println("Генерация подграфа методом Snowball")
 	snowball := getSnowball(ugraph, wcc[0])
+	snowballNodes := snowball.GetNodesSlice()
 	log.Println("Расчет диаметра методом Double Sweep на snowball подграфе")
-	maxWCCDiameterSTDS := ugraph.GetDiameterDoubleSweep(getRandomNode(snowball))
+	maxWCCDiameterSTDS := snowball.GetDiameterDoubleSweep(getRandomNode(snowballNodes))
 	log.Printf("Расчет %.2f процентиля на snowball подграфе\n", Percentile*100)
-	snowballPercentile := getPercentile(ugraph, snowball)
+	snowballPercentile := getPercentile(snowball, snowballNodes)
 
 	log.Println("Подсчет треугольников в неорграфе")
 	triangles := getTriangles(ugraph)
@@ -185,16 +186,12 @@ func getPercentile(g *graph.Graph, nodes []graph.Node) float64 {
 	return val
 }
 
-func getSnowball(g *graph.Graph, base []graph.Node) []graph.Node {
+func getSnowball(g *graph.Graph, base []graph.Node) *graph.Graph {
 	snowballGraph, err := graph.GetSnowballGraph(g, base, SnowballSize)
 	if err != nil {
 		log.Printf("Error building snowball: %v", err)
 	}
-	wcc, err := snowballGraph.FindWCC()
-	if err != nil {
-		log.Printf("Error finding WCC in snowball: %v", err)
-	}
-	return graph.SortComponents(wcc, true)[0]
+	return snowballGraph
 }
 
 func getTriangles(g *graph.Graph) int64 {

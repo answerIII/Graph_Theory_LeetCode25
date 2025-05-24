@@ -83,6 +83,7 @@ func (g *Graph) GetDistancePercentile(
 		return dists[i] < dists[j]
 	})
 
+	sampleN = min(sampleN, len(sampleNodes))
 	i := percentile*float64(sampleN+1) - 1
 	floor_i := int(math.Floor(i))
 	ans := float64(dists[floor_i]) + (i-float64(floor_i))*float64(dists[floor_i+1]-dists[floor_i])
