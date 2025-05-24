@@ -46,18 +46,34 @@ func main() {
 
 	log.Println("Создание вспомогательных файлов")
 	if _, err := os.Stat(auxSortedGraph); errors.Is(err, os.ErrNotExist) {
-		tools.SortNodesInFile(filePath, auxSortedGraph)
+		err := tools.SortNodesInFile(filePath, auxSortedGraph)
+		if err != nil {
+			fmt.Printf("Error in SortNodesInFile(): %v\n", err)
+			return
+		}
 	}
 	if _, err := os.Stat(auxInvertedGraph); errors.Is(err, os.ErrNotExist) {
-		tools.InvertEdgesInFile(filePath, auxInvertedGraph)
+		err := tools.InvertEdgesInFile(filePath, auxInvertedGraph)
+		if err != nil {
+			fmt.Printf("Error in InvertEdgesInFile(): %v\n", err)
+			return
+		}
 	}
 	if _, err := os.Stat(auxUndirectedGraph); errors.Is(err, os.ErrNotExist) {
-		tools.UndirectEdgesInFile(filePath, auxUndirectedGraph)
+		err := tools.UndirectEdgesInFile(filePath, auxUndirectedGraph)
+		if err != nil {
+			fmt.Printf("Error in UndirectEdgesInFile(): %v\n", err)
+			return
+		}
 	}
 
 	log.Println("Чтение и создание графа из файла")
 	sccCount, maxSccSize := loadAndPrepareGraph(auxSortedGraph, auxInvertedGraph)
 	ugraph, err := graph.FromFile(auxUndirectedGraph, false)
+	if err != nil {
+		fmt.Printf("Error reading graph from file: %v", err)
+		return
+	}
 
 	log.Println("Поиск компонент слабой связности в неорграфе")
 	wcc := getWCC(ugraph)
@@ -91,6 +107,24 @@ func main() {
 	log.Println("Расчет степеней вершин неорграфа")
 	minD, avgD, maxD := getDegrees(ugraph)
 
+	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
+	wccRatioRandomNodes := make([]float64, len(percents))
+	wccRatioMaxDegree := make([]float64, len(percents))
+
+	log.Println("Удаление x% случайных вершин и вершин максимальной степени")
+	for i, percent := range percents {
+		var ugraphCopy *graph.Graph
+		// Remove random nodes
+		ugraphCopy = ugraph.DeepCopy()
+		ugraphCopy.RemoveRandomNodes(percent)
+		wccRatioRandomNodes[i] = float64(len(getWCC(ugraphCopy)[0])) / float64(ugraphCopy.NumberOfNodes())
+
+		// Remove max degree nodes
+		ugraphCopy = ugraph.DeepCopy()
+		ugraphCopy.RemoveHighestDegreeNodes(percent)
+		wccRatioMaxDegree[i] = float64(len(getWCC(ugraphCopy)[0])) / float64(ugraphCopy.NumberOfNodes())
+	}
+
 	// Output summary
 	log.Println("Запись сводной информации о графе в файл")
 	writef("Сводная информация о графе %s:\n\n", graphName)
@@ -112,6 +146,15 @@ func main() {
 	writef("Минимальная степень узлов: %d\n", minD)
 	writef("Средняя степень узлов: %.2f\n", avgD)
 	writef("Максимальная степень узлов: %d\n", maxD)
+	writef("\nУдаление x%% узлов и влияние на наибольшую компоненту слабой связности:\n\n")
+	writef("\tУдаление случайных узлов:\n")
+	for i, percent := range percents {
+		writef("\t\tx = %.0f%%: доля вершин в наибольшей WCC: %.4f\n", percent*100, wccRatioRandomNodes[i])
+	}
+	writef("\n\tУдаление узлов наибольшей степени:\n")
+	for i, percent := range percents {
+		writef("\t\tx = %.0f%%: доля вершин в наибольшей WCC: %.4f\n", percent*100, wccRatioMaxDegree[i])
+	}
 }
 
 // Graph processing helpers

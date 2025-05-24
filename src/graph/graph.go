@@ -2,8 +2,11 @@ package graph
 
 import (
 	"bufio"
+	"math"
+	"math/rand/v2"
 	"os"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -56,6 +59,7 @@ func (g *Graph) RemoveNodes(nodes map[Node]struct{}) {
 			if ok1 || ok2 {
 				g.Adj.to[j] = -1 // mark deleted node
 				updPtr++
+				g.EdgesNumber--
 			}
 		}
 		prevVal = g.Adj.ptr[i]
@@ -77,6 +81,51 @@ func (g *Graph) RemoveNodes(nodes map[Node]struct{}) {
 	for node := range nodes {
 		delete(g.Nodes, node)
 	}
+}
+
+func (g *Graph) RemoveRandomNodes(percent float64) {
+	n := g.NumberOfNodes()
+	numberOfRemovedNodes := int(math.Floor(float64(n) * percent))
+	nodes := make(map[Node]struct{})
+	for range numberOfRemovedNodes {
+		var x Node
+		for {
+			x = Node(rand.IntN(n))
+			if _, exists := nodes[x]; !exists {
+				break
+			}
+		}
+		nodes[x] = struct{}{}
+	}
+	g.RemoveNodes(nodes)
+}
+
+func (g *Graph) RemoveHighestDegreeNodes(percent float64) {
+	n := g.NumberOfNodes()
+	numberOfRemovedNodes := int(math.Floor(float64(n) * percent))
+	nodes := make(map[Node]struct{})
+
+	type nodeDegree struct {
+		node   Node
+		degree int
+	}
+	ndSlice := make([]nodeDegree, n)
+	for i := 0; i < n; i++ {
+		node := Node(i)
+		ndSlice[i] = nodeDegree{
+			node:   node,
+			degree: len(g.Adj.neighbors(node)),
+		}
+	}
+	sort.Slice(ndSlice, func(i, j int) bool {
+		return ndSlice[i].degree > ndSlice[j].degree
+	})
+
+	for i := range numberOfRemovedNodes {
+		nodes[ndSlice[i].node] = struct{}{}
+	}
+
+	g.RemoveNodes(nodes)
 }
 
 func (g *Graph) HasNode(n Node) bool {
@@ -105,6 +154,26 @@ func (g *Graph) HasEdge(u, v Node) bool {
 	return exists
 }
 
+func (g *Graph) DeepCopy() *Graph {
+	newNodes := make(Nodes)
+	for k := range g.Nodes {
+		newNodes[k] = struct{}{}
+	}
+	newAdj := Adjacency{
+		to:  make([]Node, len(g.Adj.to)),
+		ptr: make([]int, len(g.Adj.ptr)),
+	}
+	copy(newAdj.to, g.Adj.to)
+	copy(newAdj.ptr, g.Adj.ptr)
+
+	return &Graph{
+		Directed:    g.Directed,
+		Adj:         newAdj,
+		Nodes:       newNodes,
+		EdgesNumber: g.EdgesNumber,
+	}
+}
+
 func GetSnowballGraph(
 	baseGraph *Graph,
 	component []Node,
@@ -113,7 +182,7 @@ func GetSnowballGraph(
 	snowballSample := generateSnowballSample(baseGraph, component)
 
 	mapper := map[Node]int{}
-	nodes := []int{}
+	var nodes []int
 	adj := map[int][]int{}
 
 	mapperIdx := 0
