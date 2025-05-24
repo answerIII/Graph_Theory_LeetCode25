@@ -14,16 +14,16 @@ import (
 func ReadGraph(filename string) structs.Graph {
 	length := len(filename)
 	if length > 4 && filename[length-5:] == ".json" {
-		return readGraphJSON(filename)
+		return ReadGraphJSON(filename)
 	} else if length > 3 && filename[length-4:] == ".csv" {
-		return readGraphCSV(filename)
+		return ReadGraphCSV(filename)
 	} else if length > 7 && filename[length-8:] == ".msgpack" {
-		return readGraphMP(filename)
+		return ReadGraphMP(filename)
 	}
 	return structs.Graph{}
 }
 
-func readGraphCSV(filename string) structs.Graph {
+func ReadGraphCSV(filename string) structs.Graph {
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -107,7 +107,7 @@ func readGraphCSV(filename string) structs.Graph {
 	return outputGraph
 }
 
-func readGraphJSON(filename string) structs.Graph {
+func ReadGraphJSON(filename string) structs.Graph {
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
@@ -151,7 +151,7 @@ func readGraphJSON(filename string) structs.Graph {
 	return outputGraph
 }
 
-func readGraphMP(filename string) structs.Graph {
+func ReadGraphMP(filename string) structs.Graph {
 
 	dataMsg, err := os.ReadFile(filename)
 	if err != nil {
