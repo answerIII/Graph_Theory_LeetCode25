@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
-	"runtime"
 	"sort"
 )
 
@@ -113,7 +112,7 @@ func main() {
 
 	log.Println("Удаление x% случайных вершин и вершин максимальной степени")
 	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
-	wccRatioRandomNodes, wccRatioMaxDegree := computeWCCRatiosAfterRemovals(ugraph, percents, getWCC)
+	wccRatioRandomNodes, wccRatioMaxDegree := computeWCCRatiosAfterRemovals(ugraph, percents, getWCC, 1)
 
 	// Output summary
 	log.Println("Запись сводной информации о графе в файл")
@@ -230,6 +229,7 @@ func computeWCCRatiosAfterRemovals(
 	ugraph *graph.Graph,
 	percents []float64,
 	getWCC func(*graph.Graph) [][]graph.Node,
+	workersNumber int,
 ) ([]float64, []float64) {
 	type removalResult struct {
 		percent  float64
@@ -237,7 +237,7 @@ func computeWCCRatiosAfterRemovals(
 		fromMax  bool // true — max degree, false — random
 	}
 
-	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(percents)*2)
+	wp := workerpool.NewWorkerPool(workersNumber, len(percents)*2)
 	defer wp.Shutdown()
 	resultsCh := make(chan removalResult, len(percents)*2)
 
@@ -246,6 +246,7 @@ func computeWCCRatiosAfterRemovals(
 
 		// Task for random node removal
 		wp.Submit(func() error {
+			log.Printf("Удаления %.0f%% случайных вершин\n", p*100)
 			ugraphCopy := ugraph.DeepCopy()
 			ugraphCopy.RemoveRandomNodes(p)
 			wcc := getWCC(ugraphCopy)
@@ -256,6 +257,7 @@ func computeWCCRatiosAfterRemovals(
 
 		// Task for max-degree node removal
 		wp.Submit(func() error {
+			log.Printf("Удаление %.0f%% вершин максимальной степени\n", p*100)
 			ugraphCopy := ugraph.DeepCopy()
 			ugraphCopy.RemoveHighestDegreeNodes(p)
 			wcc := getWCC(ugraphCopy)
