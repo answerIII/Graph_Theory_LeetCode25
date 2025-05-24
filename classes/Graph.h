@@ -1,6 +1,8 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <strings.h>
+
 #include "../libs.h"
 #include "Node.h"
 
@@ -60,12 +62,15 @@ class DirectedGraph : public Graph {
     std::unordered_map<int, std::vector<int>> undirectedPaths;
     std::vector<std::vector<Node*>>  strongComponents;
     std::vector<std::vector<Node*>>  weekComponents;
+    std::vector<std::unordered_map<int, int>> landmarks;
 
     double density = 0;
     int approximateDiameter = 0;
     int percentileB = 0;
     int percentileC = 0;
     int trianglesCount = -1;
+
+    const size_t NUM_OF_THREADS = 12;
 
     std::unordered_map<int, int> trianglePerNode;
 
@@ -388,110 +393,63 @@ class DirectedGraph : public Graph {
         percentileC = distances[index90];
     }
 
-    // void initTrianglesCount() {
-    //     trianglesCount = 0;
-    //     if (undirectedPaths.empty()) initUndirectedPaths();
-
-    //     std::mutex mtx;
-    //     std::unordered_map<int, std::unordered_set<int>> adj;
-    //     for (auto& [u, vec] : undirectedPaths) {
-    //         for (int v : vec) {
-    //             adj[u].insert(v);
-    //         }
-    //     }
-    //     std::vector<int> nodesVec;
-    //     nodesVec.reserve(adj.size());
-    //     for (auto& [u, _] : adj) {
-    //         nodesVec.push_back(u);
-    //     }
-
-    //     int numThreads = 12;
-    //     int totalNodes = nodesVec.size();
-    //     int chunkSize = (totalNodes + numThreads - 1) / numThreads;
-
-    //     auto worker = [&](int start, int end) {
-    //         int localCount = 0;
-    //         for (int i = start; i < end && i < totalNodes; ++i) {
-    //             int u = nodesVec[i];
-    //             const auto& neighborsU = adj[u];
-    //             for (int v : neighborsU) {
-    //                 if (v <= u) continue;
-    //                 const auto& neighborsV = adj[v];
-    //                 for (int w : neighborsV) {
-    //                     if (w <= v || w == u) continue;
-    //                     if (neighborsU.count(w)) {
-    //                         ++localCount;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         std::lock_guard<std::mutex> lock(mtx);
-    //         trianglesCount += localCount;
-    //     };
-
-    //     std::vector<std::thread> threads;
-    //     for (int i = 0; i < numThreads; ++i) {
-    //         int start = i * chunkSize;
-    //         int end = start + chunkSize;
-    //         threads.emplace_back(worker, start, end);
-    //     }
-
-    //     for (auto& t : threads) {
-    //         t.join();
-    //     }
-    // }
-
-
     void initTrianglesCount() {
     trianglesCount = 0;
     trianglePerNode.clear();
 
     if (undirectedPaths.empty()) initUndirectedPaths();
 
-    std::mutex mtx;
     std::unordered_map<int, std::unordered_set<int>> adj;
     for (auto& [u, vec] : undirectedPaths) {
         for (int v : vec) {
             adj[u].insert(v);
+            adj[v].insert(u);
         }
     }
 
     std::vector<int> nodesVec;
-    for (const auto& [u, _] : adj) nodesVec.push_back(u);
+    for (const auto& [u, _] : adj) {
+        nodesVec.push_back(u);
+    }
 
     int numThreads = 12;
     int totalNodes = nodesVec.size();
     int chunkSize = (totalNodes + numThreads - 1) / numThreads;
 
-    std::mutex triangleMutex;
+    std::mutex countMutex;
+    std::mutex mapMutex;
 
     auto worker = [&](int start, int end) {
-        int localCount = 0;
-        std::unordered_map<int, int> localTriangleMap;
+        int localTriangles = 0;
+        std::unordered_map<int, int> localMap;
 
         for (int i = start; i < end && i < totalNodes; ++i) {
             int u = nodesVec[i];
             const auto& neighborsU = adj[u];
-            for (int v : neighborsU) {
+            std::vector<int> neighborsSorted(neighborsU.begin(), neighborsU.end());
+            std::sort(neighborsSorted.begin(), neighborsSorted.end());
+
+            for (size_t j = 0; j < neighborsSorted.size(); ++j) {
+                int v = neighborsSorted[j];
                 if (v <= u) continue;
-                const auto& neighborsV = adj[v];
-                for (int w : neighborsV) {
-                    if (w <= v || w == u) continue;
-                    if (neighborsU.count(w)) {
-                        ++localCount;
-                        ++localTriangleMap[u];
-                        ++localTriangleMap[v];
-                        ++localTriangleMap[w];
+                for (size_t k = j + 1; k < neighborsSorted.size(); ++k) {
+                    int w = neighborsSorted[k];
+                    if (w <= v) continue;
+                    if (adj.at(v).count(w)) {
+                        localTriangles++;
+                        localMap[u]++;
+                        localMap[v]++;
+                        localMap[w]++;
                     }
                 }
             }
         }
 
-        std::lock_guard<std::mutex> lock(mtx);
-        trianglesCount += localCount;
+        std::lock_guard<std::mutex> lock1(countMutex);
+        trianglesCount += localTriangles;
 
-        std::lock_guard<std::mutex> lock2(triangleMutex);
-        for (const auto& [node, count] : localTriangleMap) {
+        std::lock_guard<std::mutex> lock2(mapMutex);
+        for (const auto& [node, count] : localMap) {
             trianglePerNode[node] += count;
         }
     };
@@ -600,6 +558,222 @@ class DirectedGraph : public Graph {
         return farthestVertex;
     }
 
+    void initLandmarksFarthestFirst() {
+        landmarks.clear();
+        if (undirectedPaths.empty()) initUndirectedPaths();
+        size_t landmarksCount = 0;
+        if (vertexCount > 100000) {
+            landmarksCount = 200;
+        } else if (vertexCount > 1000) {
+            landmarksCount = 50;
+        } else {
+            landmarksCount = 5;
+        }
+        landmarks.reserve(landmarksCount);
+
+        //first landmark
+        {
+            size_t maxDegree = 0;
+            int vertex = 0;
+            for (auto& [num,vec] : undirectedPaths) {
+                if (vec.size() > maxDegree) maxDegree = vec.size(); vertex = num;
+            }
+            std::queue<Node*> queue;
+            Node* landmarkNode = &nodes[vertex];
+            landmarks.push_back(std::unordered_map<int, int>());
+            landmarks[0][landmarkNode->num] = 0;
+            queue.push(landmarkNode);
+            landmarkNode->marked = true;
+            while (!queue.empty()) {
+                Node* currentNode = queue.front(); queue.pop();
+                for (int neighborhood : undirectedPaths[currentNode->num]) {
+                    if (nodes[neighborhood].marked == true) continue;
+                    nodes[neighborhood].marked = true;
+                    landmarks[0][neighborhood] = currentNode->num + 1;
+                }
+            }
+            removeMarks();
+        }
+
+        std::mutex lock;
+        std::mutex printLock;
+        std::atomic<size_t> completedLandmarks = 1;
+
+        auto printProgress = [&](size_t total) {
+            size_t done = completedLandmarks.load();
+            int percent = static_cast<int>((100.0 * done) / total);
+            static std::atomic<int> lastPrinted{-1};
+            if (percent != lastPrinted.load()) {
+                std::lock_guard<std::mutex> block(printLock);
+                std::cout << "\rProgress: " << std::setw(3) << percent << "% completed" << std::flush;
+                lastPrinted = percent;
+            }
+        };
+        auto worker = [&](size_t times) {
+            while (times-- != 0) {
+                // Part 1: Landmark selection
+                Node* landmarkNode = nullptr;
+                {
+                    std::lock_guard<std::mutex> block(lock);
+
+                    // Find max-min node
+                    int maxMin = INT_MIN;
+                    for (auto& [num, node] : nodes) {
+                        int currentMin = INT_MAX;
+                        for (const auto& map : landmarks) {
+                            if (map.contains(node.num)) {
+                                currentMin = std::min(currentMin, map.at(node.num));
+                            }
+                        }
+                        if (currentMin > maxMin) {
+                            maxMin = currentMin;
+                            landmarkNode = &node;
+                        }
+                    }
+                }
+
+                // Part 2: Landmark initialization
+                std::unordered_map<int,int> localMap;
+                std::queue<Node*> queue;
+                queue.push(landmarkNode);
+                localMap[landmarkNode->num] = 0;
+
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
+                    for (int neighborhood : undirectedPaths[currentNode->num]) {
+                        if (!localMap.contains(neighborhood)) {
+                            localMap[neighborhood] = localMap[currentNode->num] + 1;
+                            queue.push(&nodes[neighborhood]);
+                        }
+                    }
+                }
+
+                {
+                    std::lock_guard<std::mutex> block(lock);
+                    landmarks.emplace_back(std::move(localMap));
+                }
+
+                completedLandmarks.fetch_add(1);
+                printProgress(landmarksCount);
+            }
+        };
+
+        std::vector<std::thread> workers;
+        size_t remaining = landmarksCount - 1;
+        for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
+            size_t tasks = remaining / (NUM_OF_THREADS - i);
+            remaining -= tasks;
+            if (tasks > 0) {
+                workers.emplace_back(worker, tasks);
+            }
+        }
+
+        for (auto& thread : workers) thread.join();
+
+    }
+
+    void initLandmarksHeightDegrees() {
+        landmarks.clear();
+        if (undirectedPaths.empty()) initUndirectedPaths();
+        size_t landmarksCount = 0;
+        if (vertexCount > 100000) {
+            landmarksCount = 200;
+        } else if (vertexCount > 1000) {
+            landmarksCount = 50;
+        } else {
+            landmarksCount = 5;
+        }
+        landmarks.reserve(landmarksCount);
+
+        //first landmark
+        {
+            size_t maxDegree = 0;
+            int vertex = 0;
+            for (auto& [num,vec] : undirectedPaths) {
+                if (vec.size() > maxDegree) maxDegree = vec.size(); vertex = num;
+            }
+            std::queue<Node*> queue;
+            Node* landmarkNode = &nodes[vertex];
+            landmarks.push_back(std::unordered_map<int, int>());
+            landmarks[0][landmarkNode->num] = 0;
+            queue.push(landmarkNode);
+            landmarkNode->marked = true;
+            while (!queue.empty()) {
+                Node* currentNode = queue.front(); queue.pop();
+                for (int neighborhood : undirectedPaths[currentNode->num]) {
+                    if (nodes[neighborhood].marked == true) continue;
+                    nodes[neighborhood].marked = true;
+                    landmarks[0][neighborhood] = currentNode->num + 1;
+                }
+            }
+            removeMarks();
+        }
+
+        std::mutex lock;
+        std::mutex printLock;
+        std::atomic<size_t> completedLandmarks = 1;
+
+        //chose the nodes with most degrees
+        std::vector<std::pair<int, std::vector<int>>> sortedPaths(paths.begin(), paths.end());
+        std::sort(sortedPaths.begin(), sortedPaths.end(),
+            [](const auto& a, const auto& b) {
+                return a.second.size() < b.second.size();
+            });
+        std::atomic<int> index = 0;
+
+        auto printProgress = [&](size_t total) {
+            size_t done = completedLandmarks.load();
+            int percent = static_cast<int>((100.0 * done) / total);
+            static std::atomic<int> lastPrinted{-1};
+            if (percent != lastPrinted.load()) {
+                std::lock_guard<std::mutex> block(printLock);
+                std::cout << "\rProgress: " << std::setw(3) << percent << "% completed" << std::flush;
+                lastPrinted = percent;
+            }
+        };
+        auto worker = [&](size_t times) {
+            while (times-- != 0) {
+                // Part 2: Landmark initialization
+                Node* landmarkNode = &nodes[sortedPaths[index++].first];
+                std::unordered_map<int,int> localMap;
+                std::queue<Node*> queue;
+                queue.push(landmarkNode);
+                localMap[landmarkNode->num] = 0;
+
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
+                    for (int neighborhood : undirectedPaths[currentNode->num]) {
+                        if (!localMap.contains(neighborhood)) {
+                            localMap[neighborhood] = localMap[currentNode->num] + 1;
+                            queue.push(&nodes[neighborhood]);
+                        }
+                    }
+                }
+
+                {
+                    std::lock_guard<std::mutex> block(lock);
+                    landmarks.emplace_back(std::move(localMap));
+                }
+
+                completedLandmarks.fetch_add(1);
+                printProgress(landmarksCount);
+            }
+        };
+
+        std::vector<std::thread> workers;
+        size_t remaining = landmarksCount - 1;
+        for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
+            size_t tasks = remaining / (NUM_OF_THREADS - i);
+            remaining -= tasks;
+            if (tasks > 0) {
+                workers.emplace_back(worker, tasks);
+            }
+        }
+
+        for (auto& thread : workers) thread.join();
+
+    }
+
 public:
 
     size_t getWeekComponentCount() {
@@ -669,6 +843,25 @@ public:
         removeNodes(count, false);
     }
 
+    int getDistanceBetweenNodes(int num_u, int num_v) {
+        if (landmarks.empty()) initLandmarksHeightDegrees();
+        if (!nodes.contains(num_u) || !nodes.contains(num_v)) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
+
+
+        int minDistance = INT_MAX;
+        bool pathNotFound = true;
+        for (const auto& map : landmarks) {
+            if (!(map.contains(num_u) && map.contains(num_v))) {continue;}
+            if (map.at(num_u) + map.at(num_v) < minDistance) minDistance = map.at(num_u) + map.at(num_v); pathNotFound = false;
+        }
+
+        if (pathNotFound) {
+            std::cout << "Path not found" << std::endl;
+            return -1;
+        }
+        return minDistance;
+    }
+
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
     // int getTriangels() {
@@ -723,26 +916,59 @@ double getGlobalClusteringCoefficient() {
 //     return count > 0 ? total / count : 0.0;
 // }
 
-double getAverageClusteringCoefficient() {
-    if (trianglePerNode.empty()) initTrianglesCount();
-    if (undirectedPaths.empty()) initUndirectedPaths();
+    double getAverageClusteringCoefficient() {
+        if (trianglePerNode.empty()) initTrianglesCount();
+        if (undirectedPaths.empty()) initUndirectedPaths();
 
-    double total = 0.0;
-    int count = 0;
+        std::vector<int> nodes;
+        for (const auto& pair : undirectedPaths) {
+            nodes.push_back(pair.first);
+        }
+        int totalNodes = nodes.size();
 
-    std::for_each(std::execution::par, undirectedPaths.begin(), undirectedPaths.end(), [&](const auto &cpair) {
-        const auto &[u, neighbors] = cpair;
-        int k = neighbors.size();
-        if (k < 2) return;
+        int numThreads = 12;
+        int chunkSize = (totalNodes + numThreads - 1) / numThreads;
 
-        int t = trianglePerNode[u];
-        double clu = (2.0 * t) / (k * (k - 1));
-        total += clu;
-        ++count;
-    });
+        std::vector<double> threadTotals(numThreads, 0.0);
+        std::vector<int> threadCounts(numThreads, 0);
 
-    return count > 0 ? total / count : 0.0;
-}
+        auto worker = [&](int threadId, int start, int end) {
+            double localTotal = 0.0;
+            int localCount = 0;
+
+            for (int i = start; i < end && i < totalNodes; ++i) {
+                int u = nodes[i];
+                const auto& neighbors = undirectedPaths.at(u);
+                int k = neighbors.size();
+                if (k < 2) continue;
+
+                int t = trianglePerNode.at(u); // Гарантировано наличие
+                double denominator = k * (k - 1.0);
+                if (denominator < 1e-9) continue;
+
+                double clu = (2.0 * t) / denominator;
+                localTotal += clu;
+                localCount++;
+            }
+
+            threadTotals[threadId] = localTotal;
+            threadCounts[threadId] = localCount;
+        };
+
+        std::vector<std::thread> threads;
+        for (int i = 0; i < numThreads; ++i) {
+            int start = i * chunkSize;
+            int end = start + chunkSize;
+            threads.emplace_back(worker, i, start, end);
+        }
+
+        for (auto& t : threads) t.join();
+
+        double total = std::accumulate(threadTotals.begin(), threadTotals.end(), 0.0);
+        int count = std::accumulate(threadCounts.begin(), threadCounts.end(), 0);
+
+        return count > 0 ? total / count : 0.0;
+    }
 
 double getAverageClusteringCoefficientOfWCC() {
     if (trianglePerNode.empty()) initTrianglesCount();

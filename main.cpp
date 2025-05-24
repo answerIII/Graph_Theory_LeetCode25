@@ -11,8 +11,7 @@ int main(const int argc, const char *argv[]) {
     Graph* graph(parser.parse(argv[1], directed));
 
     DirectedGraph directedGraph(*graph);
-    std::cout << directedGraph.getTrianglesCount() << std::endl;
-    std::cout << directedGraph.getAverageClusteringCoefficient() << std::endl;
+    std::cout << directedGraph.getDistanceBetweenNodes(84424,32432) << std::endl;
 
     delete graph;
     return 0;
