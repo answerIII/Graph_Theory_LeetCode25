@@ -104,16 +104,12 @@ func FindDistanceDFS(graph *structs.Graph, source, target, diameter int) int {
 	answer := diameter + 1
 
 	for dfsQueueLen > 0 {
-		// fmt.Println(dfsQueueDist)
-		// fmt.Println(visited)
-		// fmt.Printf("%d\n", answer)
 
 		isAdded = false
 		vertex = dfsQueueDist[dfsQueueLen-1][0]
 		vertexDist = dfsQueueDist[dfsQueueLen-1][1]
 		edgeInd := dfsQueueDist[dfsQueueLen-1][2]
 		visited[vertex] = struct{}{}
-		//for _, next := range graph.AdjList[vertex] {
 		for i := edgeInd; i < len(graph.AdjList[vertex]); i++ {
 			next := graph.AdjList[vertex][i]
 			if next == target {
@@ -121,7 +117,6 @@ func FindDistanceDFS(graph *structs.Graph, source, target, diameter int) int {
 				break
 			}
 			if _, ok := visited[next]; !ok && vertexDist < diameter {
-				// visited[next] = struct{}{}
 				dfsQueueDist[dfsQueueLen-1][2] = i + 1
 				dfsQueueDist = append(dfsQueueDist, []int{next, vertexDist + 1, 0})
 				dfsQueueLen++
@@ -130,9 +125,6 @@ func FindDistanceDFS(graph *structs.Graph, source, target, diameter int) int {
 			}
 		}
 		if !isAdded {
-			// for _, next := range graph.AdjList[vertex] {
-			// 	delete(visited, next)
-			// }
 			delete(visited, vertex)
 			dfsQueueDist = dfsQueueDist[:dfsQueueLen-1]
 			dfsQueueLen--
@@ -168,34 +160,10 @@ func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
 	})
 
 	var source, target int
-	// graphDiameter := FindDiameter(graph)
-	// for i := 0; i < pairCount && i+1 < vertexCount; i++ {
-	// 	// wg.Add(1)
-	// 	k := 2
-	// 	for vertex := range graph.AdjList {
-	// 		source = target
-	// 		target = vertex
-	// 		k--
-	// 		if k == 0 {
-	// 			break
-	// 		}
-	// 	}
-	// 	// result[i] = []int{FindDistance(graph, source, target), source, target}
-	// 	result[i] = []int{FindDistanceDFS(graph, source, target, graphDiameter), source, target}
-	// 	// go func(graph *structs.Graph, i, source, target int) {
-	// 	// 	wg.Done()
-	// 	// }(graph, i, source, target)
-	// }
 
 	for i := 0; i+1 < vertexCount && i/2 < pairCount; i += 2 {
 		source = vertexList[i]
 		target = vertexList[i+1]
-		// wg.Add(1)
-		// go func(graph *structs.Graph, i, source, target int) {
-		// 	// result[i/2] = []int{FindDistanceDFS(graph, source, target, graphDiameter), source, target}
-		// 	result[i/2] = []int{FindDistanceBFS(graph, source, target), source, target}
-		// 	wg.Done()
-		// }(graph, i, source, target)
 		result[i/2] = []int{FindDistanceBFS(graph, source, target), source, target}
 	}
 
@@ -203,4 +171,57 @@ func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
 
 	return result
 
+}
+
+func SnowBall(graph *structs.Graph, vertexCount int) *structs.Graph {
+
+	outputGraph := structs.Graph{
+		Directed:    false,
+		VertexCount: 0,
+		EdgesCount:  0,
+		AdjList:     make(map[int][]int),
+	}
+
+	var startVertex int
+
+	for vertex, adj := range graph.AdjList {
+		if len(adj) > 0 {
+			startVertex = vertex
+			break
+		}
+	}
+
+	bfsQueue := []int{startVertex, graph.AdjList[startVertex][0]}
+
+	outputGraph.AdjList[bfsQueue[0]] = []int{}
+	outputGraph.AdjList[bfsQueue[1]] = []int{}
+	outputGraph.VertexCount = 2
+
+	for outputGraph.VertexCount < vertexCount && len(bfsQueue) > 0 {
+		vertex := bfsQueue[0]
+		bfsQueue = bfsQueue[1:]
+		for _, next := range graph.AdjList[vertex] {
+			if outputGraph.VertexCount == vertexCount {
+				break
+			}
+			if _, ok := outputGraph.AdjList[next]; !ok {
+				outputGraph.AdjList[next] = []int{}
+				bfsQueue = append(bfsQueue, next)
+				outputGraph.VertexCount++
+			}
+		}
+	}
+
+	for vertex := range outputGraph.AdjList {
+		for _, next := range graph.AdjList[vertex] {
+			if _, ok := outputGraph.AdjList[next]; ok {
+				outputGraph.AdjList[vertex] = append(outputGraph.AdjList[vertex], next)
+				outputGraph.EdgesCount++
+			}
+		}
+	}
+
+	outputGraph.EdgesCount /= 2
+
+	return &outputGraph
 }
