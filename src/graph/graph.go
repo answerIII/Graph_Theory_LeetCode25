@@ -21,9 +21,10 @@ func (a *Adjacency) neighbors(u Node) []Node {
 }
 
 type Graph struct {
-	Directed bool
-	Adj      Adjacency
-	Nodes    Nodes
+	Directed    bool
+	Adj         Adjacency
+	Nodes       Nodes
+	EdgesNumber int
 }
 
 func NewGraph(directed bool) *Graph {
@@ -178,6 +179,7 @@ func FromFile(filePath string, directed bool) (*Graph, error) {
 		}
 		parts := strings.Fields(line)
 		if len(parts) < 2 {
+			graph.EdgesNumber, _ = strconv.Atoi(parts[0])
 			continue
 		}
 		u, err1 := strconv.Atoi(parts[0])
