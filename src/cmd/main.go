@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"graph_theory/graph"
 	"graph_theory/tools"
+	"graph_theory/workerpool"
 	"log"
 	"math/rand/v2"
 	"os"
+	"runtime"
+	"sort"
 )
 
 const (
@@ -107,23 +110,9 @@ func main() {
 	log.Println("Расчет степеней вершин неорграфа")
 	minD, avgD, maxD := getDegrees(ugraph)
 
-	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
-	wccRatioRandomNodes := make([]float64, len(percents))
-	wccRatioMaxDegree := make([]float64, len(percents))
-
 	log.Println("Удаление x% случайных вершин и вершин максимальной степени")
-	for i, percent := range percents {
-		var ugraphCopy *graph.Graph
-		// Remove random nodes
-		ugraphCopy = ugraph.DeepCopy()
-		ugraphCopy.RemoveRandomNodes(percent)
-		wccRatioRandomNodes[i] = float64(len(getWCC(ugraphCopy)[0])) / float64(ugraphCopy.NumberOfNodes())
-
-		// Remove max degree nodes
-		ugraphCopy = ugraph.DeepCopy()
-		ugraphCopy.RemoveHighestDegreeNodes(percent)
-		wccRatioMaxDegree[i] = float64(len(getWCC(ugraphCopy)[0])) / float64(ugraphCopy.NumberOfNodes())
-	}
+	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
+	wccRatioRandomNodes, wccRatioMaxDegree := computeWCCRatiosAfterRemovals(ugraph, percents, getWCC)
 
 	// Output summary
 	log.Println("Запись сводной информации о графе в файл")
@@ -238,4 +227,76 @@ func getDegrees(g *graph.Graph) (int, float64, int) {
 		log.Printf("Error processing degrees: %v", err)
 	}
 	return minD, avgD, maxD
+}
+
+func computeWCCRatiosAfterRemovals(
+	ugraph *graph.Graph,
+	percents []float64,
+	getWCC func(*graph.Graph) [][]graph.Node,
+) ([]float64, []float64) {
+	type removalResult struct {
+		percent  float64
+		wccRatio float64
+		fromMax  bool // true — max degree, false — random
+	}
+
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(percents)*2)
+	defer wp.Shutdown()
+	resultsCh := make(chan removalResult, len(percents)*2)
+
+	for _, percent := range percents {
+		p := percent
+
+		// Task for random node removal
+		wp.Submit(func() error {
+			ugraphCopy := ugraph.DeepCopy()
+			ugraphCopy.RemoveRandomNodes(p)
+			wcc := getWCC(ugraphCopy)
+			ratio := float64(len(wcc[0])) / float64(ugraphCopy.NumberOfNodes())
+			resultsCh <- removalResult{percent: p, wccRatio: ratio, fromMax: false}
+			return nil
+		})
+
+		// Task for max-degree node removal
+		wp.Submit(func() error {
+			ugraphCopy := ugraph.DeepCopy()
+			ugraphCopy.RemoveHighestDegreeNodes(p)
+			wcc := getWCC(ugraphCopy)
+			ratio := float64(len(wcc[0])) / float64(ugraphCopy.NumberOfNodes())
+			resultsCh <- removalResult{percent: p, wccRatio: ratio, fromMax: true}
+			return nil
+		})
+	}
+
+	wp.Wait()
+	close(resultsCh)
+
+	var (
+		randomResults []removalResult
+		maxDegResults []removalResult
+	)
+
+	for v := range resultsCh {
+		if v.fromMax {
+			maxDegResults = append(maxDegResults, v)
+		} else {
+			randomResults = append(randomResults, v)
+		}
+	}
+
+	sort.Slice(randomResults, func(i, j int) bool {
+		return randomResults[i].percent < randomResults[j].percent
+	})
+	sort.Slice(maxDegResults, func(i, j int) bool {
+		return maxDegResults[i].percent < maxDegResults[j].percent
+	})
+
+	wccRatioRandomNodes := make([]float64, len(percents))
+	wccRatioMaxDegree := make([]float64, len(percents))
+	for i := range percents {
+		wccRatioRandomNodes[i] = randomResults[i].wccRatio
+		wccRatioMaxDegree[i] = maxDegResults[i].wccRatio
+	}
+
+	return wccRatioRandomNodes, wccRatioMaxDegree
 }
