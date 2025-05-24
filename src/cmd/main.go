@@ -109,7 +109,7 @@ func main() {
 	}
 
 	log.Println("Расчет степеней вершин неорграфа")
-	minD, avgD, maxD := getDegrees(ugraph)
+	minD, avgD, maxD := getDegrees(ugraph, "")
 
 	log.Println("Удаление x% случайных вершин и вершин максимальной степени")
 	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
@@ -218,8 +218,8 @@ func getGlobalCC(g *graph.Graph, triangles int64) float64 {
 	return val
 }
 
-func getDegrees(g *graph.Graph) (int, float64, int) {
-	minD, avgD, maxD, err := g.ProcessNodesDegrees("")
+func getDegrees(g *graph.Graph, filepath string) (int, float64, int) {
+	minD, avgD, maxD, err := g.ProcessNodesDegrees(filepath)
 	if err != nil {
 		log.Printf("Error processing degrees: %v", err)
 	}

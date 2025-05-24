@@ -4,10 +4,16 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"slices"
 )
 
 func (g *Graph) DegreeNode(n Node) int {
-	return len(g.Adj.neighbors(n))
+	neighbors := g.Adj.neighbors(n)
+	length := len(neighbors)
+	if _, has := slices.BinarySearch(neighbors, n); has {
+		length--
+	}
+	return length
 }
 
 func (g *Graph) NumberOfNodes() int {
@@ -46,7 +52,8 @@ func (g *Graph) ProcessNodesDegrees(filePath string) (minDeg int, avgDeg float64
 	maxDegree := 0
 
 	for node := range g.Nodes {
-		degree := len(g.Adj.neighbors(node))
+		degree := g.DegreeNode(node)
+
 		if degree < minDegree {
 			minDegree = degree
 		}

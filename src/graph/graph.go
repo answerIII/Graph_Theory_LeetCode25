@@ -114,7 +114,7 @@ func (g *Graph) RemoveHighestDegreeNodes(percent float64) {
 		node := Node(i)
 		ndSlice[i] = nodeDegree{
 			node:   node,
-			degree: len(g.Adj.neighbors(node)),
+			degree: g.DegreeNode(node),
 		}
 	}
 	sort.Slice(ndSlice, func(i, j int) bool {
