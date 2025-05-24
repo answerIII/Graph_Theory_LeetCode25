@@ -12,6 +12,43 @@ matplotlib.use('TkAgg')  # или 'Qt5Agg'
 import math
 from time import perf_counter
 
+def plot_comparisons(stats1, stats2):
+    #Сортируем по проценту
+    stats1.sort(key=lambda x: x['percent'])
+    stats2.sort(key=lambda x: x['percent'])
+
+    percent1 = [s['percent'] for s in stats1]
+    percent2 = [s['percent'] for s in stats2]
+
+    fraction_after_1 = [s['fraction_after'] for s in stats1]
+    fraction_after_2 = [s['fraction_after'] for s in stats2]
+
+    damage1 = [s['fraction_before'] - s['fraction_after'] for s in stats1]
+    damage2 = [s['fraction_before'] - s['fraction_after'] for s in stats2]
+
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(percent1, fraction_after_1, marker='o', label='B1 - случайные')
+    plt.plot(percent2, fraction_after_2, marker='s', label='B2 - по степени')
+    plt.xlabel('Процент удалённых вершин')
+    plt.ylabel('Доля вершин в наибольшей компоненте')
+    plt.title('Сравнение связности после удаления')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(percent1, damage1, marker='o', label='B1 - случайные')
+    plt.plot(percent2, damage2, marker='s', label='B2 - по степени')
+    plt.xlabel('Процент удалённых вершин')
+    plt.ylabel(' Насколько сильно уменьшилась большая компонента')
+    plt.title('Насколько уменьшилась связность')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 """тут когда все методы для пункта 1 сделаем напишем код который соберет все и выведет анализ графа"""
 def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Graph):
@@ -106,8 +143,8 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
 
     print("(B1)----------")
-    stats1 = dict()
-    stats2 = dict()
+    stats1 = []
+    stats2 = []
 
     if directed:
         graph = to_undirected(graph)
@@ -129,6 +166,12 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         print("размер наибольшей компоненты после удаления:", len(max_component_after))
         end = perf_counter()
         print(f"\n⏱ Время выполнения B1: {end - start:.6f} секунд\n\n")
+        stats1.append({
+            'percent': int(user_input),
+            'fraction_before': fraction_of_vertices_largest_week_component,
+            'fraction_after': fraction_after_remove,
+            'time': end - start,
+        })
 
     print("(B1)----------\n")
     print("\n(B2)----------")
@@ -151,5 +194,13 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
         print("размер наибольшей компоненты:", len(max_component))
         end = perf_counter()
         print(f"\n⏱ Время выполнения B2: {end - start:.6f} секунд\n\n")
+        stats2.append({
+            'percent': int(user_input),
+            'fraction_before': fraction_of_vertices_largest_week_component,
+            'fraction_after': fraction_after_remove,
+            'time': end - start,
+        })
 
     print("\n(B2)----------")
+    plot_comparisons(stats1, stats2)
+
