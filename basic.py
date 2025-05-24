@@ -13,14 +13,20 @@ def load_graph_from_file(filename: str, directed: bool = True):
 
     with open(filename, 'r') as f:
         for line in f:
-            if line.startswith('#') or not line.strip():
-                continue  # пропускаем комментарии и пустые строки
-            
-            parts = line.strip().split()
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue  # пропускаем пустые строки и комментарии
+            parts = line.replace(',', ' ').split()
             if len(parts) != 2:
                 continue  # пропускаем некорректные строки
 
-            u, v = map(int, parts)
+            
+            try:
+                u, v = map(int, parts[:2])
+            except ValueError:
+                # Если не получилось привести к int — скорее всего заголовок, пропускаем
+                continue
+
             G.add_edge(u, v)
 
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
