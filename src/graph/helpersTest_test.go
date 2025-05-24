@@ -47,6 +47,8 @@ const (
 	invertedYoutubeUngraphFilepath  = "../datasets/very_large_graphs/aux_graphs/com-youtube.ungraph-inverted.txt"
 	invertedVkFilepath              = "../datasets/very_large_graphs/aux_graphs/vk-inverted.txt"
 	invertedOrkkutFilepath          = "../datasets/very_large_graphs/aux_graphs/com-orkut.ungraph-inverted.txt"
+
+	landmarkRandomWikiVoteFilepath = "../datasets/directed/landmarks/Wiki-Vote-random.txt"
 )
 
 func roundFloat(val float64, precision uint) float64 {
