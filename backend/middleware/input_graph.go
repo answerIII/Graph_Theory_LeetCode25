@@ -1,4 +1,4 @@
-package main
+package middleware
 
 import (
 	"encoding/csv"
@@ -11,7 +11,7 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func readGraph(filename string) structs.Graph {
+func ReadGraph(filename string) structs.Graph {
 	length := len(filename)
 	if length > 4 && filename[length-5:] == ".json" {
 		return readGraphJSON(filename)
