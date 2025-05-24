@@ -95,7 +95,7 @@ func main() {
 	log.Println("Запись сводной информации о графе в файл")
 	writef("Сводная информация о графе %s:\n\n", graphName)
 	writef("Количество вершин: %d\n", ugraph.NumberOfNodes())
-	writef("Количество рёбер: %d\n", ugraph.NumberOfEdges())
+	writef("Количество рёбер: %d\n", ugraph.EdgesNumber)
 	writef("Плотность графа: %.6f\n", ugraph.Density())
 	writef("Количество WCC: %d\n", len(wcc))
 	writef("Доля вершин в наибольшей WCC: %.6f\n", float64(len(wcc[0]))/float64(ugraph.NumberOfNodes()))

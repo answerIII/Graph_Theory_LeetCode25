@@ -20,45 +20,49 @@ type Converter func() (*Nodes, *Adjacency, EdgeFunction)
 var SUPPORTED_EXTENSIONS = []string{".csv", ".txt", ".mtx"}
 
 type Parser interface {
-	Parse(fileIn io.Reader, f EdgeFunction) error
+	Parse(fileIn io.Reader, f EdgeFunction) (int, error)
 }
 
 type CSVParser struct{}
 
-func (p CSVParser) Parse(fileIn io.Reader, f EdgeFunction) error {
+func (p CSVParser) Parse(fileIn io.Reader, f EdgeFunction) (int, error) {
 	scanner := bufio.NewScanner(fileIn)
 
 	scanner.Scan()
+	numberEdges := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, ",")
 
 		if len(parts) < 2 {
-			return fmt.Errorf("invalid line format: %s", line)
+			return 0, fmt.Errorf("invalid line format: %s", line)
 		}
 
 		u, err1 := strconv.Atoi(parts[0])
 		v, err2 := strconv.Atoi(parts[1])
+
 		if err1 != nil || err2 != nil {
 			continue
 		}
 		if err := f(u, v); err != nil {
-			return fmt.Errorf("error while processing file: %w", err)
+			return 0, fmt.Errorf("error while processing file: %w", err)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading input file: %w", err)
+		return 0, fmt.Errorf("error reading input file: %w", err)
 	}
 
-	return nil
+	return numberEdges, nil
 }
 
 type TXTParser struct{}
 
-func (p TXTParser) Parse(fileIn io.Reader, f EdgeFunction) error {
+func (p TXTParser) Parse(fileIn io.Reader, f EdgeFunction) (int, error) {
 	scanner := bufio.NewScanner(fileIn)
+
+	numberEdges := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -69,28 +73,29 @@ func (p TXTParser) Parse(fileIn io.Reader, f EdgeFunction) error {
 		if len(parts) < 2 {
 			continue
 		}
+		numberEdges++
 		u, err1 := strconv.Atoi(parts[0])
 		v, err2 := strconv.Atoi(parts[1])
 		if err1 != nil || err2 != nil {
 			continue
 		}
 		if err := f(u, v); err != nil {
-			return fmt.Errorf("error while processing file: %w", err)
+			return 0, fmt.Errorf("error while processing file: %w", err)
 		}
 	}
 
-	return nil
+	return numberEdges, nil
 }
 
-func parser(pathIn string, f EdgeFunction) error {
+func parser(pathIn string, f EdgeFunction) (int, error) {
 	ext := filepath.Ext(pathIn)
 	if !slices.Contains(SUPPORTED_EXTENSIONS, ext) {
-		return errors.New(ext + " files are unsupported")
+		return 0, errors.New(ext + " files are unsupported")
 	}
 
 	fileIn, err := os.Open(pathIn)
 	if err != nil {
-		return errors.New("can't open a file " + pathIn)
+		return 0, errors.New("can't open a file " + pathIn)
 	}
 	defer fileIn.Close()
 
@@ -102,7 +107,7 @@ func parser(pathIn string, f EdgeFunction) error {
 	case ".csv":
 		parser = CSVParser{}
 	default:
-		return errors.New("unsupported file type")
+		return 0, errors.New("unsupported file type")
 	}
 
 	return parser.Parse(fileIn, f)
@@ -110,7 +115,7 @@ func parser(pathIn string, f EdgeFunction) error {
 
 func removeDuplicate[T comparable](sliceList []T) []T {
 	allKeys := make(map[T]bool)
-	list := []T{}
+	var list []T
 	for _, item := range sliceList {
 		if _, value := allKeys[item]; !value {
 			allKeys[item] = true
@@ -136,8 +141,13 @@ func convert(pathIn, pathOut string, converter Converter) error {
 
 	nodes, adj, edgeFunc := converter()
 
-	if err = parser(pathIn, edgeFunc); err != nil {
+	var numberEdges int
+	if numberEdges, err = parser(pathIn, edgeFunc); err != nil {
 		return err
+	}
+	_, err = writer.WriteString(strconv.Itoa(numberEdges) + "\n")
+	if err != nil {
+		return errors.New("error while writing a file")
 	}
 
 	slices.Sort(*nodes)
@@ -147,7 +157,7 @@ func convert(pathIn, pathOut string, converter Converter) error {
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
 			_, err := writer.WriteString(strconv.Itoa(int((*nodes)[u])) + " " +
-				strconv.Itoa(int((*adj)[u][v])) + "\n")
+				strconv.Itoa((*adj)[u][v]) + "\n")
 			if err != nil {
 				return errors.New("error while writing a file")
 			}
