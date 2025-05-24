@@ -64,7 +64,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     undirected_graph = to_undirected(graph) if directed else graph
 
     if directed:
-        week_component_count, week_max_component = weekly_connected_components(to_undirected(graph))
+        week_component_count, week_max_component = weekly_connected_components(undirected_graph)
         correct_components = len(list(nx.weakly_connected_components(graph_with_correct_result)))
 
     else:
@@ -148,6 +148,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
 
     if directed:
         graph = to_undirected(graph)
+        
     while True:
         user_input = input(
             "Введите процент рандомных вершин который будет удален (для остановки введите слово 'stop')\n")
@@ -162,7 +163,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
             f"доля вершин в наибольшей компоненте\nдо удаления {fraction_of_vertices_largest_week_component}\nпосле  {fraction_after_remove}")
         print("до удаления вершин:", len(graph))
         print("после удаления вершин:", len(graph_with_removed_vertices))
-        print("размер наибольшей компоненты до удаления:", len(max_component_after))
+        print("размер наибольшей компоненты до удаления:", len(week_max_component))
         print("размер наибольшей компоненты после удаления:", len(max_component_after))
         end = perf_counter()
         print(f"\n⏱ Время выполнения B1: {end - start:.6f} секунд\n\n")

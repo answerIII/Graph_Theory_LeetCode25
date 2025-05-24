@@ -67,10 +67,9 @@ def dfs_iterative_with_time_out(graph: dict, visited: set, start, posled: list):
         else:
             posled.append(v)
                 
-def to_undirected(graph: dict[int, list[int]]) -> dict[int, set[int]]:
+def to_undirected(graph: dict) -> dict[int, set[int]]:
     """орграф -> неорграф"""
     undirected_graph = {}
-
     for u in graph:
         if u not in undirected_graph:
             undirected_graph[u] = set()
