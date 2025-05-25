@@ -58,7 +58,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     start = perf_counter()
     print(f"кол-во вершин = {num_of_vertices} (должно быть {graph_with_correct_result.number_of_nodes()})")
     print(f"кол-во ребер =  {num_of_edges} (должно быть {graph_with_correct_result.number_of_edges()})")
-    print(f"плотность = {density(num_of_edges, num_of_vertices)} (должно быть {nx.density(graph_with_correct_result)})")
+    print(f"плотность = {density(num_of_edges, num_of_vertices, directed)} (должно быть {nx.density(graph_with_correct_result)})")
     week_max_component : set  # самая большая компонента по количеству вершин
     week_component_count: int
     undirected_graph = to_undirected(graph) if directed else graph

@@ -11,9 +11,10 @@ def number_of_edges(graph: dict, directed: bool) -> int:
     return sum(len(neighbors) for neighbors in graph.values())
 
 
-def density(num_of_edges: int, num_of_vertices: int) -> float:
+def density(num_of_edges: int, num_of_vertices: int, directed) -> float:
     """плотность"""
-    return num_of_edges / (num_of_vertices * (num_of_vertices - 1)) 
+    if directed: return num_of_edges / (num_of_vertices * (num_of_vertices - 1)) 
+    return  2 * num_of_edges / (num_of_vertices * (num_of_vertices - 1)) 
  
 def weekly_connected_components(graph: dict) -> tuple[int, set]:
     """число компонент слабой связности и максимальная по количеству вершин комопнента"""

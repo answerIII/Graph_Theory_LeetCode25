@@ -3,7 +3,7 @@ from analysis import *
 from distance import *
 def main():
     directed: bool = False
-    G, graph_with_correct_result = load_graph_from_file("data/undirected/musae_git_edges.csv", directed)
+    G, graph_with_correct_result = load_graph_from_file("data/very_large_graphs/very_large_graphs/com-youtube.ungraph.txt", directed)
     print("Section 1------\n")
     print_analysis(G, directed, graph_with_correct_result)
     print("\nSection 1------\n\n")
