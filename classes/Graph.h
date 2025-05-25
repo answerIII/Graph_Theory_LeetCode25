@@ -576,7 +576,7 @@ class DirectedGraph : public Graph {
             size_t maxDegree = 0;
             int vertex = 0;
             for (auto& [num,vec] : undirectedPaths) {
-                if (vec.size() > maxDegree) maxDegree = vec.size(); vertex = num;
+                if (vec.size() > maxDegree)  { maxDegree = vec.size(); vertex = num; }
             }
             std::queue<Node*> queue;
             Node* landmarkNode = &nodes[vertex];
@@ -589,10 +589,11 @@ class DirectedGraph : public Graph {
                 for (int neighborhood : undirectedPaths[currentNode->num]) {
                     if (nodes[neighborhood].marked == true) continue;
                     nodes[neighborhood].marked = true;
-                    landmarks[0][neighborhood] = currentNode->num + 1;
+                    landmarks[0][neighborhood] = landmarks[0][currentNode->num] + 1;
                 }
             }
             removeMarks();
+            landmarkNode->marked = true;
         }
 
         std::mutex lock;
@@ -619,19 +620,24 @@ class DirectedGraph : public Graph {
                     // Find max-min node
                     int maxMin = INT_MIN;
                     for (auto& [num, node] : nodes) {
+                        if (node.marked) continue; // skip existing landmarks
+
                         int currentMin = INT_MAX;
                         for (const auto& map : landmarks) {
-                            if (map.contains(node.num)) {
-                                currentMin = std::min(currentMin, map.at(node.num));
+                            if (map.contains(num)) {
+                                currentMin = std::min(currentMin, map.at(num));
                             }
                         }
-                        if (currentMin > maxMin) {
+
+                        if (currentMin < INT_MAX && currentMin > maxMin) {
                             maxMin = currentMin;
                             landmarkNode = &node;
                         }
                     }
+                    if (landmarkNode) landmarkNode->marked = true;
                 }
 
+                if (!landmarkNode) throw std::runtime_error("Landmark not found");
                 // Part 2: Landmark initialization
                 std::unordered_map<int,int> localMap;
                 std::queue<Node*> queue;
@@ -669,7 +675,6 @@ class DirectedGraph : public Graph {
         }
 
         for (auto& thread : workers) thread.join();
-
     }
 
     void initLandmarksHeightDegrees() {
@@ -703,7 +708,7 @@ class DirectedGraph : public Graph {
                 for (int neighborhood : undirectedPaths[currentNode->num]) {
                     if (nodes[neighborhood].marked == true) continue;
                     nodes[neighborhood].marked = true;
-                    landmarks[0][neighborhood] = currentNode->num + 1;
+                    landmarks[0][neighborhood] = landmarks[0][currentNode->num] + 1;
                 }
             }
             removeMarks();
@@ -844,7 +849,7 @@ public:
     }
 
     int getDistanceBetweenNodes(int num_u, int num_v) {
-        if (landmarks.empty()) initLandmarksHeightDegrees();
+        if (landmarks.empty()) initLandmarksFarthestFirst();
         if (!nodes.contains(num_u) || !nodes.contains(num_v)) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
 
 
