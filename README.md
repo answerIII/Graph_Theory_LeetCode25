@@ -14,8 +14,15 @@ node_id node_id\
 
 Run `python3 src/reformat_datasets.py`
 
-## Run task 1A2
+## Tasks
+
+For Windows use `$env:PYTHONPATH="src";` instead of `PYTHONPATH=src`
+
+### Run task 1A2
 `PYTHONPATH=src pypy3 src/network_structure_analysis/A/two/main.py`
 
-## Run task 1A4
+### Run task 1A3
+`PYTHONPATH=src pypy3 src/network_structure_analysis/A/tree/main.py`
+
+### Run task 1A4
 `PYTHONPATH=src pypy3 src/network_structure_analysis/A/four/main.py`
