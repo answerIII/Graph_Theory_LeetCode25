@@ -7,4 +7,5 @@ reformatted_datasets/
 
 pyrightconfig.json
 
-*.png
+/*.png
+/*.txt

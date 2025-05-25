@@ -37,3 +37,11 @@ REF_DATASETS_UNDIRECTED_DIR = (
 REF_DATASETS_LARGE_DIR = (
     PROJECT_ROOT_DIR + "/reformatted_datasets/very_large_graphs/"
 )
+
+IMAGES_VERTEX_DEGREE_PROB_COMMON_SCALE = (
+    "images/vertex_degree_prob/common_scale/"
+)
+
+IMAGES_VERTEX_DEGREE_PROB_LOGLOG_SCALE = (
+    "images/vertex_degree_prob/loglog_scale/"
+)
