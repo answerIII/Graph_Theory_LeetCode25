@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <map>
 #include <strings.h>
 
 #include "../libs.h"
@@ -558,7 +559,7 @@ class DirectedGraph : public Graph {
         return farthestVertex;
     }
 
-            void getVertexDegreeStats(const std::string& graph_id, const std::string& is_directed, std::ofstream& file) {
+    void getVertexDegreeStats(const std::string& graph_id, const std::string& is_directed, std::ofstream& file) {
         std::unordered_map<int, long> in_degrees;
         std::unordered_map<int, long> out_degrees;
 
@@ -887,8 +888,8 @@ public:
         removeNodes(count, false);
     }
 
-    void getVertexDegree(const std::string& graph_id, const std::string& is_directed, DirectedGraph& g) {
-        getVertexDegree(graph_id, is_directed, g);
+    void getVertexDegree(const std::string& graph_id, const std::string& is_directed,  std::ofstream& file) {
+        getVertexDegreeStats(graph_id, is_directed, file);
     }
 
     int getDistanceBetweenNodes(int num_u, int num_v) {
