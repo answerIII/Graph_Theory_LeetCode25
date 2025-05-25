@@ -14,7 +14,7 @@ def load_graph(file, directed=False):
     with open(file, 'r') as file:
         for line in file:
             # skip comments and empty lines
-            if line.startswith('#') or not line.strip():
+            if line.startswith('#') or line.startswith('%') or not line.strip():
                 continue
             u, v = map(int, line.strip().split())
 
@@ -37,7 +37,7 @@ recorder = {
     'times': {},
     'mae': {},
 }
-def timeit(step_name, recorder):
+def timeit(step_name, recorder=recorder):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -227,45 +227,105 @@ def landmarks_sc(adjacency, nodes, s, t, k, select_landmarks_alg):
 
     return best
 
+def evaluate(graph_path, estimator_fn, methods, k_values, pairs):
+    edges, nodes, adjacency = load_graph(graph_path, directed=False)
+    rows = []
+    for name, select_fn in methods.items():
+        print(f"evaluating {name} landmarks selection method")
+        for k in k_values:
+            print(f"  k={k}")
+            recorder['times'].clear()
+            errors = []
+            counter = 0
+            for s, t in pairs:
+                true_d = run_bfs_n_return_distances(adjacency, s).get(t, float('inf'))
+                est_d = estimator_fn(adjacency, nodes, s, t, k, select_fn)
+                if math.isfinite(true_d) and math.isfinite(est_d):
+                    errors.append(abs(true_d - est_d))
+                counter += 1
+                print(f"\t{counter}/{len(pairs)} pairs: true_d={true_d}, est_d={est_d}, error={errors[-1] if errors else 'N/A'}")
+            
+            min_err = min(errors) if errors else float('nan')
+            max_err = max(errors) if errors else float('nan')
+            mae = sum(errors)/len(errors) if errors else float('nan')
+            total = sum(sum(lst) for lst in recorder['times'].values())
+            row = {
+                'method': name,
+                'k': k,
+                'min_error': min_err,
+                'max_error': max_err,
+                'mae': mae,
+                'total_time': total,
+            }
+            for step, lst in recorder['times'].items():
+                row[f'time_{step}'] = sum(lst)
+            rows.append(row)
+    return pd.DataFrame(rows)
+
 def main():
+    # graph_path = "datasets/undirected/CA-AstroPh.txt"
+    # graph_path = "datasets/undirected/CA-GrQc.txt"
+    # graph_path = "datasets/directed/Wiki-Vote.txt"
+
+    # graph_path = "datasets/undirected/CA-AstroPh.txt"
+    # graph_path = "datasets/undirected/CA-GrQc.txt"
+    # graph_path = "datasets/directed/Wiki-Vote.txt"
+    
+    # graph_path = "datasets/undirected/CA-AstroPh.txt"
+    # graph_path = "datasets/undirected/CA-GrQc.txt"
+    # graph_path = "datasets/directed/Wiki-Vote.txt"
+    # graph_path = "datasets/undirected/Email-EuAll.txt"
+
     graph_path = "datasets/undirected/CA-AstroPh.txt"
-    select_landmarks = select_landmarks_by_highest_degree
-    k = 10
-    # distance_estimator_algorithm = landmarks_basic
-    distance_estimator_algorithm = landmarks_sc
-    num_sampled_pairs = 100
+    # graph_path = "datasets/undirected/CA-GrQc.txt"
+    # graph_path = "datasets/directed/Wiki-Vote.txt"
+    # graph_path = "datasets/undirected/Email-EuAll.txt"
 
-    graph = load_graph(graph_path, directed=False)
-    [edges, nodes, adjacency] = graph
-    print(f"загружен граф с {len(nodes):,} вершинами и {len(edges):,} рёбрами")
+    edges, nodes, adjacency = load_graph(graph_path, directed=False)
+    print(f"loaded graph with {len(nodes):,} nodes and {len(edges):,} edges")
 
-    pairs = []
-    nodes_list = list(nodes)
-    for _ in range(num_sampled_pairs):
-        s, t = random.sample(nodes_list, 2)
-        pairs.append((s, t))
+    num_pairs = 50
+    pairs = [tuple(random.sample(list(nodes), 2)) for _ in range(num_pairs)]
 
-    distances_info = []
+    landmark_methods = {
+        'random': select_landmarks_randomly,
+        'degree': select_landmarks_by_highest_degree,
+        'coverage': select_landmarks_by_best_coverage,
+    }
+    k_values = [5, 10, 20, 50, 100, 200]
 
-    for s, t in pairs:
-        exact_distance = run_bfs_n_return_distances(adjacency, s).get(t, float('inf'))
-        estimated_distance = distance_estimator_algorithm(adjacency, nodes, s, t, k, select_landmarks)
-        distances_info.append((exact_distance, estimated_distance))
+    landmark_methods = {
+        'degree': select_landmarks_by_highest_degree,
+    }
+    num_pairs = 100
+    pairs = [tuple(random.sample(list(nodes), 2)) for _ in range(num_pairs)]
+    k_values = [100]
 
-    # filter out invalid (inf or nan) values
-    valid_distances_info = [
-        (e, f) for e, f in distances_info
-        if math.isfinite(e) and math.isfinite(f)
-    ]
+    estimator = landmarks_basic
+    # estimator = landmarks_sc
 
-    abs_errors = [abs(e - f) for e, f in valid_distances_info]
+    df = evaluate(graph_path, estimator, landmark_methods, k_values, pairs)
+    print("\nperformance and accuracy VS select_landmarks_alg(), k")
+    print(df)
+    results_folder = "results/landmarks_selection_and_k"
+    results_folder = "results/accuracy/SC"
+    results_folder = "results/accuracy/BASIC"
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_1.csv", index=False)
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_2.csv", index=False)
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_3.csv", index=False)
 
-    min_err = min(abs_errors)
-    max_err = max(abs_errors)
-    mae = sum(abs_errors) / len(abs_errors)
-    print("min error:", min_err)
-    print("max error:", max_err)
-    print("MAE:", mae)
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_SC_1.csv", index=False)
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_SC_2.csv", index=False)
+    # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_SC_3.csv", index=False)
+
+    # df.to_csv(f"{results_folder}/CA-AstroPh_SC_k100.csv", index=False)
+    # df.to_csv(f"{results_folder}/CA-GrQc_SC_k100.csv", index=False)
+    # df.to_csv(f"{results_folder}/Wiki-Vote_SC_k100.csv", index=False)
+    # df.to_csv(f"{results_folder}/Email-EuAll_SC_k100.csv", index=False)
+
+    df.to_csv(f"{results_folder}/CA-AstroPh_BASIC_k100.csv", index=False)
+
+    print("saved results saved to .csv")
 
 if __name__ == "__main__":
     main()
