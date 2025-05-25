@@ -1,0 +1,2 @@
+method,k,min_error,max_error,mae,total_time,time_select_landmarks,time_compute_landmark_distances,time_estimate_distance_basic,time_landmarks_basic
+degree,100,0,2,0.3111111111111111,510.3238359130264,0.5470943780164816,254.17568349700014,0.015810621000127867,255.58524741700967

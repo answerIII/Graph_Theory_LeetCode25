@@ -1,0 +1,2 @@
+method,k,min_error,max_error,mae,total_time,time_select_landmarks,time_build_spt,time_get_path,time_distance_sc,time_landmarks_sc
+degree,100,0,1,0.010101010101010102,171.51517940794292,0.15455483500227274,85.40003362901552,0.022982580903772032,0.0695628240264341,85.86804553899492
