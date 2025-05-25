@@ -558,6 +558,69 @@ class DirectedGraph : public Graph {
         return farthestVertex;
     }
 
+            void getVertexDegreeStats(const std::string& graph_id, const std::string& is_directed, std::ofstream& file) {
+        std::unordered_map<int, long> in_degrees;
+        std::unordered_map<int, long> out_degrees;
+
+        for (const auto& [from, to_list] : paths) {
+            out_degrees[from] = to_list.size();
+            for (int to : to_list) {
+                in_degrees[to]++;
+            }
+        }
+
+        for (const auto& [id, _] : nodes) {
+            if (!out_degrees.count(id)) out_degrees[id] = 0;
+            if (!in_degrees.count(id)) in_degrees[id] = 0;
+        }
+
+        std::unordered_map<int, long> total_degrees;
+        for (const auto& [id, _] : nodes) {
+            total_degrees[id] = in_degrees[id] + out_degrees[id];
+        }
+
+        auto calc_stats = [&](const std::unordered_map<int, long>& deg_map, const std::string& deg_type) {
+            std::vector<long> degrees;
+            for (const auto& [_, deg] : deg_map) degrees.push_back(deg);
+
+            long min_deg = degrees[0], max_deg = degrees[0];
+            long double sum_deg = 0;
+
+            for (long deg : degrees) {
+                min_deg = std::min(min_deg, deg);
+                max_deg = std::max(max_deg, deg);
+                sum_deg += deg;
+            }
+
+            long double avg_deg = sum_deg / degrees.size();
+            std::cout << deg_type << " - Min: " << min_deg
+                      << ", Max: " << max_deg
+                      << ", Avg: " << std::fixed << std::setprecision(2) << avg_deg << std::endl;
+
+            std::map<long, long> degree_freq;
+            for (long deg : degrees) degree_freq[deg]++;
+
+            for (const auto& [degree, count] : degree_freq) {
+                double pk = static_cast<double>(count) / degrees.size();
+                double log_k = (degree > 0) ? log10(degree) : 0;
+                double log_pk = (pk > 0) ? log10(pk) : 0;
+
+                file << graph_id << ","
+                     << is_directed << ","
+                     << deg_type << ","
+                     << degree << ","
+                     << count << ","
+                     << std::fixed << std::setprecision(6) << pk << ","
+                     << log_k << ","
+                     << log_pk << "\n";
+            }
+        };
+
+        calc_stats(out_degrees, "out");
+        calc_stats(in_degrees, "in");
+        calc_stats(total_degrees, "total");
+    }
+
     void initLandmarksFarthestFirst() {
         landmarks.clear();
         if (undirectedPaths.empty()) initUndirectedPaths();
@@ -822,6 +885,10 @@ public:
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
         removeNodes(count, false);
+    }
+
+    void getVertexDegree(const std::string& graph_id, const std::string& is_directed, DirectedGraph& g) {
+        getVertexDegree(graph_id, is_directed, g);
     }
 
     int getDistanceBetweenNodes(int num_u, int num_v) {
