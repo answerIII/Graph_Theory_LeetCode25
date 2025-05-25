@@ -2,6 +2,7 @@ from A1 import *
 import numpy as np
 import random
 from basic import *
+from tqdm import tqdm
 
 def double_sweep(graph: dict[int, set[int]], component: set[int]) -> int:
     if not component:
@@ -18,7 +19,7 @@ def random_pairwise_distances(graph: dict[int, set[int]], component: set[int], s
         return 0
     sample = random.sample(nodes, min(sample_size, len(nodes)))
     distances = []
-    for i in range(len(sample)):
+    for i in tqdm(range(len(sample)), desc="Processing pairs - random"):
         dists = bfs(graph, sample[i], component)
         for j in range(i + 1, len(sample)):
             if sample[j] in dists:
@@ -41,7 +42,7 @@ def snowball_sampling(graph: dict[int, set[int]], component: set[int], sample_si
         frontier = next_frontier
     nodes = list(visited)
     distances = []
-    for i in range(len(nodes)):
+    for i in tqdm(range(len(nodes)), desc="Processing pairs - snowball"):
         dists = bfs(graph, nodes[i], visited)
         for j in range(i + 1, len(nodes)):
             if nodes[j] in dists:
