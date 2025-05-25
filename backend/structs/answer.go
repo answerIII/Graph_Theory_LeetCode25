@@ -17,6 +17,12 @@ type AnswerA2 struct {
 	Percentile90 float32
 }
 
+type AnswerA3 struct {
+	TrianglesCount    int
+	AvgClusterCoef    float64
+	GlobalClusterCoef float64
+}
+
 type AnswerA5 struct {
 	MinDegree         int
 	AvgDegree         float64
