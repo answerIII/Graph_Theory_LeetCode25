@@ -620,7 +620,7 @@ class DirectedGraph : public Graph {
                     // Find max-min node
                     int maxMin = INT_MIN;
                     for (auto& [num, node] : nodes) {
-                        if (node.marked) continue; // skip existing landmarks
+                        if (node.marked) continue;
 
                         int currentMin = INT_MAX;
                         for (const auto& map : landmarks) {
@@ -690,33 +690,9 @@ class DirectedGraph : public Graph {
         }
         landmarks.reserve(landmarksCount);
 
-        //first landmark
-        {
-            size_t maxDegree = 0;
-            int vertex = 0;
-            for (auto& [num,vec] : undirectedPaths) {
-                if (vec.size() > maxDegree) maxDegree = vec.size(); vertex = num;
-            }
-            std::queue<Node*> queue;
-            Node* landmarkNode = &nodes[vertex];
-            landmarks.push_back(std::unordered_map<int, int>());
-            landmarks[0][landmarkNode->num] = 0;
-            queue.push(landmarkNode);
-            landmarkNode->marked = true;
-            while (!queue.empty()) {
-                Node* currentNode = queue.front(); queue.pop();
-                for (int neighborhood : undirectedPaths[currentNode->num]) {
-                    if (nodes[neighborhood].marked == true) continue;
-                    nodes[neighborhood].marked = true;
-                    landmarks[0][neighborhood] = landmarks[0][currentNode->num] + 1;
-                }
-            }
-            removeMarks();
-        }
-
         std::mutex lock;
         std::mutex printLock;
-        std::atomic<size_t> completedLandmarks = 1;
+        std::atomic<size_t> completedLandmarks = 0;
 
         //chose the nodes with most degrees
         std::vector<std::pair<int, std::vector<int>>> sortedPaths(paths.begin(), paths.end());
@@ -849,7 +825,7 @@ public:
     }
 
     int getDistanceBetweenNodes(int num_u, int num_v) {
-        if (landmarks.empty()) initLandmarksFarthestFirst();
+        if (landmarks.empty()) initLandmarksHeightDegrees();
         if (!nodes.contains(num_u) || !nodes.contains(num_v)) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
 
 
