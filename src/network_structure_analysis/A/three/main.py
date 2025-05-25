@@ -1,5 +1,4 @@
-from typing import List, Tuple, Set, Dict
-import time
+from typing import Tuple, Set
 
 from create_adj_list import createUndirAdjList
 
@@ -14,8 +13,8 @@ from definitions import (
 
 
 def localClustering(
-        undir_adj_list: Tuple[Set[int], ...], u: int
-) -> (int, float):
+    undir_adj_list: Tuple[Set[int], ...], u: int
+) -> Tuple[int, float]:
     neighbors = undir_adj_list[u]
     k_u = len(neighbors)
     if k_u < 2:
@@ -29,7 +28,9 @@ def localClustering(
     return triangles_u, max_possible
 
 
-def averageClustering(undir_adj_list: Tuple[Set[int], ...]) -> (int, float):
+def averageClustering(
+    undir_adj_list: Tuple[Set[int], ...],
+) -> Tuple[int, float]:
     total = 0.0
     triangles = 0
     n = len(undir_adj_list)
@@ -41,7 +42,7 @@ def averageClustering(undir_adj_list: Tuple[Set[int], ...]) -> (int, float):
 
 
 def globalClustering(
-        undir_adj_list: Tuple[Set[int], ...], sum_of_triangles: int
+    undir_adj_list: Tuple[Set[int], ...], sum_of_triangles: int
 ) -> float:
     triples = 0
     for u in range(len(undir_adj_list)):
@@ -66,7 +67,6 @@ def processFile(file_path: str) -> None:
 if __name__ == "__main__":
     for directed_file_name in DIRECTED_FILE_NAMES:
         processFile(REF_DATASETS_DIRECTED_DIR + directed_file_name)
-    end = time.time()
     for undirected_file_name in UNDIRECTED_FILE_NAMES:
         processFile(REF_DATASETS_UNDIRECTED_DIR + undirected_file_name)
     for large_undirected_file_name in LARGE_UNDIRECTED_FILE_NAMES:
