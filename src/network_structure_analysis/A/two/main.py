@@ -14,8 +14,9 @@ from definitions import (
     REF_DATASETS_LARGE_DIR,
 )
 
+from largest_weak_component import getLargestWeakComponent
+
 from network_structure_analysis.A.two.bfs import (
-    getWeakComponentBFS,
     getFurthestNodeBFS,
     updateDistNodeSubsetBFS,
     updateDistBFS,
@@ -26,18 +27,6 @@ from network_structure_analysis.A.two.bfs import (
 from network_structure_analysis.A.two.create_induced_subgraph import (
     createInducedSubgraph,
 )
-
-
-def getLargestWeakComponent(undir_adj_list: Tuple[Set[int], ...]) -> List[int]:
-    visited = list(False for _ in range(len(undir_adj_list)))
-    largest_weak_component = []
-    for i in range(len(undir_adj_list)):
-        new_weak_component = []
-        if not visited[i]:
-            new_weak_component = getWeakComponentBFS(undir_adj_list, visited, i)
-        if len(largest_weak_component) < len(new_weak_component):
-            largest_weak_component = new_weak_component.copy()
-    return largest_weak_component
 
 
 def getDiamAndPercentile(

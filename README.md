@@ -16,3 +16,6 @@ Run `python3 src/reformat_datasets.py`
 
 ## Run task 1A2
 `PYTHONPATH=src pypy3 src/network_structure_analysis/A/two/main.py`
+
+## Run task 1A4
+`PYTHONPATH=src pypy3 src/network_structure_analysis/A/four/main.py`
