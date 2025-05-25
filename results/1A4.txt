@@ -1,0 +1,30 @@
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/Wiki-Vote.txt
+LWC average cluster coefficient: 0.14187491841626348
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/soc-wiki-Vote.mtx
+LWC average cluster coefficient: 0.152846947350143
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Google.txt
+LWC average cluster coefficient: 0.5190321179360704
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
+LWC average cluster coefficient: 0.24178711867896321
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
+LWC average cluster coefficient: 0.618891216799397
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
+LWC average cluster coefficient: 0.633022043503494
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
+LWC average cluster coefficient: 0.5570497979133969
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
+LWC average cluster coefficient: 0.07927100202876255
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
+LWC average cluster coefficient: 0.8018773521295641
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/musae_git_edges.csv
+LWC average cluster coefficient: 0.16753704480107331
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-youtube.ungraph.txt
+LWC average cluster coefficient: 0.08080227776187754
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/vk.csv
+LWC average cluster coefficient: 0.04986234136459424
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-orkut.ungraph.txt
+LWC average cluster coefficient: 0.16660689548197907
+
+real	20m22,511s
+user	20m0,534s
+sys	0m5,768s

@@ -1,0 +1,95 @@
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/Wiki-Vote.txt
+LWC size: 7066
+LWC diameter with two BFS: 7
+LWC diameter with distance between random vertices: 7
+LWC 90th percentile with distance between random vertices: 4
+LWC diameter with snowball subgraph: 4
+LWC 90th percentile with snowball subgraph: 3
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/soc-wiki-Vote.mtx
+LWC size: 889
+LWC diameter with two BFS: 13
+LWC diameter with distance between random vertices: 11
+LWC 90th percentile with distance between random vertices: 6
+LWC diameter with snowball subgraph: 13
+LWC 90th percentile with snowball subgraph: 6
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Google.txt
+LWC size: 855802
+LWC diameter with two BFS: 24
+LWC diameter with distance between random vertices: 17
+LWC 90th percentile with distance between random vertices: 8
+LWC diameter with snowball subgraph: 4
+LWC 90th percentile with snowball subgraph: 4
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
+LWC size: 325729
+LWC diameter with two BFS: 46
+LWC diameter with distance between random vertices: 44
+LWC 90th percentile with distance between random vertices: 10
+LWC diameter with snowball subgraph: 2
+LWC 90th percentile with snowball subgraph: 2
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
+LWC size: 255265
+LWC diameter with two BFS: 164
+LWC diameter with distance between random vertices: 111
+LWC 90th percentile with distance between random vertices: 10
+LWC diameter with snowball subgraph: 5
+LWC 90th percentile with snowball subgraph: 4
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
+LWC size: 17903
+LWC diameter with two BFS: 14
+LWC diameter with distance between random vertices: 11
+LWC 90th percentile with distance between random vertices: 6
+LWC diameter with snowball subgraph: 5
+LWC 90th percentile with snowball subgraph: 4
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
+LWC size: 4158
+LWC diameter with two BFS: 17
+LWC diameter with distance between random vertices: 16
+LWC 90th percentile with distance between random vertices: 8
+LWC diameter with snowball subgraph: 9
+LWC 90th percentile with snowball subgraph: 6
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
+LWC size: 224832
+LWC diameter with two BFS: 14
+LWC diameter with distance between random vertices: 9
+LWC 90th percentile with distance between random vertices: 5
+LWC diameter with snowball subgraph: 4
+LWC 90th percentile with snowball subgraph: 2
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
+LWC size: 540486
+LWC diameter with two BFS: 23
+LWC diameter with distance between random vertices: 14
+LWC 90th percentile with distance between random vertices: 7
+LWC diameter with snowball subgraph: 4
+LWC 90th percentile with snowball subgraph: 4
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/musae_git_edges.csv
+LWC size: 37700
+LWC diameter with two BFS: 11
+LWC diameter with distance between random vertices: 7
+LWC 90th percentile with distance between random vertices: 4
+LWC diameter with snowball subgraph: 3
+LWC 90th percentile with snowball subgraph: 2
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-youtube.ungraph.txt
+LWC size: 1134890
+LWC diameter with two BFS: 24
+LWC diameter with distance between random vertices: 12
+LWC 90th percentile with distance between random vertices: 7
+LWC diameter with snowball subgraph: 4
+LWC 90th percentile with snowball subgraph: 3
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/vk.csv
+LWC size: 3162217
+LWC diameter with two BFS: 19
+LWC diameter with distance between random vertices: 11
+LWC 90th percentile with distance between random vertices: 7
+LWC diameter with snowball subgraph: 5
+LWC 90th percentile with snowball subgraph: 3
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-orkut.ungraph.txt
+LWC size: 3072441
+LWC diameter with two BFS: 9
+LWC diameter with distance between random vertices: 7
+LWC 90th percentile with distance between random vertices: 5
+LWC diameter with snowball subgraph: 5
+LWC 90th percentile with snowball subgraph: 4
+
+real	131m55,790s
+user	115m25,609s
+sys	2m57,232s

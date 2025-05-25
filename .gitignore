@@ -1,6 +1,5 @@
 .vscode
 
-results/
 datasets/
 reformatted_datasets/
 
@@ -9,4 +8,3 @@ reformatted_datasets/
 pyrightconfig.json
 
 *.png
-*.txt
