@@ -14,13 +14,13 @@ impl RMPSupport for Graph {}
 impl From<RawGraph> for Graph {
     fn from(raw_graph: RawGraph) -> Self {
         let mut adjacency_list: HashMap<usize, Vec<usize>> =
-            HashMap::with_capacity(raw_graph.node_count);
-        for edge in raw_graph.edges {
+            HashMap::with_capacity(raw_graph.node_count());
+        for edge in raw_graph.edges() {
             adjacency_list.entry(edge[0]).or_default().push(edge[1]);
         }
         Self {
-            node_count: raw_graph.node_count,
-            edge_count: raw_graph.edge_count,
+            node_count: raw_graph.node_count(),
+            edge_count: raw_graph.edge_count(),
             adjacency_list,
         }
     }
