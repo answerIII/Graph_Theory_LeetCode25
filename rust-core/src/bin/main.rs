@@ -1,4 +1,4 @@
-use msgpack_graph::graph::{Graph, RawGraph};
+use msgpack_graph::{Graph, RMPSupport, RawGraph};
 use std::time::Instant;
 
 fn main() -> msgpack_graph::Result<()> {
@@ -6,7 +6,7 @@ fn main() -> msgpack_graph::Result<()> {
         .with_max_level(tracing::Level::DEBUG)
         .init();
     let _ = std::fs::create_dir(".cache");
-    let filename = "processed_vk.msgpack";
+    let filename = "vk.msgpack";
     let timestamp = Instant::now();
     let graph = match Graph::from_msgpack(format!(".cache/{}", filename)) {
         Ok(graph) => {
