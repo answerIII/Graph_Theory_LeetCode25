@@ -86,21 +86,22 @@ func ReadGraphCSV(filename string) structs.Graph {
 		if adj, ok := outputGraph.AdjList[u]; ok {
 			outputGraph.AdjList[u] = append(adj, v)
 		} else {
-			outputGraph.AdjList[u] = make([]int, 1)
-			outputGraph.AdjList[u][0] = v
+			outputGraph.AdjList[u] = []int{v}
+			// outputGraph.AdjList[u] = make([]int, 1)
+			// outputGraph.AdjList[u][0] = v
 		}
 
 		if outputGraph.Directed {
 			outputGraph.Edges = append(outputGraph.Edges, structs.Edge{From: u, To: v})
-			continue
+			// continue
 		}
 
-		if adj, ok := outputGraph.AdjList[v]; ok {
-			outputGraph.AdjList[v] = append(adj, u)
-		} else {
-			outputGraph.AdjList[v] = make([]int, 1)
-			outputGraph.AdjList[v][0] = u
-		}
+		// if adj, ok := outputGraph.AdjList[v]; ok {
+		// 	outputGraph.AdjList[v] = append(adj, u)
+		// } else {
+		// 	outputGraph.AdjList[v] = make([]int, 1)
+		// 	outputGraph.AdjList[v][0] = u
+		// }
 
 	}
 
@@ -120,7 +121,12 @@ func ReadGraphJSON(filename string) structs.Graph {
 		panic(err)
 	}
 
-	outputGraph := structs.Graph{Directed: graphJson.Directed, VertexCount: graphJson.NumNodes, EdgesCount: graphJson.NumEdges, AdjList: make(map[int][]int)}
+	outputGraph := structs.Graph{
+		Directed:    graphJson.Directed,
+		VertexCount: graphJson.NumNodes,
+		EdgesCount:  graphJson.NumEdges,
+		AdjList:     make(map[int][]int),
+	}
 	if outputGraph.Directed {
 		outputGraph.Edges = graphJson.Edges
 	}
@@ -131,20 +137,21 @@ func ReadGraphJSON(filename string) structs.Graph {
 		if adj, ok := outputGraph.AdjList[u]; ok {
 			outputGraph.AdjList[u] = append(adj, v)
 		} else {
-			outputGraph.AdjList[u] = make([]int, 1)
-			outputGraph.AdjList[u][0] = v
+			outputGraph.AdjList[u] = []int{v}
+			// outputGraph.AdjList[u] = make([]int, 1)
+			// outputGraph.AdjList[u][0] = v
 		}
 
-		if outputGraph.Directed {
-			continue
-		}
+		// if outputGraph.Directed {
+		// 	continue
+		// }
 
-		if adj, ok := outputGraph.AdjList[v]; ok {
-			outputGraph.AdjList[v] = append(adj, u)
-		} else {
-			outputGraph.AdjList[v] = make([]int, 1)
-			outputGraph.AdjList[v][0] = u
-		}
+		// if adj, ok := outputGraph.AdjList[v]; ok {
+		// 	outputGraph.AdjList[v] = append(adj, u)
+		// } else {
+		// 	outputGraph.AdjList[v] = make([]int, 1)
+		// 	outputGraph.AdjList[v][0] = u
+		// }
 
 	}
 
@@ -186,20 +193,21 @@ func ReadGraphMP(filename string) structs.Graph {
 		if adj, ok := outputGraph.AdjList[u]; ok {
 			outputGraph.AdjList[u] = append(adj, v)
 		} else {
-			outputGraph.AdjList[u] = make([]int, 1)
-			outputGraph.AdjList[u][0] = v
+			outputGraph.AdjList[u] = []int{v}
+			// outputGraph.AdjList[u] = make([]int, 1)
+			// outputGraph.AdjList[u][0] = v
 		}
 
-		if outputGraph.Directed {
-			continue
-		}
+		// if outputGraph.Directed {
+		// 	continue
+		// }
 
-		if adj, ok := outputGraph.AdjList[v]; ok {
-			outputGraph.AdjList[v] = append(adj, u)
-		} else {
-			outputGraph.AdjList[v] = make([]int, 1)
-			outputGraph.AdjList[v][0] = u
-		}
+		// if adj, ok := outputGraph.AdjList[v]; ok {
+		// 	outputGraph.AdjList[v] = append(adj, u)
+		// } else {
+		// 	outputGraph.AdjList[v] = make([]int, 1)
+		// 	outputGraph.AdjList[v][0] = u
+		// }
 
 	}
 
