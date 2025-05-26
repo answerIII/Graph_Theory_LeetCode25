@@ -1,13 +1,13 @@
 import { encode } from '@msgpack/msgpack';
-import type { Graph } from '../types/graph';
+import type { GraphUpload } from '../types/interfaces';
 
 export async function downloadGraph(
-    graphInfo: Graph,
+    graphInfo: GraphUpload,
     fileName: string,
     downloadFormat: 'json' | 'csv' | 'msgpack'
 ): Promise<void> {
     const safeFileName = fileName || 'graph';
-    const baseName = safeFileName.includes('.') ? safeFileName.split('.').slice(0, -1).join('.') : safeFileName;
+    const baseName = safeFileName.includes('.') ? safeFileName.split('.').slice(0, -1).join('') : safeFileName;
     const processedFileName = `processed_${baseName}`;
     const extension = downloadFormat === 'msgpack' ? 'msgpack' : downloadFormat;
 
@@ -27,30 +27,31 @@ export async function downloadGraph(
     const chunkSize = 100_000; // 100K рёбер за чанк
 
     if (downloadFormat === 'json') {
-        const header = `{\n  "directed": ${graphInfo.directed},\n  "vertexCount": ${graphInfo.numNodes},\n  "edges": [\n`;
+        const header = `{\n  "is_directed": ${graphInfo.directed},\n  "nodeCount": ${graphInfo.numNodes},\n  "edgeCount": ${graphInfo.edgeCount},\n  "edges": [\n`;
         await writable.write(header);
 
         for (let i = 0; i < graphInfo.edges.length; i += chunkSize) {
             const chunk = graphInfo.edges.slice(i, i + chunkSize);
-            const chunkText = chunk.map(([from, to]) => `    [${from}, ${to}]`).join(',\n');
+            const chunkText = chunk.map(([u, v]) => `    [${u}, ${v}]`).join(',\n');
             const prefix = i === 0 ? '' : ',\n';
             await writable.write(prefix + chunkText);
         }
 
         await writable.write('\n  ]\n}');
     } else if (downloadFormat === 'csv') {
-        const header = `directed,${graphInfo.directed}\nnumNodes,${graphInfo.numNodes}\nfrom,to\n`;
+        const header = `is_directed,${graphInfo.directed}\nnodeCount,${graphInfo.numNodes}\nedgeCount,${graphInfo.edgeCount}\nsource,target\n`;
         await writable.write(header);
 
         for (let i = 0; i < graphInfo.edges.length; i += chunkSize) {
             const chunk = graphInfo.edges.slice(i, i + chunkSize);
-            const chunkText = chunk.map(([from, to]) => `${from},${to}`).join('\n');
+            const chunkText = chunk.map(([u, v]) => `${u},${v}`).join('\n');
             await writable.write(chunkText + (i + chunkSize < graphInfo.edges.length ? '\n' : ''));
         }
     } else {
         const formattedGraph = {
-            directed: graphInfo.directed,
-            vertexCount: graphInfo.numNodes,
+            is_directed: graphInfo.directed,
+            nodeCount: graphInfo.numNodes,
+            edgeCount: graphInfo.edgeCount,
             edges: graphInfo.edges,
         };
         const data = encode(formattedGraph);

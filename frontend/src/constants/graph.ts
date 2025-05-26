@@ -1,4 +1,4 @@
-import type { Graph } from '../types/graph';
+import type { Graph } from '../types/interfaces';
 
 // Тестовый граф для быстрого тестирования
 export const testGraph: Graph = {

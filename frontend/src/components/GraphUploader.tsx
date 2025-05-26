@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, } from 'react';
+import type { ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -19,21 +20,25 @@ import {
   MenuItem,
   InputLabel,
   LinearProgress,
+  Checkbox,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import { useGraphWorker } from '../hooks/useGraphWorker';
 import { downloadGraph } from '../utils/downloadGraph';
 import { datasets, testGraph } from '../constants/graph';
-// import type { Graph } from '../types/graph';
 
 const GraphUploader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [directed, setDirected] = useState<string>('');
+  const [isVeryLargeGraph, setIsVeryLargeGraph] = useState<boolean>(false);
   const [downloadFormat, setDownloadFormat] = useState<'json' | 'csv' | 'msgpack'>('json');
   const [localError, setLocalError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [backendLoading, setBackendLoading] = useState<boolean>(false);
-  const { processFile, progress, loading, error: workerError, graph, setGraph } = useGraphWorker();
+  const { processFile, progress, loading, error: workerError, graph, logs, setGraph } = useGraphWorker();
   const navigate = useNavigate();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +49,7 @@ const GraphUploader: React.FC = () => {
       setLocalError(null);
       setSuccessMessage(null);
       setDirected('');
+      setIsVeryLargeGraph(selectedFile.name.includes('orkut') || selectedFile.name.includes('vk'));
       setGraph(null);
     }
   };
@@ -53,7 +59,11 @@ const GraphUploader: React.FC = () => {
     setLocalError(null);
   };
 
-  const handleFormatChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleVeryLargeGraphChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsVeryLargeGraph(event.target.checked);
+  };
+
+  const handleFormatChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setDownloadFormat(event.target.value as 'json' | 'csv' | 'msgpack');
   };
 
@@ -71,7 +81,7 @@ const GraphUploader: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      await processFile(file, directed);
+      await processFile(file, directed, isVeryLargeGraph);
       setSuccessMessage('Граф успешно обработан!');
     } catch (err: unknown) {
       setLocalError((err as Error).message || 'Ошибка обработки файла');
@@ -89,8 +99,6 @@ const GraphUploader: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      // POST /graphs с graph (в будущем)
-      // Пока имитируем
       const graphId = fileName.split('.')[0] || 'uploaded_graph';
       setSuccessMessage(`Граф ${graphId} отправлен на бэкенд!`);
     } catch (err: unknown) {
@@ -120,6 +128,7 @@ const GraphUploader: React.FC = () => {
     setFile(null);
     setFileName('test_graph');
     setDirected('false');
+    setIsVeryLargeGraph(false);
     setLocalError(null);
     setSuccessMessage('Тестовый граф загружен!');
   };
@@ -130,11 +139,10 @@ const GraphUploader: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      // POST /datasets с { datasetName }
-      // Пока имитируем
       setSuccessMessage(`Датасет ${datasetName} выбран!`);
       setFileName(datasetName);
-      setGraph(null); // В реальном случае получим граф с бэкенда
+      setIsVeryLargeGraph(datasetName.includes('orkut') || datasetName.includes('vk'));
+      setGraph(null);
     } catch (err: unknown) {
       setLocalError((err as Error).message || `Ошибка обработки датасета ${datasetName}`);
     } finally {
@@ -160,13 +168,13 @@ const GraphUploader: React.FC = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Выберите файл с данными графа или датасет, укажите тип графа и формат скачивания.
           <br />
-          Поддерживаемые форматы: .csv, .txt, .mtx
+          Поддерживаемые форматы: .csv, .txt, .mtx, .msgpack
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               type="file"
-              inputProps={{ accept: '.csv,.txt,.mtx' }}
+              inputProps={{ accept: '.csv,.txt,.mtx,.msgpack' }}
               onChange={handleFileChange}
               fullWidth
               variant="outlined"
@@ -217,6 +225,11 @@ const GraphUploader: React.FC = () => {
               />
             </RadioGroup>
           </FormControl>
+          <FormControlLabel
+            control={<Checkbox checked={isVeryLargeGraph} onChange={handleVeryLargeGraphChange} />}
+            label="Режим very_large_graphs (добавляет обратные рёбра для неориентированных графов)"
+            disabled={(file === null && fileName === '') || loading || backendLoading}
+          />
           <FormControl variant="outlined" sx={{ maxWidth: 200 }}>
             <InputLabel>Формат скачивания</InputLabel>
             <Select
@@ -275,11 +288,25 @@ const GraphUploader: React.FC = () => {
               <Typography>
                 Вершин: {graph.numNodes}
                 <br />
-                Рёбер: {graph.edges.length}
+                Рёбер: {graph.edgeCount}
+                <br />
+                Максимальный ID вершины: {graph.maxVertexId}
                 <br />
                 Тип: {graph.directed ? 'Ориентированный' : 'Неориентированный'}
               </Typography>
             </Alert>
+          )}
+          {logs.length > 0 && (
+            <Box sx={{ mt: 2, maxHeight: 200, overflowY: 'auto' }}>
+              <Typography variant="h6">Логи обработки</Typography>
+              <List dense>
+                {logs.map((log, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={log} />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
           )}
           {successMessage && <Alert severity="success" sx={{ mt: 2 }}>{successMessage}</Alert>}
           {localError && <Alert severity="error" sx={{ mt: 2 }}>{localError}</Alert>}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CytoscapeComponent from 'react-cytoscapejs';
 import { Alert, Box, Typography } from '@mui/material';
-import type { Graph } from '../types/graph';
+import type { Graph } from '../types/interfaces';
 
 interface GraphVisualizationComponentProps {
   graphId: string;
