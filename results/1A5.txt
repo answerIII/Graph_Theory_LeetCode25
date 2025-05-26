@@ -1,0 +1,56 @@
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/Wiki-Vote.txt
+Min undir graph degree: 1
+Max undir graph degree: 1065
+Average undir graph degree: 28.32382290934645
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/soc-wiki-Vote.mtx
+Min undir graph degree: 1
+Max undir graph degree: 102
+Average undir graph degree: 6.555680539932508
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Google.txt
+Min undir graph degree: 1
+Max undir graph degree: 6332
+Average undir graph degree: 9.870930316210904
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
+Min undir graph degree: 1
+Max undir graph degree: 10721
+Average undir graph degree: 6.777631098244246
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
+Min undir graph degree: 1
+Max undir graph degree: 38625
+Average undir graph degree: 14.13703295105054
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
+Min undir graph degree: 1
+Max undir graph degree: 504
+Average undir graph degree: 21.1037715746857
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
+Min undir graph degree: 1
+Max undir graph degree: 81
+Average undir graph degree: 5.528424265547501
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
+Min undir graph degree: 1
+Max undir graph degree: 7636
+Average undir graph degree: 2.752686509761928
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
+Min undir graph degree: 1
+Max undir graph degree: 3299
+Average undir graph degree: 56.41488956235684
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/musae_git_edges.csv
+Min undir graph degree: 1
+Max undir graph degree: 9458
+Average undir graph degree: 15.331724137931035
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-youtube.ungraph.txt
+Min undir graph degree: 1
+Max undir graph degree: 28754
+Average undir graph degree: 5.265045951590022
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/vk.csv
+Min undir graph degree: 1
+Max undir graph degree: 6503
+Average undir graph degree: 10.830862139738535
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-orkut.ungraph.txt
+Min undir graph degree: 1
+Max undir graph degree: 33313
+Average undir graph degree: 76.28142118921079
+
+real	2m29,561s
+user	2m28,297s
+sys	0m6,612s
