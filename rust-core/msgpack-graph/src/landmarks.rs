@@ -1,7 +1,36 @@
-use crate::{Graph, RMPSupport};
+use crate::{Graph, RMPSupport, graph::BFSNodeState};
 use rand::{rng, seq::SliceRandom};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+#[derive(Serialize, Deserialize)]
+struct Landmark {
+    landmark: usize,
+    distances: HashMap<usize, BFSNodeState>,
+}
+
+impl Landmark {
+    fn path_to(&self, mut node: usize) -> Vec<usize> {
+        let mut path = vec![node];
+        while let Some(previous_node) = self
+            .distances
+            .get(&node)
+            .and_then(|state| state.previous_node)
+        {
+            path.push(previous_node);
+            node = previous_node;
+        }
+        path
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Landmarks {
+    landmarks: Vec<Landmark>,
+}
+
+impl RMPSupport for Landmarks {}
 
 pub enum Selection {
     Random,
@@ -9,37 +38,36 @@ pub enum Selection {
     Coverage,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Landmarks {
-    distances: HashMap<usize, HashMap<usize, usize>>,
-}
-
-impl RMPSupport for Landmarks {}
-
 impl Landmarks {
     pub fn new(graph: &Graph, number_of_landmarks: usize, selection: Selection) -> Self {
         let landmarks = match selection {
             Selection::Random => Self::select_random_landmarks(&graph, number_of_landmarks),
             Selection::Degree => Self::select_high_degree_landmarks(&graph, number_of_landmarks),
-            Selection::Coverage => Self::select_coverage_landmarks(&graph, number_of_landmarks),
+            Selection::Coverage => {
+                Self::select_best_coverage_landmarks(&graph, number_of_landmarks)
+            }
         };
-        let mut distances = HashMap::new();
-        for landmark in landmarks {
-            distances.insert(landmark, graph.distances(landmark));
+        Self {
+            landmarks: landmarks
+                .into_par_iter()
+                .map(|landmark| Landmark {
+                    landmark,
+                    distances: graph.shortest_paths(landmark),
+                })
+                .collect(),
         }
-        Self { distances }
     }
 
-    /// Landmarks-Basic: distance estimation through landmarks from **`start`** to **`end`**
+    /// Landmarks-Basic: distance estimation through landmarks
     pub fn estimate_distance(&self, start: usize, end: usize) -> Option<usize> {
         let mut distance: Option<usize> = None;
-        for (_, distances) in &self.distances {
-            if let (Some(&distance_to_start), Some(&distance_to_end)) =
-                (distances.get(&start), distances.get(&end))
+        for landmark in &self.landmarks {
+            if let (Some(start), Some(end)) =
+                (landmark.distances.get(&start), landmark.distances.get(&end))
             {
                 distance = Some(match distance {
-                    Some(distance) => distance.min(distance_to_start + distance_to_end),
-                    None => distance_to_start + distance_to_end,
+                    Some(distance) => distance.min(start.distance + end.distance),
+                    None => start.distance + end.distance,
                 });
             }
         }
@@ -47,7 +75,7 @@ impl Landmarks {
     }
 
     /// Landmarks-BFS: distance estimation through landmarks from **`start`** to **`end`**
-    pub fn estimate_distance_bfs(&self, start: usize, end: usize) -> Option<usize> {
+    pub fn estimate_distance_bfs(&self, start: usize, end: usize) {
         todo!()
     }
 }
@@ -60,8 +88,8 @@ impl Landmarks {
     }
 
     fn select_high_degree_landmarks(graph: &Graph, number_of_landmarks: usize) -> Vec<usize> {
-        let degrees = graph.degrees();
-        graph.degrees().sort_by(|a, b| b.1.cmp(&a.1));
+        let mut degrees = graph.degrees();
+        degrees.sort_by(|a, b| b.1.cmp(&a.1));
         degrees
             .into_iter()
             .take(number_of_landmarks)
@@ -69,7 +97,7 @@ impl Landmarks {
             .collect()
     }
 
-    fn select_coverage_landmarks(graph: &Graph, number_of_landmarks: usize) -> Vec<usize> {
+    fn select_best_coverage_landmarks(graph: &Graph, number_of_landmarks: usize) -> Vec<usize> {
         todo!()
     }
 }
