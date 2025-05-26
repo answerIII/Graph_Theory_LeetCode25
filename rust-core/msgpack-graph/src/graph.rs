@@ -26,12 +26,6 @@ impl From<RawGraph> for Graph {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct BFSNodeState {
-    pub distance: usize,
-    pub previous_node: Option<usize>,
-}
-
 impl Graph {
     /// Breadth-First Search: finds the shortest distance from **`start`** to **`end`**
     pub fn distance(&self, start: usize, end: usize) -> Option<usize> {
@@ -55,8 +49,35 @@ impl Graph {
         None
     }
 
+    pub fn node_count(&self) -> usize {
+        self.node_count
+    }
+
+    pub fn edge_count(&self) -> usize {
+        self.edge_count
+    }
+
+    pub fn adjacency_list(&self) -> &HashMap<usize, Vec<usize>> {
+        &self.adjacency_list
+    }
+
+    pub fn degrees(&self) -> Vec<(usize, usize)> {
+        self.adjacency_list
+            .iter()
+            .map(|(&node, neighbors)| (node, neighbors.len()))
+            .collect()
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct BFSNodeState {
+    pub(crate) distance: usize,
+    pub(crate) previous_node: Option<usize>,
+}
+
+impl Graph {
     /// Breadth-First Search: finds the shortest paths from **`start`** to **all other reachable**
-    pub fn shortest_paths(&self, start: usize) -> HashMap<usize, BFSNodeState> {
+    pub(crate) fn shortest_paths(&self, start: usize) -> HashMap<usize, BFSNodeState> {
         let mut distances = HashMap::with_capacity(self.node_count);
         let mut queue = VecDeque::with_capacity(self.node_count);
         distances.insert(
@@ -84,24 +105,5 @@ impl Graph {
             }
         }
         distances
-    }
-
-    pub fn node_count(&self) -> usize {
-        self.node_count
-    }
-
-    pub fn edge_count(&self) -> usize {
-        self.edge_count
-    }
-
-    pub fn adjacency_list(&self) -> &HashMap<usize, Vec<usize>> {
-        &self.adjacency_list
-    }
-
-    pub fn degrees(&self) -> Vec<(usize, usize)> {
-        self.adjacency_list
-            .iter()
-            .map(|(&node, neighbors)| (node, neighbors.len()))
-            .collect()
     }
 }
