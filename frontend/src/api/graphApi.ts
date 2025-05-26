@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Graph } from '../types/graph';
+import type { Graph } from '../types/interfaces';
 
 const API_URL = 'http://localhost:8085';
 
