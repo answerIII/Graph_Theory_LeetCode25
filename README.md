@@ -28,4 +28,4 @@ For Windows use `$env:PYTHONPATH="src";` instead of `PYTHONPATH=src`
 `PYTHONPATH=src pypy3 src/network_structure_analysis/A/four/main.py`
 
 ### Run task 1A5
-`PYTHONPATH=src python3 src/network_structure_analysis/A/five/main.py`
+`PYTHONPATH=src pypy3 src/network_structure_analysis/A/five/main.py`
