@@ -1,20 +1,26 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	// "fmt"
+	"net/http"
+	// "os"
+	// "time"
+
+	// //"github.com/HikkMind/graph/algo"
+
+	// "github.com/HikkMind/graph/algo"
+	"github.com/HikkMind/graph/handlers"
+	// "github.com/HikkMind/graph/middleware"
+	// "github.com/vmihailenco/msgpack/v5"
 )
 
 func main() {
 
-	stdFileName := "test.json"
+	http.HandleFunc("/properties", handlers.GetGeneralProperties)
 
-	if len(os.Args) > 1 {
-		stdFileName = os.Args[1]
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
 	}
-
-	graph := readGraph(stdFileName)
-	fmt.Println("got graph")
-	fmt.Println(graph.VertexCount, graph.EdgesCount)
 
 }
