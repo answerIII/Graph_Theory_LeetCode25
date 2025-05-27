@@ -15,8 +15,8 @@ const (
 func TestLandmarkBasic(t *testing.T) {
 	type fields struct {
 		landmarkPath string
-		s            int
-		t            int
+		s            int32
+		t            int32
 	}
 	tests := []struct {
 		name   string

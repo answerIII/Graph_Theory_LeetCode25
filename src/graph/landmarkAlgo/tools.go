@@ -1,7 +1,9 @@
 package landmarkAlgo
 
 import (
+	"encoding/binary"
 	"errors"
+	"fmt"
 	"graph_theory/graph"
 	"os"
 	"strconv"
@@ -18,14 +20,14 @@ func PrecomputeLandmarks(
 		return errors.New("can't select nodes for landmarks")
 	}
 
-	landmarkFile, err := os.Create(landmarkFilePath)
+	file, err := os.Create(landmarkFilePath)
 	if err != nil {
 		return errors.New("can't create landmark file")
 	}
-	defer landmarkFile.Close()
+	defer file.Close()
 
-	_, err = landmarkFile.WriteString(strconv.Itoa(len(g.Nodes)) + "\n")
-	if err != nil {
+	header := []int32{int32(len(g.Nodes)), int32(nodesN)}
+	if err = binary.Write(file, binary.LittleEndian, header); err != nil {
 		return err
 	}
 
@@ -33,22 +35,17 @@ func PrecomputeLandmarks(
 
 	for _, u := range landmarks {
 		dists, err := graph.BFS(g, []graph.Node{u}, nil, nil, nil)
-
 		if err != nil {
-			return errors.New("can't calculate distances for node " + strconv.Itoa(int(u)) + "\n")
+			return errors.New(fmt.Sprintf("can't calculate distances for node %d\n", u))
 		}
-		// landmarkFile.WriteString(strconv.Itoa(int(u)) + "\n")
+
 		for _, v := range nodes {
-			if value, has := dists[v]; has {
-				_, err = landmarkFile.WriteString(strconv.Itoa(value) + "\n")
-				if err != nil {
-					return err
-				}
-			} else {
-				_, err = landmarkFile.WriteString(strconv.Itoa(-1) + "\n")
-				if err != nil {
-					return err
-				}
+			var dist int32 = -1
+			if d, ok := dists[v]; ok {
+				dist = int32(d)
+			}
+			if err = binary.Write(file, binary.LittleEndian, dist); err != nil {
+				return err
 			}
 		}
 	}

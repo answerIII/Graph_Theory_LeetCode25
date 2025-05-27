@@ -2,6 +2,8 @@ package landmarkAlgo
 
 import (
 	"bufio"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"graph_theory/graph"
 	"graph_theory/workerpool"
@@ -158,68 +160,73 @@ func SelectBestCoverage(g *graph.Graph, nodesN int) ([]graph.Node, error) {
 	return nodes, nil
 }
 
-func LandmarkBasic(landmarkFilePath string, s, t int) (int, error) {
-	landmarkFile, err := os.Open(landmarkFilePath)
+func LandmarkBasic(landmarkFilePath string, s, t int32) (int, error) {
+	file, err := os.Open(landmarkFilePath)
 	if err != nil {
 		return -1, err
 	}
-	defer landmarkFile.Close()
+	defer file.Close()
 
-	dist := math.MaxInt
+	var numNodes int32
+	var numLandmarks int32
 
-	scanner := bufio.NewScanner(landmarkFile)
-
-	scanner.Scan()
-
-	offset, err := strconv.Atoi(scanner.Text())
-
-	if s < 0 || s > offset {
-		return -1, fmt.Errorf("there is no node %d in graph", s)
+	const headerSize = 2
+	err = binary.Read(file, binary.LittleEndian, &numNodes)
+	if err != nil {
+		return 0, err
 	}
-	if t < 0 || t > offset {
-		return -1, fmt.Errorf("there is no node %d in graph", t)
+	err = binary.Read(file, binary.LittleEndian, &numLandmarks)
+	if err != nil {
+		return 0, err
+	}
+
+	if s < 0 || s >= numNodes {
+		return 0, fmt.Errorf("there is no node %d in graph", s)
+	}
+	if t < 0 || t >= numNodes {
+		return 0, fmt.Errorf("there is no node %d in graph", t)
 	}
 
 	if s > t {
 		s, t = t, s
 	}
-	if err != nil {
-		return -1, err
-	}
 
-	offsetS := s
-	offsetT := t - offsetS
-	offsetGlobal := offset - offsetT - 1
+	const int32Size = 4
+	dist := int32(math.MaxInt32)
 
-	for scanner.Scan() {
-		for range offsetS {
-			scanner.Scan()
-		}
+	for i := int64(0); i < int64(numLandmarks); i++ {
+		baseOffset := headerSize*int32Size + i*int64(numNodes)*int32Size
 
-		sDist, err := strconv.Atoi(scanner.Text())
-
+		_, err = file.Seek(baseOffset+int64(s)*int32Size, 0)
 		if err != nil {
-			return -1, err
+			return 0, err
+		}
+		var sDist int32
+		err = binary.Read(file, binary.LittleEndian, &sDist)
+		if err != nil {
+			return 0, err
 		}
 
-		for range offsetT {
-			scanner.Scan()
+		_, err = file.Seek(baseOffset+int64(t)*int32Size, 0)
+		if err != nil {
+			return 0, err
+		}
+		var tDist int32
+		err = binary.Read(file, binary.LittleEndian, &tDist)
+		if err != nil {
+			return 0, err
 		}
 
-		tDist, err := strconv.Atoi(scanner.Text())
 		if sDist != -1 && tDist != -1 {
 			dist = min(dist, sDist+tDist)
 		}
-
-		if err != nil {
-			return -1, err
-		}
-
-		for range offsetGlobal {
-			scanner.Scan()
-		}
 	}
-	return dist, nil
+
+	if dist == math.MaxInt32 {
+		return 0, errors.New("no path found via landmarks")
+	}
+
+	return int(dist), nil
 }
 
 func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int) (int, error) {
@@ -246,9 +253,6 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int) (int, e
 
 	if s > t {
 		s, t = t, s
-	}
-	if err != nil {
-		return -1, err
 	}
 
 	offsetS := s + 1
