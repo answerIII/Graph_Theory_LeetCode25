@@ -21,6 +21,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/graphs/{datasetname}/properties", handlers.GetGeneralProperties).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/distances", handlers.GetDistanceEstimation).Methods("GET")
 
 	serverPort := ":8080"
 	fmt.Println("server started on port " + serverPort)
