@@ -10,15 +10,26 @@ import (
 	//"google.golang.org/appengine/log"
 )
 
-func FindMaxWCC(graph structs.Graph) (*structs.Graph, int) {
+func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.Graph, int) {
 	graphWCC := structs.Graph{Directed: false}
 	newAdjList := make(map[int][]int)
 	for vertex, adj := range graph.AdjList {
-		newSlice := make([]int, len(adj))
-		copy(newSlice, adj)
+		if _, ok := excludeVertex[vertex]; ok {
+			continue
+		}
+		newSlice := make([]int, 0)
+		for _, j := range adj {
+			if _, ok := excludeVertex[j]; !ok {
+				newSlice = append(newSlice, j)
+			} else {
+				graph.EdgesCount--
+			}
+		}
+		// copy(newSlice, adj)
 		newAdjList[vertex] = newSlice
 	}
 	graph.AdjList = newAdjList
+	graph.VertexCount -= len(excludeVertex)
 
 	if graph.Directed {
 		for vertex, adj := range graph.AdjList {
@@ -39,6 +50,9 @@ func FindMaxWCC(graph structs.Graph) (*structs.Graph, int) {
 		if _, ok := visited[vertex]; ok {
 			continue
 		}
+		// if _, ok := excludeVertex[vertex]; ok {
+		// 	continue
+		// }
 		countWCC++
 
 		bfsQueue = append(bfsQueue, vertex)
@@ -49,6 +63,9 @@ func FindMaxWCC(graph structs.Graph) (*structs.Graph, int) {
 			actVertex := bfsQueue[0]
 			actAdjVertex := graph.AdjList[actVertex]
 			for _, i := range actAdjVertex {
+				// if _, ok := excludeVertex[i]; ok {
+				// 	continue
+				// }
 				tmpGraph.AdjList[actVertex] = append(tmpGraph.AdjList[actVertex], i)
 				tmpGraph.EdgesCount++
 				if _, ok := tmpGraph.AdjList[i]; !ok {
