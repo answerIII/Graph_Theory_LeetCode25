@@ -49,6 +49,8 @@ const (
 	invertedOrkkutFilepath          = "../datasets/very_large_graphs/aux_graphs/com-orkut.ungraph-inverted.txt"
 
 	landmarkRandomWikiVoteFilepath = "../datasets/directed/landmarks/Wiki-Vote-random.txt"
+
+	landmarksPathsRandomWikiVoteFilepath = "../datasets/directed/landmarks/Wiki-Vote-random-paths.txt"
 )
 
 func roundFloat(val float64, precision uint) float64 {
