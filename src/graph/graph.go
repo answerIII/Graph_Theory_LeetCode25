@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-type Node int
+type Node int32
 type Nodes map[Node]struct{}
 type Adjacency struct {
 	// value struct{}
@@ -30,11 +30,14 @@ type Graph struct {
 	EdgesNumber int
 }
 
-func NewGraph(directed bool) *Graph {
+func NewGraph(directed bool, numberRealEdges, numberNodes, numberEdges int) *Graph {
 	return &Graph{
 		Directed: directed,
-		Adj:      Adjacency{ptr: []int{0}},
-		Nodes:    make(Nodes),
+		Adj: Adjacency{
+			to:  make([]Node, 0, numberRealEdges),
+			ptr: make([]int, 1, numberNodes+1)},
+		Nodes:       make(Nodes),
+		EdgesNumber: numberRealEdges,
 	}
 }
 
@@ -210,12 +213,15 @@ func GetSnowballGraph(
 	if err != nil {
 		return nil, err
 	}
+
+	adjLen := 0
 	slices.Sort(nodes)
 	for _, u := range nodes {
 		slices.Sort(adj[u])
+		adjLen += len(adj[u])
 	}
 
-	subgraph := NewGraph(false)
+	subgraph := NewGraph(false, adjLen, len(nodes), adjLen)
 
 	for _, u := range nodes {
 		for _, v := range adj[u] {
@@ -238,8 +244,19 @@ func FromFile(filePath string, directed bool) (*Graph, error) {
 	}
 	defer file.Close()
 
-	graph := NewGraph(directed)
 	scanner := bufio.NewScanner(file)
+
+	scanner.Scan()
+	parts := strings.Fields(scanner.Text())
+
+	numberRealEdges, err := strconv.Atoi(parts[0])
+	numberNodes, err := strconv.Atoi(parts[1])
+	numberCompressedEdges, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, err
+	}
+
+	graph := NewGraph(directed, numberRealEdges, numberNodes, numberCompressedEdges)
 
 	for scanner.Scan() {
 		line := scanner.Text()

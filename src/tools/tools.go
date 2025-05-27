@@ -66,11 +66,11 @@ func (p TXTParser) Parse(fileIn io.Reader, f EdgeFunction) (int, error) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "#") || line == "" {
+		if strings.HasPrefix(line, "#") || strings.HasPrefix(line, "%") || line == "" {
 			continue
 		}
 		parts := strings.Fields(line)
-		if len(parts) < 2 {
+		if len(parts) < 2 || len(parts) > 2 {
 			continue
 		}
 		numberEdges++
@@ -141,11 +141,17 @@ func convert(pathIn, pathOut string, converter Converter) error {
 
 	nodes, adj, edgeFunc := converter()
 
-	var numberEdges int
-	if numberEdges, err = parser(pathIn, edgeFunc); err != nil {
+	var numberRealEdges int
+	if numberRealEdges, err = parser(pathIn, edgeFunc); err != nil {
 		return err
 	}
-	_, err = writer.WriteString(strconv.Itoa(numberEdges) + "\n")
+
+	numberNodes := len(*nodes)
+	numberCompressedEdges := 0
+	for u := range *nodes {
+		numberCompressedEdges += len((*adj)[u])
+	}
+	_, err = writer.WriteString(strconv.Itoa(numberRealEdges) + " " + strconv.Itoa(numberNodes) + " " + strconv.Itoa(numberCompressedEdges) + "\n")
 	if err != nil {
 		return errors.New("error while writing a file")
 	}
