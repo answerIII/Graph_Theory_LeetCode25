@@ -2,7 +2,7 @@ use crate::{RMPSupport, RawGraph};
 use rand::{rng, seq::SliceRandom};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 #[derive(Serialize, Deserialize)]
 pub struct Landmark {
@@ -116,11 +116,16 @@ impl Graph {
     }
 
     /// Landmarks-BFS: distance estimation through landmarks from **`start`** to **`end`**
-    pub fn estimate_distance_bfs(&self, start: usize, end: usize) {
+    pub fn estimate_distance_bfs(&self, start: usize, end: usize) -> Option<usize> {
         let Some(landmarks) = self.landmarks.as_ref() else {
             panic!("Missing landmarks");
         };
-        todo!()
+        let mut subgraph = HashSet::new();
+        landmarks.iter().for_each(|landmark| {
+            subgraph.extend(landmark.path_to(start));
+            subgraph.extend(landmark.path_to(end));
+        });
+        self.distance_with_subgraph(subgraph, start, end)
     }
 
     pub fn node_count(&self) -> usize {
@@ -129,6 +134,12 @@ impl Graph {
 
     pub fn edge_count(&self) -> usize {
         self.edge_count
+    }
+
+    pub fn landmarks_count(&self) -> usize {
+        self.landmarks
+            .as_ref()
+            .map_or(0, |landmarks| landmarks.len())
     }
 
     pub fn adjacency_list(&self) -> &HashMap<usize, Vec<usize>> {
@@ -179,6 +190,36 @@ impl Graph {
             }
         }
         distances
+    }
+
+    /// Breadth-First Search: finds the shortest distance from **`start`** to **`end`** with subgraph
+    fn distance_with_subgraph(
+        &self,
+        subgraph: HashSet<usize>,
+        start: usize,
+        end: usize,
+    ) -> Option<usize> {
+        if !subgraph.contains(&start) || !subgraph.contains(&start) {
+            return None;
+        }
+        let mut distances = HashMap::with_capacity(self.node_count);
+        let mut queue = VecDeque::with_capacity(self.node_count);
+        distances.insert(start, 0);
+        queue.push_back(start);
+        while let Some(node) = queue.pop_front() {
+            if let Some(neighbours) = self.adjacency_list.get(&node) {
+                for &neighbour in neighbours {
+                    if !distances.contains_key(&neighbour) && subgraph.contains(&neighbour) {
+                        distances.insert(neighbour, distances[&node] + 1);
+                        if neighbour == end {
+                            return distances.get(&neighbour).copied();
+                        }
+                        queue.push_back(neighbour);
+                    }
+                }
+            }
+        }
+        None
     }
 
     fn select_random_landmarks(&self, number_of_landmarks: usize) -> Vec<usize> {
