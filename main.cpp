@@ -11,7 +11,8 @@ int main(const int argc, const char *argv[]) {
     Graph* graph(parser.parse(argv[1], directed));
 
     DirectedGraph directedGraph(*graph);
-    std::cout << std::endl << directedGraph.getDistanceBetweenNodes(17097,5665) << std::endl;
+    //std::cout << std::endl << directedGraph.getApproximateDiameter() << std::endl;
+    directedGraph.getDistanceBetweenNodes(32,175);
 
     delete graph;
     return 0;

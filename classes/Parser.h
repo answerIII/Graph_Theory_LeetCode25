@@ -14,7 +14,7 @@ public:
         if (!inFile) {
             throw std::runtime_error("Failed to open file");
         }
-        std::unordered_map<int,std::vector<int>> paths;
+        std::vector<std::vector<int>> paths;
         std::string line;
         int vertexCount = 0;
         int edgeCount = 0;
@@ -35,18 +35,21 @@ public:
         if (vertexCount == 0) {
             throw std::runtime_error("Could not read vertex count from file");
         }
-        std::unordered_map<int, Node> vertexes;
-        paths.reserve(vertexCount);
+        std::vector<Node> vertexes;
+        paths.resize(vertexCount);
+        vertexes.resize(vertexCount);
+
         std::istringstream iss(line);
         int from, to;
         iss >> from >> to;
-        if (!vertexes.contains(from)){vertexes[from] = Node(from,false);}
-        if (!vertexes.contains(to)){vertexes[to] = Node(to,false);}
+        if (vertexes[from].num == -1){vertexes[from] = Node(from,false);}
+        if (vertexes[to].num == -1){vertexes[to] = Node(to,false);}
         paths[from].push_back(to);
         if (!directed){paths[to].push_back(from);}
+
         while (inFile >> from >> to) {
-            if (!vertexes.contains(from)){vertexes[from] = Node(from,false);}
-            if (!vertexes.contains(to)){vertexes[to] = Node(to,false);}
+            if (vertexes[from].num == -1){vertexes[from] = Node(from,false);}
+            if (vertexes[to].num == -1){vertexes[to] = Node(to,false);}
             paths[from].push_back(to);
             if (!directed){paths[to].push_back(from);}
         }

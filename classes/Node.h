@@ -5,7 +5,7 @@
 #ifndef NODE_H
 #define NODE_H
 struct Node {
-    int num;
+    int num = -1;
     bool marked;
 };
 #endif //NODE_H

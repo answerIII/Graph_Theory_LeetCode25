@@ -3,6 +3,7 @@
 
 #include <map>
 #include <strings.h>
+#include <utility>
 
 #include "../libs.h"
 #include "Node.h"
@@ -11,34 +12,19 @@ namespace stdr = std::ranges;
 
 class Graph {
 protected:
-    std::unordered_map<int, std::vector<int>> paths;
-    std::unordered_map<int, Node> nodes;
+    std::vector<std::vector<int>> paths;
+    std::vector<Node> nodes;
     int vertexCount = 0;
     int edgesCount = 0;
+
     void removeMarks() {
-        for (auto&[num,node] : nodes) {
+        for (Node& node : nodes) {
             node.marked = false;
         }
     }
-    int dfs(Node* node, std::unordered_map<int, std::vector<int>>& paths) {
-        std::stack<Node*> stack;
-        stack.push(node);
-        int nodeCount = 0;
-        while (!stack.empty()) {
-            Node* currentNode = stack.top(); stack.pop();
-            ++nodeCount;
-            currentNode->marked = true;
-            for (int neighborhood : paths[currentNode->num]) {
-                if (nodes[neighborhood].marked != true) {
-                    stack.push(&nodes[neighborhood]);
-                }
-            }
-        }
-        return nodeCount;
-    }
 public:
-    Graph (const std::unordered_map<int, Node> nodes,
-        const std::unordered_map<int,std::vector<int>> paths,
+    Graph (const std::vector<Node>& nodes,
+        const std::vector<std::vector<int>>& paths,
         int vertexCount, int edgesCount) {
         this->paths = paths;
         this->nodes = nodes;
@@ -47,7 +33,7 @@ public:
         std::cout << "copied graph" << std::endl;
     }
 
-    Graph (Graph& graph) : paths(graph.paths), nodes(graph.nodes), vertexCount(graph.vertexCount), edgesCount(graph.edgesCount) {
+    Graph (const Graph& graph) : paths(graph.paths), nodes(graph.nodes), vertexCount(graph.vertexCount), edgesCount(graph.edgesCount) {
         std::cout << "Graph created" << std::endl;
     }
     int getVertexCount() const {
@@ -59,8 +45,8 @@ public:
 };
 
 class DirectedGraph : public Graph {
-    std::unordered_map<int, std::vector<int>> transposePaths;
-    std::unordered_map<int, std::vector<int>> undirectedPaths;
+    std::vector <std::vector<int>> transposePaths;
+    std::vector <std::vector<int>> undirectedPaths;
     std::vector<std::vector<Node*>>  strongComponents;
     std::vector<std::vector<Node*>>  weekComponents;
     std::vector<std::unordered_map<int, int>> landmarks;
@@ -80,7 +66,7 @@ class DirectedGraph : public Graph {
 
         if (undirectedPaths.empty()) { initUndirectedPaths(); }
 
-        for (auto& [num,node] : nodes) {
+        for (Node& node : nodes) {
             if (!node.marked) {
                 std::vector<Node*> component;
                 std::queue<Node*> queue;
@@ -110,9 +96,10 @@ class DirectedGraph : public Graph {
     }
 
     void initUndirectedPaths() {
-        undirectedPaths.reserve(paths.size());
-        for (auto& [u, neigh] : paths) {
-            for (int v : neigh) {
+        undirectedPaths.resize(paths.size());
+        for (int u = 0; u < paths.size(); ++u) {
+            undirectedPaths[u].reserve(paths[u].size());
+            for (int v : paths[u]) {
                 undirectedPaths[u].push_back(v);
                 undirectedPaths[v].push_back(u);
             }
@@ -120,9 +107,9 @@ class DirectedGraph : public Graph {
     }
 
     void initTransposePaths() {
-        transposePaths.reserve(paths.size());
-        for (auto& [u, neigh] : paths) {
-            for (int v : neigh) {
+        transposePaths.resize(paths.size());
+        for (int u = 0; u < paths.size(); ++u) {
+            for (int v : paths[u]) {
                 transposePaths[v].push_back(u);
             }
         }
@@ -137,7 +124,7 @@ class DirectedGraph : public Graph {
         //1 dfs
         std::vector<Node*> outVertexes;
         std::unordered_set<int> visited;
-        for (auto& [num,node] : nodes) {
+        for (Node& node : nodes) {
             if (!node.marked) {
                 std::stack<Node*> attended;
                 attended.push(&node);
@@ -401,8 +388,8 @@ class DirectedGraph : public Graph {
     if (undirectedPaths.empty()) initUndirectedPaths();
 
     std::unordered_map<int, std::unordered_set<int>> adj;
-    for (auto& [u, vec] : undirectedPaths) {
-        for (int v : vec) {
+    for (int u = 0; u < undirectedPaths.size(); ++u) {
+        for (int v : undirectedPaths[u]) {
             adj[u].insert(v);
             adj[v].insert(u);
         }
@@ -413,12 +400,27 @@ class DirectedGraph : public Graph {
         nodesVec.push_back(u);
     }
 
+    int vertexCount = static_cast<int>(nodesVec.size());
     int numThreads = 12;
-    int totalNodes = nodesVec.size();
+    int totalNodes = vertexCount;
     int chunkSize = (totalNodes + numThreads - 1) / numThreads;
 
     std::mutex countMutex;
     std::mutex mapMutex;
+    std::mutex printLock;
+
+    std::atomic<int> completed{0};
+    std::atomic<int> lastPrinted{-1};
+
+    auto printProgress = [&](int total) {
+        int done = completed.load();
+        int percent = static_cast<int>((100.0 * done) / total);
+        if (percent != lastPrinted.load()) {
+            std::lock_guard<std::mutex> block(printLock);
+            std::cout << "\rProgress: " << std::setw(3) << percent << "% completed" << std::flush;
+            lastPrinted = percent;
+        }
+    };
 
     auto worker = [&](int start, int end) {
         int localTriangles = 0;
@@ -444,6 +446,9 @@ class DirectedGraph : public Graph {
                     }
                 }
             }
+
+            completed.fetch_add(1);
+            printProgress(vertexCount);
         }
 
         std::lock_guard<std::mutex> lock1(countMutex);
@@ -465,35 +470,85 @@ class DirectedGraph : public Graph {
     for (auto& t : threads) t.join();
 }
 
-    void removeNodes(int count, bool randomRemoving) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::vector<std::unordered_map<int, std::vector<int>>::iterator> iters;
-        for (auto it = paths.begin(); it != paths.end(); ++it) {
-            iters.push_back(it);
-        }
+    void removeNodes(int count, bool randomRemoving, const std::string& file) {
+        std::ifstream inFile(file);
 
-        if (randomRemoving) {
-            while (count--) {
-                std::uniform_int_distribution<> dis(0, static_cast<int>(iters.size()) - 1);
-                int index = dis(gen);
-                paths.erase(iters[index]);
-                int key = iters[index]->first;
-                iters[index] = iters.back();
-                iters.pop_back();
-                nodes.erase(key);
+        if (randomRemoving)
+        {
+            int size = (int) paths.size() - 1;
+            std::unordered_set<int> removedNodes;
+            removedNodes.reserve(count);
+
+            while (removedNodes.size() != count) {
+                removedNodes.insert(nodes[nodes.size() - 1].num);
+                nodes.pop_back();
             }
-        } else {
-            std::vector<std::pair<int, std::vector<int>>> sortedPaths(paths.begin(), paths.end());
-            std::sort(sortedPaths.begin(), sortedPaths.end(),
-                [](const auto& a, const auto& b) {
-                    return a.second.size() < b.second.size();
-                });
-            while (count--) {
-                int key = sortedPaths.back().first;
-                sortedPaths.pop_back();
-                nodes.erase(key);
-                paths.erase(key);
+
+            ++size;
+            paths.clear();
+            nodes.clear();
+            paths.resize(size);
+            nodes.resize(size);
+            edgesCount = 0;
+            vertexCount = size - count;
+
+            std::string line;
+            while (std::getline(inFile, line)) {
+                if (!(line.empty() || line[0] == '#'))  break;
+            }
+
+            int from;
+            int to;
+            std::istringstream iss(line);
+            iss >> from >> to;
+            if (!removedNodes.contains(from)) nodes[from] = Node(from,false);
+            if (!removedNodes.contains(to)) nodes[to] = Node(to,false);
+            if (!removedNodes.contains(to) && !removedNodes.contains(from)) { paths[from].push_back(to); ++edgesCount; }
+
+            while (inFile >> from >> to) {
+                if (!removedNodes.contains(from)) nodes[from] = Node(from,false);
+                if (!removedNodes.contains(to)) nodes[to] = Node(to,false);
+                if (!removedNodes.contains(to) && !removedNodes.contains(from)) { paths[from].push_back(to); ++edgesCount; }
+            }
+        }
+        else {
+            std::unordered_set<int> removedNodes;
+            std::sort(nodes.begin(), nodes.end(),
+                      [this](const Node& a, const Node& b) {
+                          return paths[a.num].size() < paths[b.num].size();
+                      });
+            while (removedNodes.size() != count) {
+                removedNodes.insert(nodes[nodes.size() - 1].num);
+                nodes.pop_back();
+            }
+
+            size_t size = paths.size();
+            paths.clear();
+            nodes.clear();
+            paths.resize(size);
+            nodes.resize(size);
+            edgesCount = 0;
+            vertexCount = size - count;
+
+            std::string line;
+            while (std::getline(inFile, line)) {
+                if (!(line.empty() || line[0] == '#'))  break;
+            }
+
+            int from;
+            int to;
+            std::istringstream iss(line);
+            iss >> from >> to;
+            if (!removedNodes.contains(from)) nodes[from] = Node(from,false);
+            if (!removedNodes.contains(to)) nodes[to] = Node(to,false);
+            if (!removedNodes.contains(to) && !removedNodes.contains(from)) { paths[from].push_back(to); ++edgesCount; }
+
+            while (inFile >> from >> to) {
+                if (!removedNodes.contains(from)) nodes[from] = Node(from,false);
+                if (!removedNodes.contains(to)) nodes[to] = Node(to,false);
+                if (!removedNodes.contains(to) && !removedNodes.contains(from)) {
+                    paths[from].push_back(to); ++edgesCount;
+                }
             }
         }
 
@@ -501,6 +556,11 @@ class DirectedGraph : public Graph {
         transposePaths.clear();
         strongComponents.clear();
         weekComponents.clear();
+        density = 0;
+        approximateDiameter = 0;
+        percentileC = 0;
+        percentileB = 0;
+        trianglesCount = -1;
     }
 
     std::pair<int, Node*> getFarthestVertex(Node* node) {
@@ -562,22 +622,21 @@ class DirectedGraph : public Graph {
     void getVertexDegreeStats(const std::string& graph_id, const std::string& is_directed, std::ofstream& file) {
         std::unordered_map<int, long> in_degrees;
         std::unordered_map<int, long> out_degrees;
-
-        for (const auto& [from, to_list] : paths) {
-            out_degrees[from] = to_list.size();
-            for (int to : to_list) {
-                in_degrees[to]++;
+        for (int from = 0; from < paths.size(); ++from) {
+            out_degrees[from] = paths[from].size();
+            for (int to : paths[from]) {
+                ++in_degrees[to];
             }
         }
 
-        for (const auto& [id, _] : nodes) {
-            if (!out_degrees.count(id)) out_degrees[id] = 0;
-            if (!in_degrees.count(id)) in_degrees[id] = 0;
+        for (Node& node : nodes) {
+            if (!out_degrees.count(node.num)) out_degrees[node.num] = 0;
+            if (!in_degrees.count(node.num)) in_degrees[node.num] = 0;
         }
 
         std::unordered_map<int, long> total_degrees;
-        for (const auto& [id, _] : nodes) {
-            total_degrees[id] = in_degrees[id] + out_degrees[id];
+        for (Node& node : nodes) {
+            total_degrees[node.num] = in_degrees[node.num] + out_degrees[node.num];
         }
 
         auto calc_stats = [&](const std::unordered_map<int, long>& deg_map, const std::string& deg_type) {
@@ -639,8 +698,8 @@ class DirectedGraph : public Graph {
         {
             size_t maxDegree = 0;
             int vertex = 0;
-            for (auto& [num,vec] : undirectedPaths) {
-                if (vec.size() > maxDegree)  { maxDegree = vec.size(); vertex = num; }
+            for (int u = 0; u < undirectedPaths.size(); ++u) {
+                if (undirectedPaths[u].size() > maxDegree)  { maxDegree = undirectedPaths[u].size(); vertex = u; }
             }
             std::queue<Node*> queue;
             Node* landmarkNode = &nodes[vertex];
@@ -683,13 +742,13 @@ class DirectedGraph : public Graph {
 
                     // Find max-min node
                     int maxMin = INT_MIN;
-                    for (auto& [num, node] : nodes) {
+                    for (Node& node : nodes) {
                         if (node.marked) continue;
 
                         int currentMin = INT_MAX;
                         for (const auto& map : landmarks) {
-                            if (map.contains(num)) {
-                                currentMin = std::min(currentMin, map.at(num));
+                            if (map.contains(node.num)) {
+                                currentMin = std::min(currentMin, map.at(node.num));
                             }
                         }
 
@@ -741,7 +800,7 @@ class DirectedGraph : public Graph {
         for (auto& thread : workers) thread.join();
     }
 
-    void initLandmarksHeightDegrees() {
+    void initLandmarksHeightDegrees()  {
         landmarks.clear();
         if (undirectedPaths.empty()) initUndirectedPaths();
         size_t landmarksCount = 0;
@@ -759,10 +818,12 @@ class DirectedGraph : public Graph {
         std::atomic<size_t> completedLandmarks = 0;
 
         //chose the nodes with most degrees
-        std::vector<std::pair<int, std::vector<int>>> sortedPaths(paths.begin(), paths.end());
-        std::sort(sortedPaths.begin(), sortedPaths.end(),
-            [](const auto& a, const auto& b) {
-                return a.second.size() < b.second.size();
+        std::vector<int> nodeSorted;
+        nodeSorted.reserve(nodes.size());
+        for (Node& node : nodes) nodeSorted.push_back(node.num);
+        std::sort(nodeSorted.begin(), nodeSorted.end(),
+            [this](const int& a, const int& b) {
+                return paths[a].size() < paths[b].size();
             });
         std::atomic<int> index = 0;
 
@@ -779,7 +840,7 @@ class DirectedGraph : public Graph {
         auto worker = [&](size_t times) {
             while (times-- != 0) {
                 // Part 2: Landmark initialization
-                Node* landmarkNode = &nodes[sortedPaths[index++].first];
+                Node* landmarkNode = &nodes[nodeSorted[index++]];
                 std::unordered_map<int,int> localMap;
                 std::queue<Node*> queue;
                 queue.push(landmarkNode);
@@ -876,16 +937,16 @@ public:
         return trianglesCount;
     }
 
-    void removeRandomNodes(int count) {
+    void removeRandomNodes(int count, const std::string& file) {
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
-        removeNodes(count, true);
+        removeNodes(count, true, file);
     }
 
-    void removeMostDegreesNodes(int count) {
+    void removeMostDegreesNodes(int count, const std::string& file) {
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
-        removeNodes(count, false);
+        removeNodes(count, false, file);
     }
 
     void getVertexDegree(const std::string& graph_id, const std::string& is_directed,  std::ofstream& file) {
@@ -894,7 +955,7 @@ public:
 
     int getDistanceBetweenNodes(int num_u, int num_v) {
         if (landmarks.empty()) initLandmarksHeightDegrees();
-        if (!nodes.contains(num_u) || !nodes.contains(num_v)) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
+        if (num_u >= nodes.size() || num_v >= nodes.size() || num_v*num_u < 0) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
 
 
         int minDistance = INT_MAX;
@@ -913,17 +974,14 @@ public:
 
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
-    // int getTriangels() {
 
-    // }
-
-double getGlobalClusteringCoefficient() {
+    double getGlobalClusteringCoefficient() {
     if (undirectedPaths.empty())
         initUndirectedPaths();
     double triplets = 0;
 
-    for (const auto& [u, neighbors] : undirectedPaths) {
-        int k = neighbors.size();
+    for (int u = 0; u < undirectedPaths.size(); ++u) {
+        size_t k = undirectedPaths[u].size();
         triplets += ((k * (k - 1)) / 2.0);
     }
     //std::cout<<"Num of triplets:" << triplets<<std::endl;
@@ -933,46 +991,10 @@ double getGlobalClusteringCoefficient() {
     return (3.0 * trianglesCount) / triplets;
 }
 
-// double computeLocalClusteringCoefficient() {
-//     std::atomic<double> total = 0.0;
-//     std::atomic<int> count = 0;
-
-//     std::for_each(std::execution::par, undirectedPaths.begin(), undirectedPaths.end(), [&](const auto &cpair) {
-//         const auto &[u, neighbors] = cpair;
-//         int k = neighbors.size();
-//         if (k < 2) return;
-
-//         int links = 0;
-
-//         // Считаем связи между соседями
-//         for (int i = 0; i < k; ++i) {
-//             for (int j = i + 1; j < k; ++j) {
-//                 int ni = neighbors[i];
-//                 int nj = neighbors[j];
-
-//                 const auto& ni_neighbors = undirectedPaths[ni];
-//                 if (std::find(ni_neighbors.begin(), ni_neighbors.end(), nj) != ni_neighbors.end()) {
-//                     ++links;
-//                 }
-//             }
-//         }
-
-//         double Clu = (2.0 * links) / (k * (k - 1));
-//         total += Clu;
-//         ++count;
-//     });
-
-//     return count > 0 ? total / count : 0.0;
-// }
-
     double getAverageClusteringCoefficient() {
         if (trianglePerNode.empty()) initTrianglesCount();
         if (undirectedPaths.empty()) initUndirectedPaths();
 
-        std::vector<int> nodes;
-        for (const auto& pair : undirectedPaths) {
-            nodes.push_back(pair.first);
-        }
         int totalNodes = nodes.size();
 
         int numThreads = 12;
@@ -982,27 +1004,37 @@ double getGlobalClusteringCoefficient() {
         std::vector<int> threadCounts(numThreads, 0);
 
         auto worker = [&](int threadId, int start, int end) {
-            double localTotal = 0.0;
-            int localCount = 0;
+            try {
+                double localTotal = 0.0;
+                int localCount = 0;
 
-            for (int i = start; i < end && i < totalNodes; ++i) {
-                int u = nodes[i];
-                const auto& neighbors = undirectedPaths.at(u);
-                int k = neighbors.size();
-                if (k < 2) continue;
+                for (int i = start; i < end && i < totalNodes; ++i) {
+                    int u = nodes[i].num;
+                    const auto& neighbors = undirectedPaths[u];
+                    size_t k = neighbors.size();
+                    if (k < 2) continue;
 
-                int t = trianglePerNode.at(u); // Гарантировано наличие
-                double denominator = k * (k - 1.0);
-                if (denominator < 1e-9) continue;
+                    // Catch potential missing entry
+                    if (!trianglePerNode.count(u)) {
+                        continue;
+                    }
 
-                double clu = (2.0 * t) / denominator;
-                localTotal += clu;
-                localCount++;
+                    int t = trianglePerNode.at(u);
+                    double denominator = k * (k - 1.0);
+                    if (denominator < 1e-9) continue;
+
+                    double clu = (2.0 * t) / denominator;
+                    localTotal += clu;
+                    localCount++;
+                }
+
+                threadTotals[threadId] = localTotal;
+                threadCounts[threadId] = localCount;
+            } catch (const std::exception& ex) {
+                std::cerr << "Exception in thread " << threadId << ": " << ex.what() << "\n";
             }
-
-            threadTotals[threadId] = localTotal;
-            threadCounts[threadId] = localCount;
         };
+
 
         std::vector<std::thread> threads;
         for (int i = 0; i < numThreads; ++i) {
@@ -1019,7 +1051,7 @@ double getGlobalClusteringCoefficient() {
         return count > 0 ? total / count : 0.0;
     }
 
-double getAverageClusteringCoefficientOfWCC() {
+    double getAverageClusteringCoefficientOfWCC() {
     if (trianglePerNode.empty()) initTrianglesCount();
     if (undirectedPaths.empty()) initUndirectedPaths();
     if (weekComponents.empty()) initWeekComponents();
@@ -1048,185 +1080,185 @@ double getAverageClusteringCoefficientOfWCC() {
 };
 
 class UndirectedGraph : public Graph {
-    std::vector<std::vector<Node*>>  strongComponents;
-    std::unordered_map<int, std::vector<int>> undirectedPaths;
-    std::vector<std::vector<Node*>>  weekComponents;
-
-    double density = 0;
-
-    void initDensity() {
-        double maxEdges = vertexCount * (vertexCount - 1) / 2.0;
-        density = edgesCount / maxEdges;
-    }
-
-    void initComponents() {
-        for (auto& [num,node] : nodes) {
-            if (!node.marked) {
-                std::vector <Node*> component;
-                std::stack <Node*> stack;
-                stack.push(&node);
-                while (!stack.empty()) {
-                    Node* currentNode = stack.top(); stack.pop();
-                    component.push_back(currentNode);
-                    currentNode->marked = true;
-                    for (int neighborhood : paths[currentNode->num]) {
-                        if (nodes[neighborhood].marked != true) {
-                            stack.push(&nodes[neighborhood]);
-                        }
-                    }
-                }
-                strongComponents.push_back(component);
-            }
-        }
-        removeMarks();
-        std::ranges::sort(strongComponents, std::greater<>{});
-    }
-
-public:
-    UndirectedGraph(Graph& graph): Graph(graph) {}
-
-    int getComponentsCount() {
-        if (strongComponents.empty()) initComponents();
-        return strongComponents.size();
-    }
-
-    double getDensity() {
-        if (density == 0) initDensity();
-        return density;
-    }
-
-    int getShareVertexInBeggestComponent() {
-        getComponentsCount();
-        return strongComponents[0].size() / vertexCount;
-    }
-
-// double getAverageClusteringCoefficient() {
-//     if (weekComponents.empty()) initWeekComponents(); // находим слабые компоненты
-
-//     const std::vector<Node*>& largestWCC = weekComponents[0];
-
-//     if (largestWCC.empty()) return 0.0;
-
-//     double totalClustering = 0.0;
-
-//     // Проходим по каждому узлу в компоненте
-//     for (Node* node : largestWCC) {
+//     std::vector<std::vector<Node*>>  strongComponents;
+//     std::unordered_map<int, std::vector<int>> undirectedPaths;
+//     std::vector<std::vector<Node*>>  weekComponents;
+//
+//     double density = 0;
+//
+//     void initDensity() {
+//         double maxEdges = vertexCount * (vertexCount - 1) / 2.0;
+//         density = edgesCount / maxEdges;
+//     }
+//     //
+//     // void initComponents() {
+//     //     for (auto& [num,node] : nodes) {
+//     //         if (!node.marked) {
+//     //             std::vector <Node*> component;
+//     //             std::stack <Node*> stack;
+//     //             stack.push(&node);
+//     //             while (!stack.empty()) {
+//     //                 Node* currentNode = stack.top(); stack.pop();
+//     //                 component.push_back(currentNode);
+//     //                 currentNode->marked = true;
+//     //                 for (int neighborhood : paths[currentNode->num]) {
+//     //                     if (nodes[neighborhood].marked != true) {
+//     //                         stack.push(&nodes[neighborhood]);
+//     //                     }
+//     //                 }
+//     //             }
+//     //             strongComponents.push_back(component);
+//     //         }
+//     //     }
+//     //     removeMarks();
+//     //     std::ranges::sort(strongComponents, std::greater<>{});
+//     // }
+//
+// public:
+//     UndirectedGraph(Graph& graph): Graph(graph) {}
+//
+//     int getComponentsCount() {
+//         if (strongComponents.empty()) initComponents();
+//         return strongComponents.size();
+//     }
+//
+//     double getDensity() {
+//         if (density == 0) initDensity();
+//         return density;
+//     }
+//
+//     int getShareVertexInBeggestComponent() {
+//         getComponentsCount();
+//         return strongComponents[0].size() / vertexCount;
+//     }
+//
+// // double getAverageClusteringCoefficient() {
+// //     if (weekComponents.empty()) initWeekComponents(); // находим слабые компоненты
+//
+// //     const std::vector<Node*>& largestWCC = weekComponents[0];
+//
+// //     if (largestWCC.empty()) return 0.0;
+//
+// //     double totalClustering = 0.0;
+//
+// //     // Проходим по каждому узлу в компоненте
+// //     for (Node* node : largestWCC) {
+// //         int u = node->num;
+// //         const std::vector<int>& neighbors = undirectedPaths[u];
+//
+// //         if (neighbors.size() < 2) {
+// //             // Кластерный коэффициент равен 0, если у узла менее двух соседей
+// //             continue;
+// //         }
+//
+// //         int links = 0; // количество связей между соседями узла
+// //         // Проверяем, есть ли ребро между каждой парой соседей
+// //         for (size_t i = 0; i < neighbors.size(); ++i) {
+// //             int vi = neighbors[i];
+// //             for (size_t j = i + 1; j < neighbors.size(); ++j) {
+// //                 int vj = neighbors[j];
+//
+// //                 // Проверяем, соединены ли vi и vj
+// //                 const auto& vi_neighbors = undirectedPaths[vi];
+// //                 if (std::find(vi_neighbors.begin(), vi_neighbors.end(), vj) != vi_neighbors.end()) {
+// //                     ++links;
+// //                 }
+// //             }
+// //         }
+//
+// //         // Возможное количество связей между соседями: C(k,2) = k*(k-1)/2
+// //         int k = neighbors.size();
+// //         double clusteringCoefficient = (2.0 * links) / (k * (k - 1));
+// //         totalClustering += clusteringCoefficient;
+// //     }
+//
+// //     return totalClustering / largestWCC.size();
+// // }
+//
+//     // void initUndirectedPaths() {
+//     //     undirectedPaths.reserve(paths.size());
+//     //     for (auto& [u, neigh] : paths) {
+//     //         for (int v : neigh) {
+//     //             undirectedPaths[u].push_back(v);
+//     //             undirectedPaths[v].push_back(u);
+//     //         }
+//     //     }
+//     // }
+//     //
+//     //
+//     // void initWeekComponents() {
+//     //
+//     //     if (undirectedPaths.empty()) { initUndirectedPaths(); }
+//     //
+//     //     for (auto& [num,node] : nodes) {
+//     //         if (!node.marked) {
+//     //             std::vector<Node*> component;
+//     //             std::queue<Node*> queue;
+//     //             queue.push(&node);
+//     //             node.marked = true;
+//     //             int nodeCount = 0;
+//     //             while (!queue.empty()) {
+//     //                 Node* currentNode = queue.front(); queue.pop();
+//     //                 component.push_back(currentNode);
+//     //                 ++nodeCount;
+//     //                 for (int neighborhood : undirectedPaths[currentNode->num]) {
+//     //                     if (nodes[neighborhood].marked != true) {
+//     //                         nodes[neighborhood].marked = true;
+//     //                         queue.push(&nodes[neighborhood]);
+//     //                     }
+//     //                 }
+//     //             }
+//     //             weekComponents.push_back(component);
+//     //         }
+//     //     }
+//     //     std::sort(weekComponents.begin(), weekComponents.end(),
+//     // [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
+//     //     return a.size() > b.size();}
+//     //     );
+//     //
+//     //     removeMarks();
+//     // }
+//
+//
+//  double getAverageClusteringCoefficient() {
+//     std::atomic<double> totalCoefficient = 0.0;
+//
+//     // Инициализация наибольшей компоненты связности (для неориентированного графа — просто компонент связности)
+//     initWeekComponents();
+//
+//     int countedVertices = weekComponents[0].size();
+//
+//     std::for_each(std::execution::par, weekComponents[0].begin(), weekComponents[0].end(), [&](Node* node) {
 //         int u = node->num;
-//         const std::vector<int>& neighbors = undirectedPaths[u];
-
-//         if (neighbors.size() < 2) {
-//             // Кластерный коэффициент равен 0, если у узла менее двух соседей
-//             continue;
-//         }
-
-//         int links = 0; // количество связей между соседями узла
-//         // Проверяем, есть ли ребро между каждой парой соседей
-//         for (size_t i = 0; i < neighbors.size(); ++i) {
-//             int vi = neighbors[i];
-//             for (size_t j = i + 1; j < neighbors.size(); ++j) {
-//                 int vj = neighbors[j];
-
-//                 // Проверяем, соединены ли vi и vj
-//                 const auto& vi_neighbors = undirectedPaths[vi];
-//                 if (std::find(vi_neighbors.begin(), vi_neighbors.end(), vj) != vi_neighbors.end()) {
-//                     ++links;
-//                 }
+//
+//         // Все соседи вершины u
+//         const std::vector<int>& neighbors = paths[u];
+//         int k = neighbors.size();
+//
+//         int linkCount = 0;
+//
+//         // Проверяем количество связей между соседями
+//         for (int i = 0; i < k; ++i) {
+//             for (int j = i + 1; j < k; ++j) {
+//                 int ni = neighbors[i];
+//                 int nj = neighbors[j];
+//
+//                 // Проверяем, связаны ли ni и nj
+//                 linkCount += (stdr::contains(paths[ni], nj)) || (stdr::contains(paths[nj], ni));
+//
 //             }
 //         }
-
-//         // Возможное количество связей между соседями: C(k,2) = k*(k-1)/2
-//         int k = neighbors.size();
-//         double clusteringCoefficient = (2.0 * links) / (k * (k - 1));
-//         totalClustering += clusteringCoefficient;
-//     }
-
-//     return totalClustering / largestWCC.size();
+//         if (k < 2) return;
+//         // Кластерный коэффициент вершины
+//         double Clu = (2.0 * linkCount) / (k * (k - 1));
+//         totalCoefficient += Clu;
+//     });
+//
+//     std::cout << "Total vertices in largest CC: " << countedVertices << std::endl;
+//     std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
+//     std::cout<< "Average clustering coefficient: " << (countedVertices > 0 ? totalCoefficient / countedVertices : 0.0 ) << std::endl;
+//     return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
 // }
-
-    void initUndirectedPaths() {
-        undirectedPaths.reserve(paths.size());
-        for (auto& [u, neigh] : paths) {
-            for (int v : neigh) {
-                undirectedPaths[u].push_back(v);
-                undirectedPaths[v].push_back(u);
-            }
-        }
-    }
-
-
-    void initWeekComponents() {
-
-        if (undirectedPaths.empty()) { initUndirectedPaths(); }
-
-        for (auto& [num,node] : nodes) {
-            if (!node.marked) {
-                std::vector<Node*> component;
-                std::queue<Node*> queue;
-                queue.push(&node);
-                node.marked = true;
-                int nodeCount = 0;
-                while (!queue.empty()) {
-                    Node* currentNode = queue.front(); queue.pop();
-                    component.push_back(currentNode);
-                    ++nodeCount;
-                    for (int neighborhood : undirectedPaths[currentNode->num]) {
-                        if (nodes[neighborhood].marked != true) {
-                            nodes[neighborhood].marked = true;
-                            queue.push(&nodes[neighborhood]);
-                        }
-                    }
-                }
-                weekComponents.push_back(component);
-            }
-        }
-        std::sort(weekComponents.begin(), weekComponents.end(),
-    [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
-        return a.size() > b.size();}
-        );  
-        
-        removeMarks();
-    }
-
-
- double getAverageClusteringCoefficient() {
-    std::atomic<double> totalCoefficient = 0.0;
-
-    // Инициализация наибольшей компоненты связности (для неориентированного графа — просто компонент связности)
-    initWeekComponents();
-
-    int countedVertices = weekComponents[0].size();
-
-    std::for_each(std::execution::par, weekComponents[0].begin(), weekComponents[0].end(), [&](Node* node) {
-        int u = node->num;
-
-        // Все соседи вершины u
-        const std::vector<int>& neighbors = paths[u];
-        int k = neighbors.size();
-
-        int linkCount = 0;
-
-        // Проверяем количество связей между соседями
-        for (int i = 0; i < k; ++i) {
-            for (int j = i + 1; j < k; ++j) {
-                int ni = neighbors[i];
-                int nj = neighbors[j];
-
-                // Проверяем, связаны ли ni и nj
-                linkCount += (stdr::contains(paths[ni], nj)) || (stdr::contains(paths[nj], ni));
-
-            }
-        }
-        if (k < 2) return;
-        // Кластерный коэффициент вершины
-        double Clu = (2.0 * linkCount) / (k * (k - 1));
-        totalCoefficient += Clu;
-    });
-
-    std::cout << "Total vertices in largest CC: " << countedVertices << std::endl;
-    std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
-    std::cout<< "Average clustering coefficient: " << (countedVertices > 0 ? totalCoefficient / countedVertices : 0.0 ) << std::endl;
-    return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
-}
 
 };
 
