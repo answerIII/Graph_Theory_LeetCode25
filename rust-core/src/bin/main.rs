@@ -1,4 +1,4 @@
-use msgpack_graph::{Graph, RMPSupport, RawGraph};
+use msgpack_graph::{Graph, RMPSupport, RawGraph, Selection};
 use std::time::Instant;
 
 fn main() -> msgpack_graph::Result<()> {
@@ -6,9 +6,9 @@ fn main() -> msgpack_graph::Result<()> {
         .with_max_level(tracing::Level::DEBUG)
         .init();
     let _ = std::fs::create_dir(".cache");
-    let filename = "vk.msgpack";
-    let timestamp = Instant::now();
-    let graph = match Graph::from_msgpack(format!(".cache/{}", filename)) {
+    let filename = "processed_vk.msgpack";
+    let mut timestamp = Instant::now();
+    let mut graph = match Graph::from_msgpack(format!(".cache/{}", filename)) {
         Ok(graph) => {
             tracing::info!("Uploaded from: .cache/{}", filename);
             graph
@@ -24,8 +24,29 @@ fn main() -> msgpack_graph::Result<()> {
     tracing::info!(
         "Nodes: {}, Edges: {}",
         graph.node_count(),
-        graph.edge_count()
+        graph.edge_count(),
     );
-    tracing::info!("Graph loading time: {} ms", timestamp.elapsed().as_millis());
+    tracing::info!("Loading time: {} ms", timestamp.elapsed().as_millis());
+    timestamp = Instant::now();
+    graph.create_landmarks(100, Selection::Degree);
+    tracing::info!(
+        "Creating landmarks time: {} ms",
+        timestamp.elapsed().as_millis()
+    );
+    // graph.to_msgpack(format!(".cache/{}", filename))?;
+    timestamp = Instant::now();
+    let distance = graph.distance(5252845, 15196597);
+    tracing::info!(
+        "BFS distance {:?}, time: {} ms",
+        distance,
+        timestamp.elapsed().as_millis()
+    );
+    timestamp = Instant::now();
+    let estimate_distance = graph.estimate_distance(5252845, 15196597);
+    tracing::info!(
+        "Landmark-Basic estimate distance {:?}, time: {} ms",
+        estimate_distance,
+        timestamp.elapsed().as_millis()
+    );
     Ok(())
 }
