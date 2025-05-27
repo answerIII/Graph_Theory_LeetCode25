@@ -2,18 +2,19 @@ from collections import deque
 
 def read_graph(file_path, directed=False):
     graph = {}
+    if file_path[-4:] == '.csv':
+        separator = ','
+    else:
+        separator = ' '
     with open(file_path, 'r') as f:
         line = f.readline().strip()
         while line.startswith('#'):
             line = f.readline().strip()
-        if ',' in line:
-            n, m = map(int, line.split(','))
-        else:
-            n, m = map(int, line.split())
+        n, m = map(int, line.split(separator))
         for i in range(n):
             graph[i] = set()
         for _ in range(m):
-            u, v = map(int, f.readline().split())
+            u, v = map(int, f.readline().split(separator))
             graph[u].add(v)
             if not directed:
                 graph[v].add(u)

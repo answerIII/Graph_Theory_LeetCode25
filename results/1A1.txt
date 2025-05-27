@@ -1,0 +1,101 @@
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/Wiki-Vote.txt
+Vertices: 7115
+Edges: 103689
+Density: 0.002049
+Weak components: 4741
+Max weak component ratio: 0.3255
+Strong components: 5816
+Max strong component ratio: 0.1827
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/soc-wiki-Vote.mtx
+Vertices: 889
+Edges: 2914
+Density: 0.003691
+Weak components: 889
+Max weak component ratio: 0.0011
+Strong components: 889
+Max strong component ratio: 0.0011
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Google.txt
+Vertices: 875713
+Edges: 5105039
+Density: 7e-06
+Weak components: 189907
+Max weak component ratio: 0.6857
+Strong components: 371764
+Max strong component ratio: 0.4965
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
+Vertices: 325729
+Edges: 1497134
+Density: 1.4e-05
+Weak components: 1
+Max weak component ratio: 1.0
+Strong components: 203609
+Max strong component ratio: 0.1657
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
+Vertices: 281903
+Edges: 2312497
+Density: 2.9e-05
+Weak components: 22531
+Max weak component ratio: 0.7734
+Strong components: 29914
+Max strong component ratio: 0.534
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
+Vertices: 18772
+Edges: 396160
+Density: 0.002249
+Weak components: 290
+Max weak component ratio: 0.9537
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
+Vertices: 5242
+Edges: 28980
+Density: 0.00211
+Weak components: 355
+Max weak component ratio: 0.7932
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
+Vertices: 265214
+Edges: 420045
+Density: 1.2e-05
+Weak components: 15836
+Max weak component ratio: 0.8477
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
+Vertices: 540486
+Edges: 15245729
+Density: 0.000104
+Weak components: 1
+Max weak component ratio: 1.0
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/musae_git_edges.csv
+Vertices: 37700
+Edges: 289003
+Density: 0.000407
+Weak components: 1
+Max weak component ratio: 1.0
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-youtube.ungraph.txt
+Vertices: 1134890
+Edges: 2987624
+Density: 5e-06
+Weak components: 1
+Max weak component ratio: 1.0
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/vk.csv
+Vertices: 3215720
+Edges: 17414510
+Density: 3e-06
+Weak components: 24337
+Max weak component ratio: 0.9834
+---
+Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/very_large_graphs/com-orkut.ungraph.txt
+Vertices: 3072441
+Edges: 117185083
+Density: 2.5e-05
+Weak components: 1
+Max weak component ratio: 1.0
+---
