@@ -17,10 +17,6 @@ def load_graph_from_file(filename: str, directed: bool = True):
             if not line or line.startswith('#'):
                 continue  # пропускаем пустые строки и комментарии
             parts = line.replace(',', ' ').split()
-            if len(parts) != 2:
-                continue  # пропускаем некорректные строки
-
-            
             try:
                 u, v = map(int, parts[:2])
             except ValueError:
