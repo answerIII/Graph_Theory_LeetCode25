@@ -203,4 +203,5 @@ def print_analysis(graph: dict, directed: bool):
 
     print("\n(B2)----------")
     plot_comparisons(stats1, stats2)
+    return week_max_component
 
