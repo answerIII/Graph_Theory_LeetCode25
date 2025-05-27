@@ -30,21 +30,29 @@ fn main() -> msgpack_graph::Result<()> {
     timestamp = Instant::now();
     graph.create_landmarks(100, Selection::Degree);
     tracing::info!(
-        "Creating landmarks time: {} ms",
+        "Creating {} landmarks time: {} ms",
+        graph.landmarks_count(),
         timestamp.elapsed().as_millis()
     );
     // graph.to_msgpack(format!(".cache/{}", filename))?;
     timestamp = Instant::now();
     let distance = graph.distance(5252845, 15196597);
     tracing::info!(
-        "BFS distance {:?}, time: {} ms",
+        "BFS distance: {:?}, time: {} ms",
         distance,
         timestamp.elapsed().as_millis()
     );
     timestamp = Instant::now();
     let estimate_distance = graph.estimate_distance(5252845, 15196597);
     tracing::info!(
-        "Landmark-Basic estimate distance {:?}, time: {} ms",
+        "Landmark-Basic estimate distance: {:?}, time: {} ms",
+        estimate_distance,
+        timestamp.elapsed().as_millis()
+    );
+    timestamp = Instant::now();
+    let estimate_distance = graph.estimate_distance_bfs(5252845, 15196597);
+    tracing::info!(
+        "Landmark-BFS estimate distance: {:?}, time: {} ms",
         estimate_distance,
         timestamp.elapsed().as_millis()
     );
