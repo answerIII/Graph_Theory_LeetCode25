@@ -6,7 +6,10 @@ def read_graph(file_path, directed=False):
         line = f.readline().strip()
         while line.startswith('#'):
             line = f.readline().strip()
-        n, m = map(int, line.split())
+        if ',' in line:
+            n, m = map(int, line.split(','))
+        else:
+            n, m = map(int, line.split())
         for i in range(n):
             graph[i] = set()
         for _ in range(m):
@@ -15,6 +18,7 @@ def read_graph(file_path, directed=False):
             if not directed:
                 graph[v].add(u)
     return graph, n, m
+
 
 def calculate_density(n, m, directed):
     if n < 2:
