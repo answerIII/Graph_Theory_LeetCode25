@@ -27,7 +27,7 @@
 4. Для наибольшей компоненты слабой связности вычислить средний кластерный коэффициент
    сети $\overline{Cl}=\frac{1}{|V|}\sum_{u\in G}Cl_u$,
    где\
-   ![formula](https://latex.codecogs.com/svg.image?\bg{white}Cl_u=\begin{cases}\dfrac{2L_u}{|\Gamma(u)|\cdot|\Gamma(u)-1|},\quad|\Gamma(u)|\ge2\\0,\quad\text{else}\end{cases})\
+   ![formula](https://latex.codecogs.com/svg.image?{\color{White}Cl_u=\begin{cases}\dfrac{2L_u}{|\Gamma(u)|\cdot|\Gamma(u)-1|},\quad|\Gamma(u)|\ge2\\0,\quad\text{else}\end{cases}})\
    где $Γ(u)$ – множество соседей вершины, $|\Gamma(u)| = k_u$ – степень вершины, $L_u$ - число ребер между соседями.
 
 5. Найти минимальную, максимальную, среднюю степень узла в графе. Построить функцию вероятности для степеней вершин сети
