@@ -264,6 +264,7 @@ func GetFileNameWithoutExt(path string) string {
 	base := filepath.Base(path)
 	return base[:len(base)-len(filepath.Ext(base))]
 }
+
 func GetFileDestination(path string) string {
 	return path[:len(path)-len(filepath.Base(path))]
 }
