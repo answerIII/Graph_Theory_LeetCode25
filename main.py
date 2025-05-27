@@ -4,11 +4,11 @@ from basic import load_large_graph_from_file
 from analysis import *
 from distance import *
 def main():
-    directed: bool =  True
-    G = load_graph_from_file("data/directed/web-Stanford.txt", directed)
+    directed: bool =  False
+    G = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)
     
     #для больших графов
-    G = load_large_graph_from_file("data/very_large_graphs/")
+    #G = load_large_graph_from_file("data/very_large_graphs/")
     
     print("Section 1------\n")
     print_analysis(G, directed)

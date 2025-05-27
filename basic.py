@@ -25,7 +25,7 @@ def load_graph_from_file(filename: str, directed: bool = True):
 
             G.add_edge(u, v)
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
-    return nx.to_dict_of_lists(G), G
+    return nx.to_dict_of_lists(G)
 
 def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
     """ граф ( словарь словарей ) будет храниться следующим образом:
