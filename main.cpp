@@ -3,13 +3,23 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <chrono>
 #include <iomanip>
-#include <sstream>
-#include <limits>
+#include <chrono>
 
 using namespace std;
 using namespace std::chrono;
+
+string formatScientific(double value) {
+    stringstream ss;
+    ss << scientific << setprecision(4) << value;
+    return ss.str();
+}
+
+string formatDouble(double value) {
+    stringstream ss;
+    ss << fixed << setprecision(2) << value;
+    return ss.str();
+}
 
 int main() {
     vector<string> allGraphs = {
@@ -52,7 +62,7 @@ int main() {
         getline(cin, inputLine);
 
         if (inputLine == "all") {
-            for (int i = 0; i < allGraphs.size(); ++i)
+            for (int i = 0; i < static_cast<int>(allGraphs.size()); ++i)
                 selectedIndexes.push_back(i);
             break;
         }
@@ -63,7 +73,7 @@ int main() {
         selectedIndexes.clear();
 
         while (iss >> num) {
-            if (num >= 1 && num <= (int)allGraphs.size()) {
+            if (num >= 1 && num <= static_cast<int>(allGraphs.size())) {
                 selectedIndexes.push_back(num - 1);
             } else {
                 cout << "[!] Неверный номер: " << num << "\n";
@@ -78,85 +88,75 @@ int main() {
         }
     }
 
-    bool runWCC = false, runSCC = false, runDensity = false;
-    char input;
-
-    cout << "\nЗапустить анализ плотности? (y/n): "; cin >> input;
-    runDensity = (input == 'y' || input == 'Y');
-
-    cout << "Запустить компоненты слабой связности (WCC)? (y/n): "; cin >> input;
-    runWCC = (input == 'y' || input == 'Y');
-
-    cout << "Запустить компоненты сильной связности (SCC)? (y/n): "; cin >> input;
-    runSCC = (input == 'y' || input == 'Y');
-
-    bool measureTime = false;
-    cout << "Измерять время выполнения? (y/n): "; cin >> input;
-    measureTime = (input == 'y' || input == 'Y');
-
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    cout << "\n====================================================================================================================\n";
-    cout << setw(35) << left << "Граф"
-        << setw(10) << right << "Вершин"
-        << setw(10) << "Рёбер";
-
-    if (runDensity) cout << setw(18) << "Плотность";
-    if (runWCC)     cout << setw(12) << "WCC" << setw(12) << "WCC %";
-    if (runSCC)     cout << setw(12) << "SCC" << setw(12) << "SCC %";
-    if (measureTime) cout << setw(12) << "Вр. загрузки";
-
-    cout << "\n====================================================================================================================\n";
-
     for (int idx : selectedIndexes) {
         string path = allGraphs[idx];
         string ext = path.substr(path.find_last_of('.'));
         string format = formatMap.count(ext) ? formatMap[ext] : "";
 
         if (format.empty()) {
-            cout << setw(35) << left << path << " [!] Неизвестный формат\n";
+            cout << "Неизвестный формат файла: " << path << endl;
             continue;
         }
 
-        Graph g;
+        cout << "-------------------------------\n";
+        cout << "Граф: " << path.substr(path.find_last_of('/') + 1) << "\n";
+
+        // Загрузка графа
         auto startLoad = high_resolution_clock::now();
+        Graph g;
         g.loadFromFile(path, format);
         auto endLoad = high_resolution_clock::now();
         auto loadTime = duration_cast<milliseconds>(endLoad - startLoad);
+        cout << "Загрузка: " << loadTime.count() << " ms\n";
 
         bool isDirected = g.getDirected();
         int vCount = g.getVertexCount();
         int eCount = g.getEdgeCount();
 
-        cout << setw(35) << left << path.substr(path.find_last_of('/') + 1)
-            << setw(10) << right << vCount
-            << setw(10) << eCount;
+        cout << "Вершин: " << vCount << "\n";
+        cout << "Рёбер: " << eCount << "\n";
 
-        if (runDensity) {
-            double d1 = g.getDensity();
-            cout << setw(18) << scientific << setprecision(6) << d1;
-        }
+        // // Плотность
+        // auto startDensity = high_resolution_clock::now();
+        // double density = g.getDensity();
+        // auto endDensity = high_resolution_clock::now();
+        // auto densityTime = duration_cast<milliseconds>(endDensity - startDensity);
+        // cout << "Плотность: " << formatScientific(density) << " (" << densityTime.count() << " ms)\n";
 
-        if (runWCC) {
-            int wcc = g.countWeaklyConnectedComponents();
-            double wccRatio = g.getWCCRatio() * 100.0;
-            cout << setw(12) << fixed << wcc
-                << setw(12) << fixed << setprecision(2) << wccRatio;
-        }
+        // // WCC
+        // auto startWCC = high_resolution_clock::now();
+        // int wcc = g.countWeaklyConnectedComponents();
+        // double wccRatio = g.getWCCRatio() * 100.0;
+        // auto endWCC = high_resolution_clock::now();
+        // auto wccTime = duration_cast<milliseconds>(endWCC - startWCC);
+        // cout << "WCC: " << wcc << " (" << wccTime.count() << " ms), " << formatDouble(wccRatio) << " %\n";
 
-        if (runSCC && isDirected) {
-            int scc = g.countStronglyConnectedComponents();
-            double sccRatio = g.getLargestSCCRatio() * 100.0;
-            cout << setw(12) << fixed << scc
-                << setw(12) << fixed << setprecision(2) << sccRatio;
-        } else if (runSCC && !isDirected) {
-            cout << setw(12) << "-" << setw(12) << "-";
-        }
+        // // SCC
+        // if (isDirected) {
+        //     auto startSCC = high_resolution_clock::now();
+        //     int scc = g.countStronglyConnectedComponents();
+        //     double sccRatio = g.getLargestSCCRatio() * 100.0;
+        //     auto endSCC = high_resolution_clock::now();
+        //     auto sccTime = duration_cast<milliseconds>(endSCC - startSCC);
+        //     cout << "SCC: " << scc << " (" << sccTime.count() << " ms), " << formatDouble(sccRatio) << " %\n";
+        // } else {
+        //     cout << "SCC: -\n";
+        // }
 
-        if (measureTime)
-            cout << setw(12) << loadTime.count();
+        // auto startDS = high_resolution_clock::now();
+        // int diamDS = g.estimateDiameterDoubleSweep();
+        // auto endDS = high_resolution_clock::now();
+        // auto dsTime = duration_cast<milliseconds>(endDS - startDS);
+        // cout << "Диаметр Double Sweep: " << diamDS << " (" << dsTime.count() << " ms)\n";
 
-        cout << "\n";
+        // auto startRP = high_resolution_clock::now();
+        // auto [diamRP, p90RP] = g.estimateDiameterRandomPairs(500);
+        // auto endRP = high_resolution_clock::now();
+        // auto rpTime = duration_cast<milliseconds>(endRP - startRP);
+        // cout << "Диаметр Random Pairs: " << diamRP << " (" << rpTime.count() << " ms)\n";
+        // cout << "P90 Random Pairs: " << formatDouble(p90RP) << " (" << rpTime.count() << " ms)\n";
+        // cout << endl;
     }
+
     return 0;
 }

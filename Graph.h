@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <queue>
+#include <stack>
+#include <random>
 
 class Graph {
 public:
@@ -14,10 +17,14 @@ public:
     int countWeaklyConnectedComponents();
     int countStronglyConnectedComponents();
     double getDensity() const;
-    double getLargestWCCRatio() const;    
     double getWCCRatio() const { return wccRatio; }
     double getLargestSCCRatio() const { return sccRatio; }
-    bool getDirected() const {return isDirected; }
+    bool getDirected() const { return isDirected; }
+
+    // int estimateDiameterDoubleSweep();
+    // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
+    // std::pair<int, int> estimateDiameterSnowballSample(int targetSize = 500);
+    // std::vector<int> getLargestWCCVertices();
 
 private:
     int numVertices;
@@ -40,5 +47,10 @@ private:
 
     void dsuInit(int n) const;
     int dsuFind(int x) const;
-    void dsuUnion(int x, int y) const;    
+    void dsuUnion(int x, int y) const;
+
+    // Вспомогательные методы для BFS и вычисления расстояний
+    std::pair<int, int> bfsFurthestNode(int start);
+    std::vector<int> getRandomVertices(int count, const std::vector<int>& vertices);
+    std::vector<int> snowballSample(int targetSize);
 };
