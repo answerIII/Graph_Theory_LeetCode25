@@ -27,6 +27,37 @@ def load_graph_from_file(filename: str, directed: bool = True):
 
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
     return nx.to_dict_of_lists(G), G
+def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
+    """ граф ( словарь словарей ) будет храниться следующим образом:
+    G[node1] — это все исходящие соседи узла node1
+    G[node1][neighbor] — это словарь с атрибутами ребра (если есть, например, веса)"""
+    G = nx.Graph()
+    selected_vertices = set()
+
+    with open(filename, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.replace(',', ' ').split()
+            if len(parts) < 2:
+                continue
+            try:
+                u, v = map(int, parts[:2])
+            except ValueError:
+                continue
+
+            # наращиваем множество вершин, если ещё не достигли лимита
+            if len(selected_vertices) < max_vertices:
+                selected_vertices.add(u)
+                selected_vertices.add(v)
+
+            # добавляем ребро, только если обе вершины уже выбраны
+            if u in selected_vertices and v in selected_vertices:
+                G.add_edge(u, v)
+
+
+    return nx.to_dict_of_lists(G), G
 
 def dfs(graph: dict, visited: set, start):
     """простой обход"""
