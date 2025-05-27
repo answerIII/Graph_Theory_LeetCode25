@@ -29,6 +29,8 @@ func PrecomputeLandmarks(
 		return err
 	}
 
+	nodes := g.GetNodesSlice()
+
 	for _, u := range landmarks {
 		dists, err := graph.BFS(g, []graph.Node{u}, nil, nil, nil)
 
@@ -36,7 +38,7 @@ func PrecomputeLandmarks(
 			return errors.New("can't calculate distances for node " + strconv.Itoa(int(u)) + "\n")
 		}
 		// landmarkFile.WriteString(strconv.Itoa(int(u)) + "\n")
-		for _, v := range g.GetNodesSlice() {
+		for _, v := range nodes {
 			if value, has := dists[v]; has {
 				_, err = landmarkFile.WriteString(strconv.Itoa(value) + "\n")
 				if err != nil {
@@ -76,6 +78,8 @@ func PrecomputeLandmarksWithPaths(
 		return err
 	}
 
+	nodes := g.GetNodesSlice()
+
 	for _, u := range landmarks {
 		parents := make(map[graph.Node]graph.Node)
 		dists, err := graph.BFS(
@@ -94,7 +98,7 @@ func PrecomputeLandmarksWithPaths(
 		if err != nil {
 			return err
 		}
-		for _, v := range g.GetNodesSlice() {
+		for _, v := range nodes {
 			if _, has := dists[v]; has {
 				node := v
 				for node != u {
