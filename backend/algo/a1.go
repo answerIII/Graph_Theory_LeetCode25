@@ -10,8 +10,24 @@ import (
 	//"google.golang.org/appengine/log"
 )
 
-func FindMaxWCC(graph *structs.Graph) (*structs.Graph, int) {
+func FindMaxWCC(graph structs.Graph) (*structs.Graph, int) {
 	graphWCC := structs.Graph{Directed: false}
+	newAdjList := make(map[int][]int)
+	for vertex, adj := range graph.AdjList {
+		newSlice := make([]int, len(adj))
+		copy(newSlice, adj)
+		newAdjList[vertex] = newSlice
+	}
+	graph.AdjList = newAdjList
+
+	if graph.Directed {
+		for vertex, adj := range graph.AdjList {
+			for _, j := range adj {
+				graph.AdjList[j] = append(graph.AdjList[j], vertex)
+			}
+		}
+	}
+	// fmt.Println("WCC GRAPH : ", graph)
 
 	visited := make(map[int]struct{})
 
@@ -59,7 +75,10 @@ func FindMaxWCC(graph *structs.Graph) (*structs.Graph, int) {
 func FindMaxSCC(graph *structs.Graph) (int, int) {
 
 	invGraph := InvertGraph(graph)
-	dfsResult := TimeDFS(&invGraph)
+	dfsResult := TimeDFS(invGraph)
+	// fmt.Println("INV GRAPH : ", invGraph)
+	graph = InvertGraph(invGraph)
+	// fmt.Println("SCC GRAPH : ", graph)
 
 	dfsList := make([]structs.StatDFS, len(dfsResult))
 	ind := 0
@@ -94,6 +113,7 @@ func FindMaxSCC(graph *structs.Graph) (int, int) {
 		visited[vertex] = struct{}{}
 
 		for len(dfsQueue) > 0 {
+			// fmt.Println(sccCount, ":", dfsQueue[len(dfsQueue)-1])
 			actVertex := dfsQueue[dfsQueueLen-1]
 			isAdded := false
 			for _, next := range graph.AdjList[actVertex] {
@@ -161,10 +181,10 @@ func TimeDFS(graph *structs.Graph) map[int]structs.StatDFS {
 
 }
 
-func InvertGraph(graph *structs.Graph) structs.Graph {
+func InvertGraph(graph *structs.Graph) *structs.Graph {
 	if graph.Edges == nil {
 		log.Fatal("cannot invert graph with no edges")
-		return structs.Graph{}
+		return nil
 	}
 
 	outputGraph := structs.Graph{
@@ -172,21 +192,24 @@ func InvertGraph(graph *structs.Graph) structs.Graph {
 		VertexCount: graph.VertexCount,
 		EdgesCount:  graph.EdgesCount,
 		AdjList:     make(map[int][]int),
-		Edges:       make([]structs.Edge, len(graph.Edges)),
+		Edges:       make([]structs.Edge, 0),
+		// Edges:       make([]structs.Edge, len(graph.Edges)),
 	}
 
-	copy(outputGraph.Edges, graph.Edges)
+	// copy(outputGraph.Edges, graph.Edges)
 
-	for _, edge := range outputGraph.Edges {
+	for _, edge := range graph.Edges {
 		v, u := edge.From, edge.To
 
 		if adj, ok := outputGraph.AdjList[u]; ok {
 			outputGraph.AdjList[u] = append(adj, v)
 		} else {
-			outputGraph.AdjList[u] = make([]int, 1)
-			outputGraph.AdjList[u][0] = v
+			outputGraph.AdjList[u] = []int{v}
+			// outputGraph.AdjList[u] = make([]int, 1)
+			// outputGraph.AdjList[u][0] = v
 		}
+		outputGraph.Edges = append(outputGraph.Edges, structs.Edge{From: u, To: v})
 	}
 
-	return outputGraph
+	return &outputGraph
 }

@@ -16,7 +16,7 @@ func GenerateA1(graph *structs.Graph) []byte {
 	}
 	answer.Density = float64(graph.EdgesCount) / (float64(graph.VertexCount) * float64(graph.VertexCount-1) / 2)
 
-	answer.WCC, answer.WCCCount = algo.FindMaxWCC(graph)
+	answer.WCC, answer.WCCCount = algo.FindMaxWCC(*graph)
 	answer.ProportionWCC = float32(answer.WCC.VertexCount) / float32(graph.VertexCount)
 
 	if graph.Directed {
