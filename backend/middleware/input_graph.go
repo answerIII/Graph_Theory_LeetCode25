@@ -11,7 +11,7 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func ReadGraph(filename string) structs.Graph {
+func ReadGraph(filename string) *structs.Graph {
 	length := len(filename)
 	if length > 4 && filename[length-5:] == ".json" {
 		return ReadGraphJSON(filename)
@@ -20,10 +20,10 @@ func ReadGraph(filename string) structs.Graph {
 	} else if length > 7 && filename[length-8:] == ".msgpack" {
 		return ReadGraphMP(filename)
 	}
-	return structs.Graph{}
+	return nil
 }
 
-func ReadGraphCSV(filename string) structs.Graph {
+func ReadGraphCSV(filename string) *structs.Graph {
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -41,7 +41,7 @@ func ReadGraphCSV(filename string) structs.Graph {
 	for range 4 {
 		record, err := reader.Read()
 		if err == io.EOF {
-			return structs.Graph{}
+			return nil
 		}
 
 		if record[0] == "directed" {
@@ -105,10 +105,10 @@ func ReadGraphCSV(filename string) structs.Graph {
 
 	}
 
-	return outputGraph
+	return &outputGraph
 }
 
-func ReadGraphJSON(filename string) structs.Graph {
+func ReadGraphJSON(filename string) *structs.Graph {
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(err)
@@ -155,10 +155,10 @@ func ReadGraphJSON(filename string) structs.Graph {
 
 	}
 
-	return outputGraph
+	return &outputGraph
 }
 
-func ReadGraphMP(filename string) structs.Graph {
+func ReadGraphMP(filename string) *structs.Graph {
 
 	dataMsg, err := os.ReadFile(filename)
 	if err != nil {
@@ -211,5 +211,5 @@ func ReadGraphMP(filename string) structs.Graph {
 
 	}
 
-	return outputGraph
+	return &outputGraph
 }

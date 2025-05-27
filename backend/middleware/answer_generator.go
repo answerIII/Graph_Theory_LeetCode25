@@ -1,8 +1,9 @@
 package middleware
 
 import (
+	// "encoding/json"
+
 	"encoding/json"
-	"fmt"
 
 	"github.com/HikkMind/graph/algo"
 	"github.com/HikkMind/graph/structs"
@@ -22,7 +23,7 @@ func GenerateA1(graph *structs.Graph) []byte {
 	// excludeVertex[4] = struct{}{}
 	answer.WCC, answer.WCCCount = algo.FindMaxWCC(*graph, excludeVertex)
 	answer.ProportionWCC = float32(answer.WCC.VertexCount) / float32(graph.VertexCount-len(excludeVertex))
-	fmt.Println("WCC : ", answer.WCC)
+	// fmt.Println("WCC : ", answer.WCC)
 
 	if graph.Directed {
 		maxSCCSize, SCCCount := algo.FindMaxSCC(graph)
@@ -31,6 +32,7 @@ func GenerateA1(graph *structs.Graph) []byte {
 	}
 
 	output, _ := json.Marshal(answer)
+	// output, _ := msgpack.Marshal(answer)
 
 	return output
 }
