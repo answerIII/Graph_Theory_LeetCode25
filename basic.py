@@ -24,9 +24,9 @@ def load_graph_from_file(filename: str, directed: bool = True):
                 continue
 
             G.add_edge(u, v)
-
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
     return nx.to_dict_of_lists(G), G
+
 def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
     """ граф ( словарь словарей ) будет храниться следующим образом:
     G[node1] — это все исходящие соседи узла node1
@@ -55,9 +55,7 @@ def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
             # добавляем ребро, только если обе вершины уже выбраны
             if u in selected_vertices and v in selected_vertices:
                 G.add_edge(u, v)
-
-
-    return nx.to_dict_of_lists(G), G
+    return nx.to_dict_of_lists(G)
 
 def dfs(graph: dict, visited: set, start):
     """простой обход"""

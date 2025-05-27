@@ -51,32 +51,30 @@ def plot_comparisons(stats1, stats2):
     plt.show()
 
 """тут когда все методы для пункта 1 сделаем напишем код который соберет все и выведет анализ графа"""
-def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Graph):
+def print_analysis(graph: dict, directed: bool):
     num_of_vertices = number_of_vertices(graph)
     num_of_edges = number_of_edges(graph, directed)
     print("(A1)----------")
     start = perf_counter()
-    print(f"кол-во вершин = {num_of_vertices} (должно быть {graph_with_correct_result.number_of_nodes()})")
-    print(f"кол-во ребер =  {num_of_edges} (должно быть {graph_with_correct_result.number_of_edges()})")
-    print(f"плотность = {density(num_of_edges, num_of_vertices, directed)} (должно быть {nx.density(graph_with_correct_result)})")
+    print(f"кол-во вершин = {num_of_vertices}")
+    print(f"кол-во ребер =  {num_of_edges}")
+    print(f"плотность = {density(num_of_edges, num_of_vertices, directed)}")
     week_max_component : set  # самая большая компонента по количеству вершин
     week_component_count: int
     undirected_graph = to_undirected(graph) if directed else graph
 
     if directed:
         week_component_count, week_max_component = weekly_connected_components(undirected_graph)
-        correct_components = len(list(nx.weakly_connected_components(graph_with_correct_result)))
 
     else:
         week_component_count, week_max_component = weekly_connected_components(graph)
-        correct_components = len(list(nx.connected_components(graph_with_correct_result)))
 
     fraction_of_vertices_largest_week_component = len(week_max_component)/num_of_vertices
-    print(f"кол-во комп. слабой свзяности = {week_component_count} (должно быть {correct_components})")
+    print(f"кол-во комп. слабой свзяности = {week_component_count}")
     print(f"дол в вершин в макс. по мощности слабой компоненте = {fraction_of_vertices_largest_week_component}")
     if directed:
         count, strong_max_comp_length = strongly_connected_components(graph)
-        print(f"кол-во компонент сильной свзяности = {count} (должно быть {len(list(nx.strongly_connected_components(graph_with_correct_result)))})")
+        print(f"кол-во компонент сильной свзяности = {count} )")
         print(f"доля вершин графа в наибольшей компоненте сильной связности = {strong_max_comp_length/num_of_vertices}")
     end = perf_counter()
     print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
@@ -108,7 +106,7 @@ def print_analysis(graph: dict, directed: bool, graph_with_correct_result: nx.Gr
     print(f"\n⏱ Время выполнения A4: {end - start:.6f} секунд")
     print("(A4)----------\n")
     if directed:
-        graph = to_undirected(graph)
+        graph = undirected_graph
     print("(A5)----------")
     start = perf_counter()
     min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
