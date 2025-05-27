@@ -20,7 +20,7 @@ def best_coverage_selection(k: int, graph: dict):
     """берем случайные пары, выбираем вершины, которые чаще всего встречаются в путях"""
     paths = []
     for _ in range(k):
-        a, b = random.sample(graph.keys(), 2)
+        a, b = random.sample(list(graph.keys()), 2)
         path = bfs_with_path(graph, a, b)
         if path:
             paths.append(path)
