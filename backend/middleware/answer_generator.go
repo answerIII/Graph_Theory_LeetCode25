@@ -4,14 +4,13 @@ import (
 	// "encoding/json"
 
 	"encoding/json"
-	"fmt"
 	"sort"
 
 	"github.com/HikkMind/graph/algo"
 	"github.com/HikkMind/graph/structs"
 )
 
-func GenerateA1(graph *structs.Graph) []byte {
+func GenerateProperties(graph *structs.Graph) []byte {
 
 	answer := structs.AnswerA1{
 		Directed:    graph.Directed,
@@ -39,7 +38,7 @@ func GenerateA1(graph *structs.Graph) []byte {
 	return output
 }
 
-func GenerateA2(graph *structs.Graph, method string, verticesCount int) []byte {
+func GenerateDistances(graph *structs.Graph, method string, verticesCount int) []byte {
 
 	var graphDistances [][]int
 	if method == "random_sample" {
@@ -67,7 +66,46 @@ func GenerateA2(graph *structs.Graph, method string, verticesCount int) []byte {
 		MeanDistance: meanDistance,
 	}
 	output, _ := json.Marshal(answer)
-	fmt.Println("answer2 : ", string(output))
 
 	return output
+}
+
+func GenerateClustering(graph *structs.Graph) []byte {
+
+	var answer structs.AnswerA3 = algo.CountTriangles(graph)
+	graphWCC, _ := algo.FindMaxWCC(*graph, make(map[int]struct{}))
+	answer.AvgClusterCoefWCC = algo.AvgClusterCoef(graphWCC)
+
+	output, _ := json.Marshal(answer)
+
+	return output
+
+}
+
+func GenerateDegrees(graph *structs.Graph) []byte {
+
+	answer := algo.GetDegreeProbability(graph)
+
+	output, _ := json.Marshal(answer)
+	return output
+
+}
+
+func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte {
+
+	var excludeVertex map[int]struct{}
+	if method == "random" {
+		excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
+	} else if method == "targeted" {
+		excludeVertex = algo.GetMaxDegreeVertexSet(graph, float32(percent))
+	}
+
+	graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
+
+	answer := structs.AnswerB{Percentage: percent, Method: method, ProportionWCC: float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))}
+
+	output, _ := json.Marshal(answer)
+
+	return output
+
 }

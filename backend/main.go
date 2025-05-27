@@ -22,6 +22,9 @@ func main() {
 
 	router.HandleFunc("/graphs/{datasetname}/properties", handlers.GetGeneralProperties).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/distances", handlers.GetDistanceEstimation).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/clustering", handlers.GetClusteringInfo).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/degree-distribution", handlers.GetDegreeDistribution).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/robustness", handlers.GetRobustnessComponent).Methods("GET")
 
 	serverPort := ":8080"
 	fmt.Println("server started on port " + serverPort)

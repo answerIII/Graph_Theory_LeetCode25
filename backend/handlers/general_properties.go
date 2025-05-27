@@ -17,6 +17,6 @@ func GetGeneralProperties(w http.ResponseWriter, r *http.Request) {
 	filename := vars["datasetname"] + ".msgpack"
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateA1(middleware.ReadGraph(storageRoot + filename)))
+	w.Write(middleware.GenerateProperties(middleware.ReadGraph(storageRoot + filename)))
 	// fmt.Fprintln(w, string(middleware.GenerateA1(middleware.ReadGraph(storageRoot+filename))))
 }
