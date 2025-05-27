@@ -9,64 +9,78 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Typography, Paper, FormControlLabel, Checkbox } from '@mui/material';
+import { Typography, Box, Tabs, Tab } from '@mui/material';
 
 interface DegreeDistributionComponentProps {
   graphId: string;
 }
 
 interface DegreeData {
-  degree_k: number;
-  count_nodes: number;
-  probability: number;
-  log_k: number;
-  log_prob: number;
+  minDegree: number;
+  avgDegree: number;
+  maxDegree: number;
+  probabilityDegree: {
+    degree: number;
+  };
 }
 
 const DegreeDistributionComponent: React.FC<DegreeDistributionComponentProps> = ({ graphId }) => {
   const [data, setData] = useState<DegreeData[]>([]);
-  const [logScale, setLogScale] = useState(false);
+  const [tab, setTab] = useState(0);
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // GET /graphs/{graphId}/degree_distribution
-    setData([
-      { degree_k: 1, count_nodes: 1000, probability: 0.5, log_k: 0, log_prob: -0.301 },
-      { degree_k: 2, count_nodes: 600, probability: 0.3, log_k: 0.301, log_prob: -0.523 },
-      { degree_k: 3, count_nodes: 300, probability: 0.15, log_k: 0.477, log_prob: -0.824 },
-      { degree_k: 4, count_nodes: 100, probability: 0.05, log_k: 0.602, log_prob: -1.301 },
-    ]);
+    const fetchDegrees = async () => {
+      // try {
+      //   setLoading(true);
+      //   const response = await fetch(`/api/graphs/${graphId}/degree-distribution`);
+      //   if (!response.ok) throw new Error('Ошибка сервера');
+      //   const data: DegreeData[] = await response.json();
+      //   setData(data);
+      // } catch (err) {
+      //   setError((err as Error).message);
+      // } finally {
+      //   setLoading(false);
+      // }
+    //   setData({
+    //     "minDegree": 1,
+    //     "avgDegree": 3.0,
+    //     "maxDegree": 5,
+    //     "probabilityDegree": {
+    //       "1": 0.2,
+    //       "2": 0.3,
+    //       "3": 0.3,
+    //       "4": 0.1,
+    //       "5": 0.1
+    // });
+    };
+    fetchDegrees();
+
   }, [graphId]);
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box>
       <Typography variant="h6" gutterBottom>
         Распределение степеней
       </Typography>
-      <FormControlLabel
-        control={<Checkbox checked={logScale} onChange={(e) => setLogScale(e.target.checked)} />}
-        label="Логарифмическая шкала"
-      />
+
+      <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
+        <Tab label="Обычная шкала" />
+        <Tab label="Log-Log шкала" />
+      </Tabs>
       <ResponsiveContainer width="100%" height={400}>
         <ScatterChart>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey={logScale ? 'log_k' : 'degree_k'}
-            type="number"
-            name="Степень"
-            domain={logScale ? [0, 'auto'] : ['auto', 'auto']}
-          />
-          <YAxis
-            dataKey={logScale ? 'log_prob' : 'probability'}
-            type="number"
-            name="Вероятность"
-            domain={logScale ? ['auto', 0] : [0, 'auto']}
-          />
+          <XAxis dataKey={tab === 0 ? 'degree' : 'logDegree'} name="Степень" />
+          <YAxis dataKey={tab === 0 ? 'probability' : 'logProbability'} name="Вероятность" />
           <Tooltip />
           <Legend />
-          <Scatter name="Вершины" data={data} fill="#8884d8" />
+          <Scatter data={data} fill="#8884d8" />
         </ScatterChart>
       </ResponsiveContainer>
-    </Paper>
+    </Box>
   );
 };
 

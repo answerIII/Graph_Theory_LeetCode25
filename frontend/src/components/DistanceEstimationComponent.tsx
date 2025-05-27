@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Button, Typography, Table, TableBody, TableCell, TableHead, TableRow, Paper, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Table, TableBody, TableCell, TableRow, MenuItem, Select, CircularProgress, Alert } from '@mui/material';
 
 interface DistanceEstimationComponentProps {
   graphId: string;
@@ -7,102 +7,66 @@ interface DistanceEstimationComponentProps {
 
 interface DistanceResult {
   method: 'double_sweep' | 'random_sample' | 'snowball';
-  diameter_est?: number;
-  mean_dist?: number;
-  p90_dist?: number;
-  max_dist?: number;
+  diameter?: number;
+  percentile90?: number;
+  // meanDistance?: number;
 }
 
 const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = ({ graphId }) => {
   const [method, setMethod] = useState<'double_sweep' | 'random_sample' | 'snowball'>('double_sweep');
-  const [results, setResults] = useState<DistanceResult | null>(null);
-  const [sampleSize, setSampleSize] = useState<string>('500');
+  const [result, setResult] = useState<DistanceResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCalculate = () => {
-    // POST /graphs/{graphId}/double_sweep, /random_sample, /snowball
-    // Тестовые данные
-    if (method === 'double_sweep') {
-      setResults({ method, diameter_est: 10 });
-    } else if (method === 'random_sample') {
-      setResults({ method, mean_dist: 4.5, p90_dist: 8, max_dist: 10 });
-    } else {
-      setResults({ method, mean_dist: 4.2, p90_dist: 7, max_dist: 9 });
-    }
+  const fetchDistances = async () => {
+    // try {
+    //   setLoading(true);
+    //   const response = await fetch(`/api/graphs/${graphId}/distances`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ method, sampleSize: method !== 'double_sweep' ? 1000 : undefined }),
+    //   });
+    //   if (!response.ok) throw new Error('Ошибка сервера');
+    //   const data: DistanceResult = await response.json();
+    //   setResult(data);
+    // } catch (err) {
+    //   setError((err as Error).message);
+    // } finally {
+    //   setLoading(false);
+    // }
+    setResult({
+      method: 'double_sweep',
+      diameter: 1,
+      percentile90: 1,
+      meanDistance: 1,
+    });
   };
 
+  useEffect(() => {
+    fetchDistances();
+  }, [graphId, method]);
+
   return (
-    <Paper sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Оценка расстояний
-      </Typography>
-      <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-        <Button
-          variant={method === 'double_sweep' ? 'contained' : 'outlined'}
-          onClick={() => setMethod('double_sweep')}
-        >
-          Double Sweep
-        </Button>
-        <Button
-          variant={method === 'random_sample' ? 'contained' : 'outlined'}
-          onClick={() => setMethod('random_sample')}
-        >
-          Random Sample
-        </Button>
-        <Button
-          variant={method === 'snowball' ? 'contained' : 'outlined'}
-          onClick={() => setMethod('snowball')}
-        >
-          Snowball
-        </Button>
-        {(method === 'random_sample' || method === 'snowball') && (
-          <TextField
-            label="Размер выборки"
-            value={sampleSize}
-            onChange={(e) => setSampleSize(e.target.value)}
-            type="number"
-            size="small"
-            sx={{ width: 120 }}
-          />
-        )}
-        <Button variant="contained" color="primary" onClick={handleCalculate}>
-          Рассчитать
-        </Button>
-      </Box>
-      {results && (
+    <Box>
+      <Select value={method} onChange={(e) => setMethod(e.target.value as any)}>
+        <MenuItem value="double_sweep">Double Sweep</MenuItem>
+        <MenuItem value="random_sample">Random Sample</MenuItem>
+        <MenuItem value="snowball">Snowball</MenuItem>
+      </Select>
+      <Button onClick={fetchDistances} disabled={loading}>Обновить</Button>
+      {loading && <CircularProgress />}
+      {error && <Alert severity="error">{error}</Alert>}
+      {result && (
         <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Метрика</TableCell>
-              <TableCell>Значение</TableCell>
-            </TableRow>
-          </TableHead>
           <TableBody>
-            {results.method === 'double_sweep' && (
-              <TableRow>
-                <TableCell>Оценка диаметра</TableCell>
-                <TableCell>{results.diameter_est}</TableCell>
-              </TableRow>
-            )}
-            {(results.method === 'random_sample' || results.method === 'snowball') && (
-              <>
-                <TableRow>
-                  <TableCell>Среднее расстояние</TableCell>
-                  <TableCell>{results.mean_dist?.toFixed(2)}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>90-й процентиль</TableCell>
-                  <TableCell>{results.p90_dist}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Максимальное расстояние</TableCell>
-                  <TableCell>{results.max_dist}</TableCell>
-                </TableRow>
-              </>
-            )}
+            <TableRow><TableCell>Метод</TableCell><TableCell>{result.method}</TableCell></TableRow>
+            {result.diameter && <TableRow><TableCell>Диаметр</TableCell><TableCell>{result.diameter}</TableCell></TableRow>}
+            {result.percentile90 && <TableRow><TableCell>90-й процентиль</TableCell><TableCell>{result.percentile90.toFixed(2)}</TableCell></TableRow>}
+            {result.meanDistance && <TableRow><TableCell>Среднее расстояние</TableCell><TableCell>{result.meanDistance.toFixed(2)}</TableCell></TableRow>}
           </TableBody>
         </Table>
       )}
-    </Paper>
+    </Box>
   );
 };
 
