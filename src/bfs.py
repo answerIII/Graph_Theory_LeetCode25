@@ -233,3 +233,30 @@ def getNodeListWithSnowballBFS(
                 visited.add(neighbour_node_ind)
                 nodes_queue.append(neighbour_node_ind)
     return subgraph_nodes_list
+
+
+def updateLandmarkDistBFS(
+    undir_adj_list: Tuple[Set[int], ...],
+    landmarks_dist_matrix: Tuple[List[int], ...],
+    start_node_ind: int,
+    landmark_ind: int,
+) -> None:
+    """
+    Calculate distances from landmark_ind to all other nodes
+    Store distances into landmarks_dist_matrix[landmark_ind]
+    """
+    distance = -1
+    visited = [False for _ in range(len(undir_adj_list))]
+    nodes_queue: Deque[int] = deque()
+    visited[start_node_ind] = True
+    nodes_queue.append(start_node_ind)
+    while nodes_queue:
+        queue_size = len(nodes_queue)
+        distance += 1
+        for _ in range(queue_size):
+            new_node_ind = nodes_queue.popleft()
+            landmarks_dist_matrix[landmark_ind][new_node_ind] = distance
+            for neighbour_node_ind in undir_adj_list[new_node_ind]:
+                if not visited[neighbour_node_ind]:
+                    visited[neighbour_node_ind] = True
+                    nodes_queue.append(neighbour_node_ind)

@@ -16,7 +16,7 @@ from definitions import (
 
 from largest_weak_component import getLargestWeakComponent
 
-from network_structure_analysis.A.two.bfs import (
+from bfs import (
     getFurthestNodeBFS,
     updateDistNodeSubsetBFS,
     updateDistBFS,
