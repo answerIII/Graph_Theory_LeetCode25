@@ -1,32 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableHead, TableRow, Typography, CircularProgress, Alert, Box } from '@mui/material';
 
 interface ClusteringComponentProps {
   graphId: string;
 }
 
 interface ClusteringData {
-  num_triangles: number;
-  global_clustering_coef: number;
-  avg_clustering_coef: number;
+  trianglesCount: number;
+  globalClusteringCoef: number;
+  avgClusteringCoef: number;
+  avgClusterCoefLargeWCC?: number;
 }
 
 const ClusteringComponent: React.FC<ClusteringComponentProps> = ({ graphId }) => {
   const [data, setData] = useState<ClusteringData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // GET /graphs/{graphId}/clustering_overview
-    setData({
-      num_triangles: 150,
-      global_clustering_coef: 0.25,
-      avg_clustering_coef: 0.3,
+    const fetchClustering = async () => {
+      // try {
+      //   setLoading(true);
+      //   const response = await fetch(`/api/graphs/${graphId}/clustering`);
+      //   if (!response.ok) throw new Error('Ошибка сервера');
+      //   const data: ClusteringData = await response.json();
+      //   setData(data);
+      // } catch (err) {
+      //   setError((err as Error).message);
+      // } finally {
+      //   setLoading(false);
+      // }
+      setData({
+      trianglesCount: 150,
+      globalClusteringCoef: 0.25,
+      avgClusteringCoef: 0.3,
     });
+    };
+    fetchClustering();
+    
   }, [graphId]);
 
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
   if (!data) return <Typography>Загрузка...</Typography>;
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
         Кластеризация
       </Typography>
@@ -40,19 +60,19 @@ const ClusteringComponent: React.FC<ClusteringComponentProps> = ({ graphId }) =>
         <TableBody>
           <TableRow>
             <TableCell>Число треугольников</TableCell>
-            <TableCell>{data.num_triangles}</TableCell>
+            <TableCell>{data.trianglesCount}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Глобальный коэффициент кластеризации</TableCell>
-            <TableCell>{data.global_clustering_coef.toFixed(4)}</TableCell>
+            <TableCell>{data.globalClusteringCoef.toFixed(4)}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Средний коэффициент кластеризации</TableCell>
-            <TableCell>{data.avg_clustering_coef.toFixed(4)}</TableCell>
+            <TableCell>{data.avgClusteringCoef.toFixed(4)}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
-    </Paper>
+    </Box>
   );
 };
 

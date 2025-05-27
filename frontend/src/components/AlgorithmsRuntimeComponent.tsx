@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableHead, TableRow, Paper, Typography, CircularProgress, Alert, Box, Tooltip } from '@mui/material';
+import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from 'recharts';
 
 interface AlgorithmsRuntimeComponentProps {
   graphId: string;
@@ -8,23 +9,43 @@ interface AlgorithmsRuntimeComponentProps {
 interface RuntimeData {
   algorithm: string;
   params: string;
-  elapsed_ms: number;
-  memory_used_mb: number;
+  elapsedMs: number;
+  memoryUsedMb: number;
 }
 
 const AlgorithmsRuntimeComponent: React.FC<AlgorithmsRuntimeComponentProps> = ({ graphId }) => {
   const [data, setData] = useState<RuntimeData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // GET /graphs/{graphId}/algorithms_runtime
-    setData([
-      { algorithm: 'double_sweep_bfs', params: 'seed=42', elapsed_ms: 500, memory_used_mb: 100 },
-      { algorithm: 'compute_triangles', params: '', elapsed_ms: 1200, memory_used_mb: 200 },
-    ]);
+    const fetchRuntime = async () => {
+      // try {
+      //   setLoading(true);
+      //   const response = await fetch(`/api/graphs/${graphId}/runtime`);
+      //   if (!response.ok) throw new Error('Ошибка сервера');
+      //   const data: RuntimeData[] = await response.json();
+      //   setData(data);
+      // } catch (err) {
+      //   setError((err as Error).message);
+      // } finally {
+      //   setLoading(false);
+      // }
+      setData([
+        { algorithm: 'double_sweep_bfs', params: 'seed=42', elapsedMs: 500, memoryUsedMb: 100 },
+        { algorithm: 'compute_triangles', params: '', elapsedMs: 1200, memoryUsedMb: 200 },
+      ]);
+    };
+    fetchRuntime();
+
   }, [graphId]);
 
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box>
       <Typography variant="h6" gutterBottom>
         Время выполнения алгоритмов
       </Typography>
@@ -42,13 +63,34 @@ const AlgorithmsRuntimeComponent: React.FC<AlgorithmsRuntimeComponentProps> = ({
             <TableRow key={index}>
               <TableCell>{row.algorithm}</TableCell>
               <TableCell>{row.params}</TableCell>
-              <TableCell>{row.elapsed_ms}</TableCell>
-              <TableCell>{row.memory_used_mb.toFixed(2)}</TableCell>
+              <TableCell>{row.elapsedMs}</TableCell>
+              <TableCell>{row.memoryUsedMb.toFixed(2)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </Paper>
+      <Box sx={{ display: 'flex', justifyContent: 'center', margin: '20px 0'}}>
+        <BarChart width={600} height={400} data={data}>
+          <CartesianGrid />
+          <XAxis dataKey="algorithm"/>
+          <YAxis/>
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="elapsedMs" fill="#8884d8" name="Время (мс)" />
+        </BarChart>
+
+        <BarChart width={600} height={400} data={data}>
+          <CartesianGrid />
+          <XAxis dataKey="algorithm" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="memoryUsedMb" fill="#188910" name="Память (МБ)"/>
+        </BarChart>
+      </Box>
+
+
+    </Box>
   );
 };
 

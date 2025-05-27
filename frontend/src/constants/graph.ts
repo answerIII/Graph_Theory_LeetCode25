@@ -1,9 +1,8 @@
 import type { Graph } from '../types/interfaces';
 
-// Тестовый граф для быстрого тестирования
-export const testGraph: Graph = {
-  directed: false,
-  numNodes: 10,
+export const testGraph1: Graph = {
+  is_directed: false,
+  nodeCount: 10,
   edges: [
     [0, 1],
     [0, 2],

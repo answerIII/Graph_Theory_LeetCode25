@@ -1,11 +1,12 @@
 export interface Graph {
-  directed: boolean;
-  numNodes: number;
+  is_directed: boolean;
+  nodeCount: number;
+  edgeCount?: number;
   edges: [number, number][];
 }
 
 export interface GraphUpload {
-  directed: boolean;
+  is_directed: boolean;
   numNodes: number;
   edgeCount: number;
   maxVertexId: number;

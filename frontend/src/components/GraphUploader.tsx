@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import { useGraphWorker } from '../hooks/useGraphWorker';
 import { downloadGraph } from '../utils/downloadGraph';
-import { datasets, testGraph } from '../constants/graph';
+import { datasets, testGraph1 } from '../constants/graph';
 
 const GraphUploader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -124,7 +124,7 @@ const GraphUploader: React.FC = () => {
   };
 
   const handleUseTestGraph = () => {
-    setGraph(testGraph);
+    setGraph(testGraph1);
     setFile(null);
     setFileName('test_graph');
     setDirected('false');
@@ -156,7 +156,7 @@ const GraphUploader: React.FC = () => {
       return;
     }
     const graphId = fileName.split('.')[0] || 'test_graph';
-    navigate(`/analysis/${graphId}`);
+    navigate(`/graphs/${graphId}`);
   };
 
   return (
@@ -292,7 +292,7 @@ const GraphUploader: React.FC = () => {
                 <br />
                 Максимальный ID вершины: {graph.maxVertexId}
                 <br />
-                Тип: {graph.directed ? 'Ориентированный' : 'Неориентированный'}
+                Тип: {graph.is_directed ? 'Ориентированный' : 'Неориентированный'}
               </Typography>
             </Alert>
           )}

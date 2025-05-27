@@ -1,30 +1,105 @@
-import axios from 'axios';
-import type { Graph } from '../types/interfaces';
+// src/api/graphApi.ts
+import axiosInstance from './axiosInstance';
+import type {
+//   GraphData,
+  GeneralPropertiesData,
+  DistanceResultData,
+  ClusteringData,
+  DegreeDistributionData,
+  RobustnessData,
+  RuntimeData,
+//   ComparisonData,
+} from '../types/graphTypes';
 
-const API_URL = 'http://localhost:8085';
-
-export const uploadGraph = async (graph: Graph): Promise<void> => {
-
-    try{
-        // console.log(graph);
-        await axios.post(`${API_URL}/upload`, graph, {
-            headers: {'Content-Type' : 'application/json'},
-        });
-    }
-    catch(error){
-        throw new Error('Ошибка отправки графа на бэкенд' + (error as Error).message);
-    }
+interface RequestBody {
+  [key: string]: any;
 }
 
-export const selectDataset = async (datasetName: string): Promise<void> => {
+export const graphApi = {
+//   // 1. Получение графа для визуализации
+//   getGraph: async (datasetname: string): Promise<GraphData> => {
+//     const response = await axiosInstance.get(`/graphs/${datasetname}`);
+//     return response.data;
+//   },
 
-    try{
-        
-        await axios.post(`${API_URL}/api/dataset`, datasetName, {
-            headers: {'Content-Type' : 'application/json'},
-        });
+  // 2. Получение общих характеристик графа
+  getGeneralProperties: async (datasetname: string): Promise<GeneralPropertiesData> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/properties`);
+    return response.data;
+  },
+
+  // 3. Оценка расстояний
+  getDistances: async (
+    datasetname: string,
+    method: 'double_sweep' | 'random_sample' | 'snowball',
+    sampleSize?: number
+  ): Promise<DistanceResultData> => {
+    const body: RequestBody = { method };
+    if (sampleSize && method !== 'double_sweep') {
+      body.sampleSize = sampleSize;
     }
-    catch (error){
-        throw new Error(`Ошибка выбора датасета ${datasetName}` + (error as Error).message);
+    const response = await axiosInstance.post(`/graphs/${datasetname}/distances`, body);
+    return response.data;
+  },
+
+  // 4. Получение данных кластеризации
+  getClustering: async (datasetname: string): Promise<ClusteringData> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/clustering`);
+    return response.data;
+  },
+
+  // 5. Получение распределения степеней
+  getDegreeDistribution: async (datasetname: string): Promise<DegreeDistributionData> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/degree-distribution`);
+    return response.data;
+  },
+
+  // 6. Анализ устойчивости
+  getRobustness: async (
+    datasetname: string,
+    xPercent: number,
+    removalMethod: 'random' | 'targeted'
+  ): Promise<RobustnessData[]> => {
+    const response = await axiosInstance.post(`/graphs/${datasetname}/robustness`, {
+      xPercent,
+      removalMethod,
+    });
+    return response.data;
+  },
+
+  // 7. Получение метрик производительности
+  getRuntimeMetrics: async (datasetname: string): Promise<RuntimeData[]> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/metrics`);
+    return response.data;
+  },
+
+  // 8. Сравнение датасетов
+//   compareDatasets: async (
+//     datasetNames: string[],
+//     metrics: string[]
+//   ): Promise<ComparisonData[]> => {
+//     const response = await axiosInstance.post('/graphs/compare', {
+//       datasetNames,
+//       metrics,
+//     });
+//     return response.data;
+//   },
+
+//   // 9. Загрузка нового графа
+//   uploadGraph: async (graph: GraphData): Promise<void> => {
+//     try {
+//       await axiosInstance.post('/upload', graph);
+//     } catch (error) {
+//       throw new Error(`Ошибка отправки графа на бэкенд: ${(error as Error).message}`);
+//     }
+//   },
+
+  // 10. Выбор датасета
+  selectDataset: async (datasetname: string): Promise<void> => {
+    try {
+      await axiosInstance.post('/api/dataset', { datasetname });
+    } catch (error) {
+      throw new Error(`Ошибка выбора датасета ${datasetname}: ${(error as Error).message}`);
     }
-}
+  },
+};

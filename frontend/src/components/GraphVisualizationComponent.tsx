@@ -1,44 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import CytoscapeComponent from 'react-cytoscapejs';
-import { Alert, Box, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import type { Graph } from '../types/interfaces';
+import { testGraph1 } from '../constants/graph';
 
 interface GraphVisualizationComponentProps {
   graphId: string;
 }
 
 const GraphVisualizationComponent: React.FC<GraphVisualizationComponentProps> = ({ graphId }) => {
-  const [graph, setGraph] = useState<Graph | null>(null);
+  const [graphData, setGraphData] = useState<Graph | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const maxRenderNodes = 1000;
 
   useEffect(() => {
     // Запрос на бэкенд: GET /graphs/{graphId}
+    // const fetchGraph = async () => {
+    //   try {
+    //     setLoading(true);
+    //     const response = await fetch(`/api/graphs/${graphId}`);
+    //     if (!response.ok) throw new Error('Ошибка загрузки графа');
+    //     const data: Graph = await response.json();
+    //     setGraphData(data);
+    //   } catch (err) {
+    //     setError((err as Error).message);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+    // fetchGraph();
     // Пока используем тестовый граф
-    setGraph({
-      directed: false,
-      numNodes: 5,
-      edges: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 4],
-        [4, 0],
-      ],
-    });
+    setGraphData(testGraph1);
   }, [graphId]);
 
-  if (!graph) return <Typography>Загрузка...</Typography>;
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  if (!graphData) return null;
 
-  const isLargeGraph = graph.numNodes > maxRenderNodes;
+  const isLargeGraph = graphData.nodeCount > maxRenderNodes;
   if (isLargeGraph) {
     return <Alert severity="warning">Граф слишком большой для визуализации (более {maxRenderNodes} вершин).</Alert>;
   }
 
   const elements = [
-    ...Array.from({ length: graph.numNodes }, (_, i) => ({
+    ...Array.from({ length: graphData.nodeCount }, (_, i) => ({
       data: { id: i.toString() },
     })),
-    ...graph.edges.map((e, i) => ({
+    ...graphData.edges.map((e, i) => ({
       data: {
         id: `edge-${i}`,
         source: e[0].toString(),
@@ -48,13 +57,13 @@ const GraphVisualizationComponent: React.FC<GraphVisualizationComponentProps> = 
   ];
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', height: '600px' }}>
       <Typography variant="h6" gutterBottom>
         Визуализация графа
       </Typography>
       <CytoscapeComponent
         elements={elements}
-        style={{ width: '100%', height: '400px' }}
+        style={{ width: '100%', height: '100%' }}
         layout={{ name: 'cose', animate: true }}
         stylesheet={[
           { selector: 'node', style: { label: 'data(id)', backgroundColor: '#1976d2' } },
