@@ -1,6 +1,6 @@
 from basic import load_graph_from_file
 from basic import load_large_graph_from_file
-
+from large import load_graph
 from analysis import *
 from distance import *
 
@@ -12,13 +12,13 @@ def extract_subgraph(full_graph, vertices):
 
 def main():
     directed: bool =  False
-    G = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)
+    #G = load_graph_from_file("data/directed/Wiki-Vote.txt", directed)
     
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/")
-    
+    G = load_graph("data/very_large_graphs/very_large_graphs/com-orkut.ungraph.txt")
     print("Section 1------\n")
-    comp = print_analysis(G, directed)
+    comp = print_analysis(G, directed, large=False)
     print("\nSection 1------\n\n")
     print("Section 2------\n")
     subgraph = extract_subgraph(G, comp)
