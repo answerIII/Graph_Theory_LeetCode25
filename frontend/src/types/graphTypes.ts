@@ -67,3 +67,22 @@ export interface ComparisonData {
   degreeDistribution?: DegreeDistributionData;
   robustness?: RobustnessData[];
 }
+
+// 9. DistanceAnalysisComponent
+
+export interface DistanceResult {
+  id: string;
+  algorithm: string;
+  distance: number | null;
+  execution_time_ms: number;
+  landmarks: number[];
+  start_node: number;
+  end_node: number;
+}
+
+export interface AlgorithmParams {
+  start_node: string;
+  end_node: string;
+  landmarks_count: string;
+  landmarks_selection: 'random' | 'highest_degree' | 'max_coverage';
+}
