@@ -14,6 +14,8 @@ class Graph {
 protected:
     std::vector<std::vector<int>> paths;
     std::vector<Node> nodes;
+    std::vector<std::vector<int>> originalPaths ;
+    std::vector<Node> originalNodes;
     int vertexCount = 0;
     int edgesCount = 0;
 
@@ -60,6 +62,21 @@ class DirectedGraph : public Graph {
     const size_t NUM_OF_THREADS = 12;
 
     std::unordered_map<int, int> trianglePerNode;
+
+    Node* seedNode = nullptr;
+    Node* farthestNode = nullptr;
+    int maxDist = 0;
+    double meanDist = 0.0;
+    int medianDist = 0;
+    int usedPairs = 0;
+    int seedUsed = 0;
+    int snowballSampleSize = 0;
+    int snowballSamplePairs = 0;
+    double snowballMean = 0.0;
+    int snowballMedian = 0;
+    int snowballP90 = 0;
+    int snowballMax = 0;
+    int snowballSeed = 0;
 
 
     void initWeekComponents() {
@@ -181,15 +198,23 @@ class DirectedGraph : public Graph {
     }
 
     void initApproximateDiameter() {
-
         if (weekComponents.empty()) initWeekComponents();
+        if (weekComponents.empty() || weekComponents[0].empty()) return; // fail-safe
 
-        int randomIndex = 1718 % weekComponents[0].size();
-        Node* r  = weekComponents[0][randomIndex];
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, weekComponents[0].size() - 1);
+
+        int randomIndex = distrib(gen);
+        Node* r = weekComponents[0][randomIndex];
         std::pair<int, Node*> a = getFarthestVertexInsideWWC(r);
         std::pair<int, Node*> b = getFarthestVertexInsideWWC(a.second);
+
+        seedNode = r;
+        farthestNode = b.second;
         approximateDiameter = b.first;
     }
+
 
     void init90PercentileB() {
 
@@ -204,6 +229,7 @@ class DirectedGraph : public Graph {
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_int_distribution<> dis(0, componentSize - 1);
+        seedUsed = rd();
 
         //mark week component, work only with theLargestWCC nodes
         for (Node* node : weekComponents[0]) {
@@ -262,41 +288,25 @@ class DirectedGraph : public Graph {
 
         if (distances.empty()) {
             percentileB = -1;
+            maxDist = -1;
+            meanDist = -1;
+            medianDist = -1;
+            usedPairs = 0;
             return;
         }
-
-
-
-        // //unsing a bfs try to find the distance
-        // //between two random nodes inside the LargestWCC
-        // //put result to distances
-        // for (int i =0; i < samples; ++i) {
-        //
-        //     int index = rand() % componentSize;
-        //     Node* u = weekComponents[0][index];
-        //     index = rand() % componentSize;
-        //     Node* v = weekComponents[0][index];
-        //
-        //     std::queue<Node*> queue;
-        //     std::unordered_map<int,int> lengths;
-        //     lengths.reserve(samples);
-        //     lengths[u->num] = 0;
-        //     queue.push(u);
-        //     while (!queue.empty()) {
-        //         Node* currentNode = queue.front(); queue.pop();
-        //         if (currentNode->num == v->num) break;
-        //         for (int neighborhood : undirectedPaths[currentNode->num]) {
-        //             if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
-        //             lengths[neighborhood] = lengths[currentNode->num] + 1;
-        //             queue.push(&nodes[neighborhood]);
-        //         }
-        //     }
-        //     distances.push_back(lengths[v->num]);
-        // }
-
+        usedPairs = distances.size();
         sort(distances.begin(), distances.end());
         int index90 = (int)(0.9 * distances.size());
         percentileB = distances[index90];
+
+        maxDist = distances.back();
+        meanDist = std::accumulate(distances.begin(), distances.end(), 0.0) / distances.size();
+        if (distances.size() % 2 == 0) {
+            medianDist = (distances[distances.size()/2 - 1] + distances[distances.size()/2]) / 2;
+        }
+        else {
+            medianDist = distances[distances.size()/2];
+        }
     }
 
     void init90PercentileC() {
@@ -311,6 +321,7 @@ class DirectedGraph : public Graph {
         snowball.reserve(snowballSize);
         std::random_device rd;
         std::mt19937 gen(rd());
+        snowballSeed = rd();
         std::uniform_int_distribution<> dis(0, snowballSize - 1);
         int numThreads = std::min(snowballSize, 12);
         std::mutex distMutex;
@@ -379,6 +390,21 @@ class DirectedGraph : public Graph {
         sort(distances.begin(), distances.end());
         int index90 = (int)(0.9 * distances.size());
         percentileC = distances[index90];
+
+        int num_pairs = distances.size();
+        double mean_dist = std::accumulate(distances.begin(), distances.end(), 0.0) / num_pairs;
+        int median_dist = distances[num_pairs / 2];
+        int p90_dist = distances[index90];
+        int max_dist = distances.back();
+        int actual_snowball_size = snowball.size();
+
+        snowballSampleSize = actual_snowball_size;
+        snowballSamplePairs = num_pairs;
+        snowballMean = mean_dist;
+        snowballMedian = median_dist;
+        snowballP90 = p90_dist;
+        snowballMax = max_dist;
+
     }
 
     void initTrianglesCount() {
@@ -469,6 +495,31 @@ class DirectedGraph : public Graph {
 
     for (auto& t : threads) t.join();
 }
+    void backupOriginalGraph() {
+        originalNodes = nodes;
+        originalPaths = paths;
+    }
+
+    void resetToOriginal() {
+        nodes = originalNodes;
+        paths = originalPaths;
+
+        undirectedPaths.clear();
+        transposePaths.clear();
+        strongComponents.clear();
+        weekComponents.clear();
+
+        density = 0;
+        approximateDiameter = 0;
+        percentileC = 0;
+        percentileB = 0;
+        trianglesCount = -1;
+
+        vertexCount = (int)nodes.size();
+        edgesCount = 0;
+        for (const auto& adj : paths)
+            edgesCount += (int)adj.size();
+    }
 
     void removeNodes(int count, bool randomRemoving, const std::string& file) {
         std::ifstream inFile(file);
@@ -912,15 +963,31 @@ public:
         return approximateDiameter;
     }
 
+    Node* getSeedNode() const { return seedNode; }
+    Node* getFarthestNode() const { return farthestNode; }
+
     int get90PercentileB() {
         if (percentileB == 0) init90PercentileB();
         return percentileB;
     }
 
+    int getMaxDist() const { return maxDist; }
+    double getMeanDist() const { return meanDist; }
+    int getMedianDist() const { return medianDist; }
+    int getUsedPairs() const { return usedPairs; }
+    int getSeedUsed() const { return seedUsed; }
+
     int get90PercentileC() {
         if (percentileC == 0) init90PercentileC();
         return percentileC;
     }
+    int getSnowballSampleSize() const { return snowballSampleSize; }
+    int getSnowballSeed() const { return snowballSeed; }
+    int getSnowballSamplePairs() const { return snowballSamplePairs; }
+    double getSnowballMean() const { return snowballMean; }
+    int getSnowballMedian() const { return snowballMedian; }
+    int getSnowballP90() const { return snowballP90; }
+    int getSnowballMax() const { return snowballMax; }
 
     size_t getCountNodesInLargestWCC() {
         if (weekComponents.empty()) initWeekComponents();
@@ -938,6 +1005,7 @@ public:
     }
 
     void removeRandomNodes(int count, const std::string& file) {
+        this->backupOriginalGraph();
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
         removeNodes(count, true, file);
@@ -1051,7 +1119,7 @@ public:
         return count > 0 ? total / count : 0.0;
     }
 
-    double getAverageClusteringCoefficientOfWCC() {
+    double getAverageClusteringCoefficientOfWCC(const std::string& graph_id, const std::string& is_directed, std::ofstream& file) {
     if (trianglePerNode.empty()) initTrianglesCount();
     if (undirectedPaths.empty()) initUndirectedPaths();
     if (weekComponents.empty()) initWeekComponents();
@@ -1068,10 +1136,21 @@ public:
 
         int T = trianglePerNode[u];
         double clu = (2.0 * T) / (k * (k - 1));
+        file << graph_id << ","
+              << is_directed << ","
+              << u << ","
+              << k << ","
+              << T << ","
+              << clu << "\n";
         total += clu;
         ++count;
     }
-
+        file << graph_id << ","
+             << is_directed << ","
+             << "Number of vertexes in the WCC:" << ","
+             << weekComponents[0].size() << ","
+             << "Average Clustering Coef of the WCC:" << ","
+             << (count > 0 ? total / count : 0.0) << ",";
     std::cout<<"Number of vertexes in the WCC:" << weekComponents[0].size() <<std::endl;
     std::cout<<"Average Clustering Coef of the WCC: "<< (count > 0 ? total / count : 0.0) <<std::endl;
     return count > 0 ? total / count : 0.0;
