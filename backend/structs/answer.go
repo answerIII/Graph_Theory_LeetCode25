@@ -14,7 +14,7 @@ type AnswerA1 struct {
 
 type AnswerA2 struct {
 	Diameter     int
-	Percentile90 float32
+	Percentile90 int
 	MeanDistance float32
 }
 
