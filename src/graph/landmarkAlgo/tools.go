@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"graph_theory/graph"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 )
 
@@ -119,4 +121,24 @@ func PrecomputeLandmarksWithPaths(
 	}
 
 	return nil
+}
+
+func ProjectRoot() string {
+	_, currFile, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Join(filepath.Dir(currFile), "..", "..")
+	return filepath.Clean(projectRoot)
+}
+
+func DatasetInputPath(parts ...string) string {
+	if len(parts) < 2 {
+		panic("DatasetInputPath requires at least 2 parts: [subdir, filename...]")
+	}
+
+	pathParts := []string{ProjectRoot(), "datasets", parts[0], "aux_graphs"}
+	pathParts = append(pathParts, parts[1:]...)
+	return filepath.Join(pathParts...)
+}
+
+func DatasetOutputPath(parts ...string) string {
+	return filepath.Join(append([]string{ProjectRoot(), "graph", "landmarkAlgo", "datasets"}, parts...)...)
 }
