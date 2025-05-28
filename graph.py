@@ -1,12 +1,13 @@
 import os
-from collections import defaultdict, deque, Counter
+from collections import defaultdict, deque
 import numpy as np
-from random import randint, random, sample, choice
-import matplotlib.pyplot as plt
-import heapq
-from multiprocessing import Pool, cpu_count
-from functools import partial
+from random import sample, choice
+from multiprocessing import Pool
 import tqdm
+import pickle
+
+
+np.random.seed(26)
 
 
 def make_graph(path, type='txt'):
@@ -68,7 +69,7 @@ def make_graph(path, type='txt'):
             elif type == 'csv':
                 lines = file.readlines()
                 lines.pop(0)
-                for line in lines:                    
+                for line in lines:
                     data = list(map(int, line.strip().split(',')))
                     u = data[0]
                     v = data[1]
@@ -265,7 +266,7 @@ def gcc(g):
         n = g[u]
         k = len(n)
 
-        if k < 2: 
+        if k < 2:
             continue
         total += k * (k - 1) / 2
 
@@ -433,7 +434,7 @@ def process_directed_graph_file(path, type='txt'):
             elif type == 'csv':
                 lines = file.readlines()
                 lines.pop(0)
-                for line in lines:                    
+                for line in lines:
                     data = list(map(int, line.strip().split(',')))
                     u = data[0]
                     v = data[1]
@@ -508,302 +509,193 @@ def count_scc(graph):
     return components
 
 
-def bfs_far_opt(graph, start):
-    """Оптимизированная BFS для вычисления расстояний от стартовой вершины."""
-    distances = {start: 0}
-    queue = deque([start])
-    
-    while queue:
-        u = queue.popleft()
-        for v in graph.get(u, set()):
-            if v not in distances:
-                distances[v] = distances[u] + 1
-                queue.append(v)
-    
-    farthest_node = max(distances.items(), key=lambda x: x[1])[0]
-    return farthest_node, distances
-
-
-def bfs_tree(graph, u):
-    dist = {u: 0}
+def spt(graph, u):
+    tree = {u: 0}
     queue = deque([u])
 
     while queue:
         cur = queue.popleft()
 
         for v in graph.get(cur, set()):
-            if v not in dist:
-                dist[v] = dist[cur] + 1
+            if v not in tree:
+                tree[v] = tree[cur] + 1
                 queue.append(v)
-
-    return u, dist
-
-
-def process_landmark(graph, node):
-    # Обработка одной ландмарки для параллельного использования
-    return (node, bfs_tree(graph, node))
+    return tree
 
 
-def get_landmarks(graph, high_degree=8, random_n=8):
-    print('Processing landmarks')
-    landmarks = {}
-    nodes = []
+def get_path(graph, start, goal):
+    visited = {start}
+    queue = deque([[start]])
 
-    if high_degree:
-        hd_nodes = [node for node, _ in sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)[:high_degree]]
-        nodes.extend(hd_nodes)
+    while queue:
+        cur = queue.popleft()
+        last = cur[-1]
+        for v in graph.get(last, set()):
+            if v == goal:
+                return cur + [v]
+            if v not in visited:
+                visited.add(v)
+                queue.append(cur + [v])
+    return []
 
-    while random_n:
-        node = choice(list(graph.keys()))
-        if node not in nodes:
-            nodes.append(node)
-            random_n -= 1
 
-    with Pool(processes=4) as pool:
-        results = pool.map(partial(bfs_tree, graph), nodes)
+def process_pair(pair):
+    start, goal = pair
+    path = get_path(graph, start, goal)
+    coverage = {}
+    for node in path:
+        coverage[node] = 1
+    return coverage
+
+
+def compute_spt(node):
+    return node, spt(graph, node)
+
+
+def get_landmarks(graph, n=16, mode='degree', num_workers=1):
+    shortest_path_trees = dict()
+    landmarks = []
+
+    if mode == 'degree':
+        high_degree_nodes = [node for node, _ in sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)[:n]]
+        landmarks.extend(high_degree_nodes)
+    elif mode == 'random':
+        while n:
+            node = choice(list(graph.keys()))
+            if node not in landmarks:
+                landmarks.append(node)
+                n -= 1
+    elif mode == 'best-coverage':
+        pairs = [sample(list(graph.keys()), 2) for _ in range(n * 50)]
+
+        with Pool(num_workers) as pool:
+            results = list(tqdm.tqdm(pool.imap(process_pair, pairs), 
+                          total=len(pairs),
+                          desc="Processing path coverage"))
+        
+        merged_coverage = {}
+        for cov in results:
+            for node in cov:
+                if node in merged_coverage:
+                    merged_coverage[node] += cov[node]
+                else:
+                    merged_coverage[node] = cov[node]        
+        nodes = sorted(merged_coverage.items(), key=lambda x: x[1], reverse=True)
+        landmarks = [node for node, _ in nodes[:n]]
     
-    landmarks = dict(results)
+    with Pool(num_workers) as pool:
+        spt_results = list(tqdm.tqdm(pool.imap(compute_spt, landmarks),
+                              total=len(landmarks),
+                              desc="Computing shortest path trees"))
+    
+    shortest_path_trees = dict(spt_results)
 
-    return landmarks
+    return shortest_path_trees
 
 
-'''
-def bfs_tree(graph, u):
-    # BFS, который не возвращает самую дальнюю вершину
+def landmarks_basic(landmarks, start, goal):
+    return max(abs(landmarks[L][start] - landmarks[L][goal]) for L in landmarks)
+
+
+def landmarks_bfs(graph, landmarks, start, goal):
+    nodes = set()
+    for landmark in landmarks:
+        path = get_path(graph, landmark, start)
+        nodes.update(path)
+        path = get_path(graph, landmark, goal)
+        nodes.update(path)
+    subgraph = dict()
+    for node in nodes:
+        subgraph[node] = {i for i in graph.get(node, set()) if i in nodes}
+    # Вернем длину пути как число вершин - 1
+    return len(get_path(subgraph, start, goal)) - 1
+
+
+def bfs_dist(graph, u, goal):
     dist = {u: 0}
     queue = deque([u])
 
     while queue:
         cur = queue.popleft()
-
+        if cur == goal:
+            return u, dist[cur]
         for v in graph.get(cur, set()):
             if v not in dist:
                 dist[v] = dist[cur] + 1
                 queue.append(v)
 
-    return u, dist
+    return u, float('inf')
 
 
-def process_landmark(graph, node):
-    # Обработка одной ландмарки для параллельного использования
-    return (node, bfs_tree(graph, node))
-
-
-def get_landmarks(graph, high_degree=8, random_n=8, parallel=1):
-    print('Processing landmarks')
-    landmarks = {}
-    nodes = []
-
-    if high_degree:
-        hd_nodes = [node for node, _ in sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)[:high_degree]]
-        nodes.extend(hd_nodes)
-
-    while random_n:
-        node = choice(list(graph.keys()))
-        # Исключаем дубликаты
-        if node not in nodes:
-            nodes.append(node)
-            random_n -= 1
-
-    # По возможности используем параллельную обработку
-    with Pool(processes=parallel) as pool:
-        results = pool.map(partial(bfs_tree, graph), nodes)
+def process_pair_dist(pair):
+    start, goal = pair
+    distance = bfs_dist(graph, start, goal)[1]
+    basic_distance = landmarks_basic(landmarks, start, goal)
+    bfs_distance = landmarks_bfs(graph, landmarks, start, goal)
+    print(distance, basic_distance, bfs_distance)
+    basic_correct = 1 if distance == basic_distance else 0
+    bfs_correct = 1 if distance == bfs_distance else 0
     
-    landmarks = dict(results)
-
-    return landmarks
+    return basic_correct, bfs_correct
 
 
-def a_star(graph, landmarks, start, goal):
-    closed = set()
-    open = []
-    h = lambda u, v : max([abs(landmarks[L][u] - landmarks[L][v]) for L in landmarks.keys()])
-    g = {start: 0}
-    heapq.heappush(open, (g[start] + h(start, goal), start))
-
-    while open:
-        f, u = heapq.heappop(open)
-        if u in closed:
-            continue
-        if u == goal:
-            return g[u]
-        for v in graph.get(u, set()):
-            if (v not in closed) and not (any(v in item for item in open)):
-                g[v] = g[u] + 1
-                heapq.heappush(open, (g[v] + h(v, goal), v))
-    return False
-
-
-def get_dist(graph, u, v):
-    _, dist = bfs_far(graph, u)
-    return dist[v]
-'''
-
-
-def a_star(graph, landmarks, start, goal):
-    closed = set()
-    n = len(graph)
-    open = []
-    h = lambda u, v : max([abs(landmarks[L][u] - landmarks[L][v]) for L in landmarks.keys()])
-    g = {start: 0}
-    heapq.heappush(open, (g[start] + h(start, goal), start))
-
-    while open:
-        print(f'{(len(closed) / n) * 100:.8f}%')
-        f, u = heapq.heappop(open)
-        if u in closed:
-            continue
-        if u == goal:
-            return g[u]
-        for v in graph.get(u, set()):
-            if (v not in closed) and not (any(v in item for item in open)):
-                g[v] = g[u] + 1
-                heapq.heappush(open, (g[v] + h(v, goal), v))
-    return False
-
-
-def a_star_opt(graph, landmarks, start, goal):
-    """Оптимизированная A* с эвристикой на основе контрольных точек."""
-    closed = set()
-    open_set = []
-    g_scores = {start: 0}
+def evaluate_accuracy(graph, landmarks, n=10, num_workers=None):
+    pairs = [sample(list(graph.keys()), 2) for _ in range(n)]
     
-    # Кэширование эвристик для ускорения
-    h_cache = {}
+    # Параллельная обработка пар
+    with Pool(num_workers) as pool:
+        results = list(tqdm.tqdm(
+            pool.imap(process_pair_dist, pairs),
+            total=len(pairs),
+            desc="Evaluating accuracy"
+        ))
     
-    def heuristic(u, v):
-        if (u, v) not in h_cache:
-            max_diff = 0
-            for L in landmarks:
-                diff = abs(landmarks[L].get(u, float('inf')) - landmarks[L].get(v, float('inf')))
-                if diff > max_diff:
-                    max_diff = diff
-            h_cache[(u, v)] = max_diff
-        return h_cache[(u, v)]
+    # Суммируем результаты
+    basic_right = sum(res[0] for res in results)
+    bfs_right = sum(res[1] for res in results)
     
-    heapq.heappush(open_set, (heuristic(start, goal), start))
+    bfs_accuracy = bfs_right / n  
+    basic_accuracy = basic_right / n
     
-    while open_set:
-        f, u = heapq.heappop(open_set)
-        
-        if u == goal:
-            return g_scores[u]
-            
-        if u in closed:
-            continue
-            
-        closed.add(u)
-        
-        for v in graph.get(u, set()):
-            if v in closed:
-                continue
-                
-            tentative_g = g_scores[u] + 1  # Предполагаем вес ребра = 1
-            
-            if v not in g_scores or tentative_g < g_scores[v]:
-                g_scores[v] = tentative_g
-                f_score = tentative_g + heuristic(v, goal)
-                heapq.heappush(open_set, (f_score, v))
-    
-    return float('inf')  # Путь не найден
+    return bfs_accuracy, basic_accuracy
 
 
-def get_dist(graph, u, v):
-    _, dist = bfs_far(graph, u)
-    return dist[v]
+pathname = "/home/eldar/Рабочий стол/Graphs/"
+filenames = ['com-youtube-ungraph.txt']
 
-
-filenames = ['/home/eldar/Рабочий стол/Graphs/ca-coauthors-dblp.txt']
-
-with open('output.txt', 'w') as output:
+with open(pathname + 'output.txt', 'w') as output:
     for filename in filenames:
-        print(filename + '\n')
+        print(filename)
 
-        print('Processing graph')
-        graph, edges, _ = make_graph(filename, type=filename.split('.')[-1])
+        lcc_filename = pathname + filename[:-4] + "-lcc.pkl"
+        if os.path.isfile(lcc_filename):
+            print('Loading graph')
+            with open(lcc_filename, 'rb') as lcc_file:
+                graph = pickle.load(lcc_file)
+        else:
+            print('Processing graph')
+            graph, edges, _ = make_graph(pathname + filename, type=filename.split('.')[-1])
+            
+            print('Processing components')
+            components = dfs_stack(graph)
+            
+            print('Processing largest component')
+            graph = subgraph(components, graph)
+            with open(lcc_filename, "wb") as lcc_file:
+                pickle.dump(graph, lcc_file)
+
+        n = 32
+        mode = 'degree'
+        lm_filename = pathname + filename[:-4] + '-' + mode + '-' + str(n) + "-landmarks.pkl"
+        landmarks = dict()
         
-        print('Processing components')
-        components = dfs_stack(graph)
+        if os.path.isfile(lm_filename):
+            print('Loading landmarks')
+            with open(lm_filename, 'rb') as lm_file:
+                landmarks = pickle.load(lm_file)
+        else:
+            landmarks = get_landmarks(graph, n=n, mode=mode)
+            with open(lm_filename, "wb") as lm_file:
+                pickle.dump(landmarks, lm_file)
         
-        print('Processing largest component')
-        graph = subgraph(components, graph)   
-
-        '''
-        print(str(len(graph)) + '\n')
-        print(str(edges) + '\n')
-        num_vertex = len(graph)
-        max_num_vertex = num_vertex * (num_vertex - 1) // 2
-        density = edges / max_num_vertex if max_num_vertex > 0 else 0.0
-        output.write(f"Кол-во вершин: {num_vertex}, кол-во ребер: {edges}, плотность: {density}" + '\n')
-
-        components = dfs_stack(graph)
-        output.write(f'Число компонент слабой связности в графе равно {len(components)}' + '\n')
-
-        max_size = max(len(c) for c in components)
-        fraction = max_size / num_vertex
-        output.write(f'Доля вершин в компоненте слабой связности равна {fraction}' + '\n')
-
-        large_comp = subgraph(components, graph)
-        output.write(f'Размер самой большой компоненты слабой связности равен {len(large_comp)}' + '\n')
-
-        diameter = dbl_swp_diam(large_comp)
-        output.write(f'Диаметр сети, найденный с помощью двух вершин, равен {diameter}' + '\n')
-
-        ans = percentile90(large_comp)
-        output.write(f'90-Процентиль расстояний в большой компоненте равен {ans}' + '\n')
-
-        sn_dim, sn_per = snowball_analysis(large_comp)
-        output.write(f'90-Процентиль расстояний в снежном коме равен {sn_per}, диаметр равен {sn_dim}' + '\n')
-
-        tri_number = triangles(graph)
-        output.write(f'Количество полных подграфов на 3 вершинах равно {tri_number}' + '\n')
-
-        output.write(f'Средний кластерный коэффициент в компоненте составляет: {avg_clust(large_comp)}' + '\n')
-        output.write(f'Средний кластерный коэффициент в графе составляет: {avg_clust(graph)}' + '\n')
-
-        output.write(f'Глобальный кластерный коэффициент в графе составляет: {avg_clust(graph)}' + '\n')
-
-        min_deg, max_deg, avg_deg = calculate_node_degrees(graph)
-        output.write(f'Минимальная степень вершины в графе равна {min_deg}' + '\n')
-        output.write(f'Максимальная степень вершины в графе равна {max_deg}' + '\n')
-        output.write(f'Средняя степень вершины в графе равна {avg_deg}' + '\n')
-
-        x_values = [5, 10, 15, 20, 25, 30]
-        resilience_results = analyze_component_resilience(graph, x_values)
-        output.write("Устойчивость наибольшей компоненты:" + '\n')
-        output.write("Процент удаления | Доля вершин в LCC" + '\n')
-        output.write("-------------------------------" + '\n')
-        for x in sorted(resilience_results):
-            output.write(f"{x:15}% | {resilience_results[x]}" + '\n')
-
-        resilience_results = analyze_targeted_removal(graph, x_values)
-
-        output.write("Устойчивость наибольшей компоненты:" + '\n')
-        output.write("Процент удаления | Доля вершин в LCC" + '\n')
-        output.write("-------------------------------" + '\n')
-        for x in sorted(resilience_results):
-            output.write(f"{x:15}% | {resilience_results[x]}" + '\n')
-
-        directed_graph, edges, _ = process_directed_graph_file(filename, type=filename.split('.')[-1]) 
-        scc = count_scc(graph)
-        output.write(f'Число компонент сильной связности в графе равно {len(scc)}' + '\n')
-
-        directed_subgraph = subgraph(scc, directed_graph)
-        max_size = len(directed_graph)
-        fraction = max_size / num_vertex
-        output.write(f'Доля вершин в компоненте слабой связности равна {fraction}' + '\n')
-        output.write('\n')
-        '''
-
-        landmarks = get_landmarks(graph)
-        n = 10
-        pairs = [sample(graph.keys(), 2) for _ in range(n)]
-        right = 0
-
-        for u, v in tqdm.tqdm(pairs):
-            h = a_star_opt(graph, landmarks, u, v)
-            if h == get_dist(graph, u, v):
-                right += 1
-        
-        print(f'Correct: {int(right / n * 100)}%')
-
+        print(evaluate_accuracy(graph, landmarks, 20))
