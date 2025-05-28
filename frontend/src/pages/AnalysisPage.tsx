@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Container, Tabs, Tab, Paper, Button } from '@mui/material';
-import GeneralPropertiesComponent from '../components/GeneralPropertiesComponent';
+import { Box, Typography, Container, Tabs, Tab, Button } from '@mui/material';
+import GeneralPropertiesComponent from '../components/GeneralPropertiesComponent/GeneralPropertiesComponent';
 import DistanceEstimationComponent from '../components/DistanceEstimationComponent';
 import ClusteringComponent from '../components/ClusteringComponent';
 import DegreeDistributionComponent from '../components/DegreeDistributionComponent';
