@@ -33,11 +33,12 @@ private:
     bool isDirected;
     double wccRatio = 0.0;
     double sccRatio = 0.0;
+    long int maxDegreeVertex;
 
-    std::unordered_map<int, std::vector<int>> edges;
-    std::unordered_map<int, std::vector<int>> reverseEdges;
+    std::vector<std::vector<long int>> edges;
+    std::vector<std::vector<long int>> reverseEdges;
 
-    int bfsComponent(int start, std::unordered_set<int>& visited);
+    int bfsComponent(int start, std::vector<bool>& visited);
     int countWeaklyConnectedComponentsBFS();
     int countWeaklyConnectedComponentsDSU();
 
@@ -48,9 +49,6 @@ private:
     void dsuInit(int n) const;
     int dsuFind(int x) const;
     void dsuUnion(int x, int y) const;
-
-    // Вспомогательные методы для BFS и вычисления расстояний
-    std::pair<int, int> bfsFurthestNode(int start);
-    std::vector<int> getRandomVertices(int count, const std::vector<int>& vertices);
-    std::vector<int> snowballSample(int targetSize);
+    void dfs1(int u, std::vector<bool>& vis, std::vector<int>& ord);
+    void dfs2(int u, std::vector<bool>& vis, int& sz);
 };

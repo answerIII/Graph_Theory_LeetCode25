@@ -116,32 +116,40 @@ int main() {
         cout << "Вершин: " << vCount << "\n";
         cout << "Рёбер: " << eCount << "\n";
 
-        // // Плотность
-        // auto startDensity = high_resolution_clock::now();
-        // double density = g.getDensity();
-        // auto endDensity = high_resolution_clock::now();
-        // auto densityTime = duration_cast<milliseconds>(endDensity - startDensity);
-        // cout << "Плотность: " << formatScientific(density) << " (" << densityTime.count() << " ms)\n";
+        // Плотность
+        auto startDensity = high_resolution_clock::now();
+        double density = g.getDensity();
+        auto endDensity = high_resolution_clock::now();
+        auto densityTime = duration_cast<milliseconds>(endDensity - startDensity);
 
-        // // WCC
-        // auto startWCC = high_resolution_clock::now();
-        // int wcc = g.countWeaklyConnectedComponents();
-        // double wccRatio = g.getWCCRatio() * 100.0;
-        // auto endWCC = high_resolution_clock::now();
-        // auto wccTime = duration_cast<milliseconds>(endWCC - startWCC);
-        // cout << "WCC: " << wcc << " (" << wccTime.count() << " ms), " << formatDouble(wccRatio) << " %\n";
+        double fractional = abs(density - floor(density));
+        bool hasNonZeroFraction = (fractional * 1e6 - floor(fractional * 1e6)) > 1e-12;
 
-        // // SCC
-        // if (isDirected) {
-        //     auto startSCC = high_resolution_clock::now();
-        //     int scc = g.countStronglyConnectedComponents();
-        //     double sccRatio = g.getLargestSCCRatio() * 100.0;
-        //     auto endSCC = high_resolution_clock::now();
-        //     auto sccTime = duration_cast<milliseconds>(endSCC - startSCC);
-        //     cout << "SCC: " << scc << " (" << sccTime.count() << " ms), " << formatDouble(sccRatio) << " %\n";
-        // } else {
-        //     cout << "SCC: -\n";
-        // }
+        if (hasNonZeroFraction) {
+            cout << "Плотность: " << fixed << setprecision(6) << density << " (" << densityTime.count() << " ms)\n";
+        } else {
+            cout << "Плотность: " << fixed << setprecision(0) << density << " (" << densityTime.count() << " ms)\n";
+        }
+
+        // WCC
+        auto startWCC = high_resolution_clock::now();
+        int wcc = g.countWeaklyConnectedComponents();
+        double wccRatio = g.getWCCRatio() * 100.0;
+        auto endWCC = high_resolution_clock::now();
+        auto wccTime = duration_cast<milliseconds>(endWCC - startWCC);
+        cout << "WCC: " << wcc << " (" << wccTime.count() << " ms), " << formatDouble(wccRatio) << " %\n";
+
+        // SCC
+        if (isDirected) {
+            auto startSCC = high_resolution_clock::now();
+            int scc = g.countStronglyConnectedComponents();
+            double sccRatio = g.getLargestSCCRatio() * 100.0;
+            auto endSCC = high_resolution_clock::now();
+            auto sccTime = duration_cast<milliseconds>(endSCC - startSCC);
+            cout << "SCC: " << scc << " (" << sccTime.count() << " ms), " << formatDouble(sccRatio) << " %\n";
+        } else {
+            cout << "SCC: -\n";
+        }
 
         // auto startDS = high_resolution_clock::now();
         // int diamDS = g.estimateDiameterDoubleSweep();

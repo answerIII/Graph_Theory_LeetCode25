@@ -8,29 +8,29 @@
 #include <mutex>
 #include <vector>
 #include <string_view>
+#include <unordered_set>
+#include <unordered_map>
 #include <algorithm>
 #include <atomic>
-#include <stack>
-#include <functional>
-#include <random>
-#include <numeric>
 
-Graph::Graph() : numVertices(0), numEdges(0), isLargeGraph(false) {}  
+Graph::Graph()
+    : numVertices(0)
+    , numEdges(0)
+    , isLargeGraph(false)
+    , maxDegreeVertex(-1)
+{}
 
 void Graph::loadFromFile(const std::string& path, const std::string& format) {
+    numVertices = numEdges = 0;
+    isLargeGraph = false;
+    maxDegreeVertex = -1;
     edges.clear();
     reverseEdges.clear();
-    numEdges = 0;
-    numVertices = 0;
-    isLargeGraph = false;
-
-    std::unordered_set<int> vertexSet;
-    std::mutex vertexMutex;
 
     FILE* file = fopen(path.c_str(), "rb");
     if (!file) throw std::runtime_error("Cannot open file: " + path);
 
-    constexpr size_t BUFFER_SIZE = 128 * 1024 * 1024; // 128MB
+    constexpr long long BUFFER_SIZE = 1024 * 1024 * 1024; // 1GB
     std::vector<char> buffer(BUFFER_SIZE);
     size_t bytesRead = fread(buffer.data(), 1, BUFFER_SIZE, file);
     fclose(file);
@@ -40,84 +40,106 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
     char commentPrefix = (format == "txt") ? '#' : '%';
 
     std::vector<std::string_view> lines;
-    size_t start = 0;
-    for (size_t i = 0; i < bytesRead; ++i) {
+    lines.reserve(1000000);
+    for (size_t start = 0, i = 0; i < bytesRead; ++i) {
         if (buffer[i] == '\n' || buffer[i] == '\r') {
             if (i > start) lines.emplace_back(&buffer[start], i - start);
             start = i + 1;
         }
     }
-    if (start < bytesRead) lines.emplace_back(&buffer[start], bytesRead - start);
+    if (!lines.empty() && lines.back().size() == 0) lines.pop_back();
 
     if (skipFirst > 0 && lines.size() > static_cast<size_t>(skipFirst)) {
         lines.erase(lines.begin(), lines.begin() + skipFirst);
     }
 
-    std::mutex edgeMutex;
-    std::atomic<int> globalEdgeCount{0};
+    size_t nThreads = std::thread::hardware_concurrency();
+    if (nThreads == 0) nThreads = 4;
 
-    size_t numThreads = std::thread::hardware_concurrency();
-    if (numThreads == 0) numThreads = 4;
+    std::unordered_set<int> vertexSet;
+    std::mutex vertexMutex;
 
-    std::vector<std::thread> threads;
-    std::vector<std::unordered_map<int, std::vector<int>>> localEdges(numThreads);
-    std::vector<std::unordered_map<int, std::vector<int>>> localReverseEdges(numThreads);
+    std::vector<std::unordered_map<int,std::vector<int>>> localEdges(nThreads);
+    std::vector<std::unordered_map<int,std::vector<int>>> localReverseEdges(nThreads);
 
-    auto worker = [&](size_t threadId, size_t begin, size_t end) {
-        auto& localE = localEdges[threadId];
-        auto& localR = localReverseEdges[threadId];
-        int localCount = 0;
+    auto worker = [&](size_t tid, size_t begin, size_t end) {
+        auto& locE = localEdges[tid];
+        auto& locR = localReverseEdges[tid];
 
         for (size_t i = begin; i < end; ++i) {
-            std::string_view line = lines[i];
+            auto& line = lines[i];
             if (line.empty() || line[0] == commentPrefix) continue;
 
             const char* ptr = line.data();
             char* endPtr;
             int u = std::strtol(ptr, &endPtr, 10);
             if (endPtr == ptr) continue;
-
-            while (*endPtr == ' ' || *endPtr == ',' || *endPtr == '\t') ++endPtr;
+            while (*endPtr==' '||*endPtr==','||*endPtr=='\t') ++endPtr;
             char* endPtr2;
-            int v = std::strtol(endPtr, &endPtr2, 10);
-            if (endPtr == endPtr2) continue;
-            if (u < 0 || v < 0) continue;
+            int v = std::strtol(endPtr, &endPtr2, 10); 
+            if (endPtr2==endPtr) continue;
+            if (u<0||v<0) continue;
 
             {
-                std::lock_guard<std::mutex> lock(vertexMutex);
+                std::lock_guard<std::mutex> lk(vertexMutex);
                 vertexSet.insert(u);
                 vertexSet.insert(v);
             }
-
-            localE[u].push_back(v);
-            localR[v].push_back(u);
-            localCount++;
+            locE[u].push_back(v);
+            locR[v].push_back(u);
         }
-
-        {
-            std::lock_guard<std::mutex> lock(edgeMutex);
-            for (const auto& [u, vec] : localE)
-                edges[u].insert(edges[u].end(), vec.begin(), vec.end());
-            for (const auto& [v, vec] : localR)
-                reverseEdges[v].insert(reverseEdges[v].end(), vec.begin(), vec.end());
-        }
-        globalEdgeCount.fetch_add(localCount, std::memory_order_relaxed);
     };
 
-    size_t chunk = lines.size() / numThreads;
-    for (size_t t = 0; t < numThreads; ++t) {
-        size_t b = t * chunk;
-        size_t e = (t + 1 == numThreads) ? lines.size() : (t + 1) * chunk;
-        threads.emplace_back(worker, t, b, e);
+    std::vector<std::thread> threads;
+    size_t blockSize = (lines.size() + nThreads - 1) / nThreads;
+    for (size_t t = 0; t < nThreads; ++t) {
+        size_t begin = t * blockSize;
+        size_t end = std::min(lines.size(), begin + blockSize);
+        threads.emplace_back(worker, t, begin, end);
     }
     for (auto& th : threads) th.join();
 
-    numEdges = globalEdgeCount.load();
-    numVertices = static_cast<int>(vertexSet.size());
-    isLargeGraph = (numVertices > 100000 || numEdges > 1000000);
+    std::vector<int> vertList(vertexSet.begin(), vertexSet.end());
+    std::sort(vertList.begin(), vertList.end());
+    numVertices = vertList.size();
+
+    std::unordered_map<int,int> idToIndex;
+    idToIndex.reserve(numVertices);
+    for (int i = 0; i < static_cast<int>(numVertices); ++i) {
+        idToIndex[vertList[i]] = i;
+    }
+
+    edges.assign(numVertices, {});
+    reverseEdges.assign(numVertices, {});
+
+    numEdges = 0;
+    for (size_t t = 0; t < nThreads; ++t) {
+        for (auto& kv : localEdges[t]) {
+            int u0 = kv.first;
+            int u = idToIndex[u0];
+            for (int v0 : kv.second) {
+                int v = idToIndex[v0];
+                edges[u].push_back(v);
+                reverseEdges[v].push_back(u);
+                ++numEdges;
+            }
+        }
+    }
+
+    maxDegreeVertex = -1;
+    int maxDeg = -1;
+    for (int u = 0; u < static_cast<int>(numVertices); ++u) {
+        int deg = edges[u].size() + reverseEdges[u].size();
+        if (deg > maxDeg) {
+            maxDeg = deg;
+            maxDegreeVertex = u;
+        }
+    }
+
+    const size_t LARGE_THRESHOLD = 10000; 
+    isLargeGraph = (numEdges > LARGE_THRESHOLD);
     isDirected = (path.find("directed") != std::string::npos && path.find("undirected") == std::string::npos);
 }
-
 
 int Graph::getVertexCount() const {
     return numVertices;
@@ -127,39 +149,41 @@ int Graph::getEdgeCount() const {
     return numEdges;
 }
 
-int Graph::bfsComponent(int start, std::unordered_set<int>& visited) {
+int Graph::bfsComponent(int start, std::vector<bool>& visited) {
     std::queue<int> q;
     q.push(start);
-    visited.insert(start);
+    visited[start] = true;
     int size = 0;
 
     while (!q.empty()) {
-        int v = q.front();
+        int u = q.front();
         q.pop();
 
-        std::vector<int> neighbors;
-        if (edges.count(v)) neighbors.insert(neighbors.end(), edges.at(v).begin(), edges.at(v).end());
-        if (reverseEdges.count(v)) neighbors.insert(neighbors.end(), reverseEdges.at(v).begin(), reverseEdges.at(v).end());
-
-        for (int u : neighbors) {
-            if (visited.find(u) == visited.end()) {
-                visited.insert(u);
-                q.push(u);
-                size++;
+        for (int v : edges[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
             }
         }
+        for (int v : reverseEdges[u]) {
+            if (!visited[v]) {
+                visited[v] = true;
+                q.push(v);
+            }
+        }
+
     }
     return size;
 }
 
 int Graph::countWeaklyConnectedComponentsBFS() {
-    std::unordered_set<int> visited;
+    std::vector<bool> visited(numVertices, false);
     int components = 0;
     int maxSize = 0;
     int size;
 
-    for (int v = 0; v < numVertices; ++v) {
-        if (visited.find(v) == visited.end()) {
+    for (int v = 0; v < maxDegreeVertex; ++v) {
+        if (!visited[v]) {
             size = bfsComponent(v, visited);
             components++;
         }
@@ -200,25 +224,22 @@ void Graph::dsuUnion(int x, int y) const {
 int Graph::countWeaklyConnectedComponentsDSU() {
     dsuInit(numVertices);
 
-    for (const auto& [u, neighbors] : edges) {
-        for (int v : neighbors) {
+    for (int u = 0; u < static_cast<int>(numVertices); ++u) {
+        for (int v : edges[u]) {
             dsuUnion(u, v);
         }
     }
 
-    for (const auto& [v, rev] : reverseEdges) {
-        for (int u : rev) {
-            dsuUnion(u, v); 
+    for (int u = 0; u < static_cast<int>(numVertices); ++u) {
+        for (int v : reverseEdges[u]) {
+            dsuUnion(u, v);
         }
     }
 
     std::unordered_map<int, int> componentSizes;
-
+    componentSizes.reserve(numVertices);
     for (int i = 0; i < numVertices; ++i) {
-        if (edges.count(i) || reverseEdges.count(i)) {
-            int root = dsuFind(i);
-            componentSizes[root]++;
-        }
+        componentSizes[dsuFind(i)];
     }
 
     int maxSize = 0;
@@ -243,72 +264,42 @@ double Graph::getDensity() const {
     return static_cast<double>(numEdges) / maxEdges;
 }
 
+void Graph::dfs1(int u, std::vector<bool>& vis, std::vector<int>& ord) {
+    vis[u] = true;
+    for (int v : edges[u])
+        if (!vis[v]) dfs1(v, vis, ord);
+    ord.push_back(u);
+}
+void Graph::dfs2(int u, std::vector<bool>& vis, int& sz) {
+    vis[u] = true;
+    sz++;
+    for (int v : reverseEdges[u])
+        if (!vis[v]) dfs2(v, vis, sz);
+}
+
 int Graph::countStronglyConnectedComponents() {
-    std::vector<bool> visited(numVertices, false);
-    std::stack<int> order;
+    std::vector<bool> vis(numVertices, false);
+    std::vector<int> order;
+    order.reserve(numVertices);
 
-    for (int v = 0; v < numVertices; ++v) {
-        if (visited[v]) continue;
+    for (int i = 0; i < numVertices; ++i)
+        if (!vis[i]) dfs1(i, vis, order);
 
-        std::stack<int> stack;
-        stack.push(v);
-        while (!stack.empty()) {
-            int node = stack.top();
-
-            if (!visited[node]) {
-                visited[node] = true;
-                if (edges.count(node)) {
-                    for (int u : edges[node]) {
-                        if (!visited[u]) {
-                            stack.push(u);
-                        }
-                    }
-                }
-            } else {
-                stack.pop();
-                order.push(node);
-            }
+    std::fill(vis.begin(), vis.end(), false);
+    int sccCount = 0, maxSz = 0;
+    for (int i = numVertices - 1; i >= 0; --i) {
+        int u = order[i];
+        if (!vis[u]) {
+            int sz = 0;
+            dfs2(u, vis, sz);
+            sccCount++;
+            maxSz = std::max(maxSz, sz);
         }
     }
-
-    std::fill(visited.begin(), visited.end(), false);
-    int sccCount = 0;
-    int maxSize = 0;
-
-    while (!order.empty()) {
-        int v = order.top();
-        order.pop();
-
-        if (visited[v]) continue;
-
-        int size = 0;
-        std::stack<int> stack;
-        stack.push(v);
-
-        while (!stack.empty()) {
-            int node = stack.top();
-            stack.pop();
-
-            if (visited[node]) continue;
-            visited[node] = true;
-            size++;
-
-            if (reverseEdges.count(node)) {
-                for (int u : reverseEdges[node]) {
-                    if (!visited[u]) {
-                        stack.push(u);
-                    }
-                }
-            }
-        }
-
-        maxSize = std::max(maxSize, size);
-        sccCount++;
-    }
-
-    sccRatio = (numVertices > 0) ? static_cast<double>(maxSize) / numVertices : 0.0;
+    sccRatio = (numVertices > 0 ? double(maxSz) / numVertices : 0.0);
     return sccCount;
 }
+
 
 // std::vector<int> Graph::getLargestWCCVertices() {
 //     std::unordered_set<int> visited;
