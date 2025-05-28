@@ -31,3 +31,9 @@ type AnswerA5 struct {
 	MaxDegree         int
 	ProbabilityDegree map[int]float64
 }
+
+type AnswerB struct {
+	Percentage int `json:"xPercent"`
+	Method string `json:"removalMethod"`
+	ProportionWCC float32 `json:"largestComponentFraction"`
+}
