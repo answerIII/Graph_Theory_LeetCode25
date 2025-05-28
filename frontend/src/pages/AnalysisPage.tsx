@@ -10,7 +10,7 @@ import AlgorithmsRuntimeComponent from '../components/AlgorithmsRuntimeComponent
 import GraphVisualizationComponent from '../components/GraphVisualizationComponent';
 
 const AnalysisPage: React.FC = () => {
-  const { graphId } = useParams<{ graphId: string }>();
+  const { datasetname } = useParams<{ datasetname: string }>();
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ const AnalysisPage: React.FC = () => {
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4">
-          Анализ графа: {graphId}
+          Анализ графа: {datasetname}
         </Typography>
         <Button variant="outlined" onClick={handleBack}>
           Назад
@@ -41,15 +41,15 @@ const AnalysisPage: React.FC = () => {
         <Tab label="Устойчивость" />
         <Tab label="Время выполнения" />
       </Tabs>
-      <Paper sx={{ p: 3, mt: 3 }}>
-        {tabValue === 0 && <GraphVisualizationComponent graphId={graphId!} />}
-        {tabValue === 1 && <GeneralPropertiesComponent graphId={graphId!} />}
-        {tabValue === 2 && <DistanceEstimationComponent graphId={graphId!} />}
-        {tabValue === 3 && <ClusteringComponent graphId={graphId!} />}
-        {tabValue === 4 && <DegreeDistributionComponent graphId={graphId!} />}
-        {tabValue === 5 && <RobustnessComponent graphId={graphId!} />}
-        {tabValue === 6 && <AlgorithmsRuntimeComponent graphId={graphId!} />}
-      </Paper>
+      <Box sx={{ p: 3, mt: 3 }}>
+        {tabValue === 0 && <GraphVisualizationComponent datasetname={datasetname!} />}
+        {tabValue === 1 && <GeneralPropertiesComponent datasetname={datasetname!} />}
+        {tabValue === 2 && <DistanceEstimationComponent datasetname={datasetname!} />}
+        {tabValue === 3 && <ClusteringComponent datasetname={datasetname!} />}
+        {tabValue === 4 && <DegreeDistributionComponent datasetname={datasetname!} />}
+        {tabValue === 5 && <RobustnessComponent datasetname={datasetname!} />}
+        {tabValue === 6 && <AlgorithmsRuntimeComponent datasetname={datasetname!} />}
+      </Box>
     </Container>
   );
 };
