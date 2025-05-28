@@ -19,9 +19,10 @@ type AnswerA2 struct {
 }
 
 type AnswerA3 struct {
-	TrianglesCount    int
-	AvgClusterCoef    float64
-	GlobalClusterCoef float64
+	TrianglesCount    int `json:"trianglesCount"`
+	GlobalClusterCoef float64 `json:"globalClusteringCoef"`
+	AvgClusterCoef    float64 `json:"avgClusteringCoef"`
+	AvgClusterCoefWCC float64 `json:"avgClusterCoefLargeWCC"`
 }
 
 type AnswerA5 struct {
