@@ -24,6 +24,15 @@ public:
 
     double averageClusteringLargestWCC();
 
+    struct DegreeStats {
+        int minDeg;
+        int maxDeg;
+        double avgDeg;
+    };
+
+    DegreeStats getDegreeStats() const;
+    const std::vector<int>& degreeHistogram() const;
+
     // int estimateDiameterDoubleSweep();
     // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
     // std::pair<int, int> estimateDiameterSnowballSample(int targetSize = 500);
@@ -61,4 +70,8 @@ private:
     void buildUndirectedAdj(std::vector<std::vector<int>>&) const;
     struct Ordering { std::vector<int> rank; std::vector<std::vector<int>> fwd; };
     Ordering degeneracyOrder(const std::vector<std::vector<int>>&) const;
+
+    std::vector<int> degrees;
+    std::vector<int> degHist;
+    DegreeStats dStats{};
 };

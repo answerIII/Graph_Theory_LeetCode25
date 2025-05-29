@@ -3,11 +3,14 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <fstream>
+#include <filesystem>
 #include <iomanip>
 #include <chrono>
 
 using namespace std;
 using namespace std::chrono;
+namespace fs = std::filesystem;
 
 string formatScientific(double value) {
     stringstream ss;
@@ -159,6 +162,31 @@ int main() {
         } else {
             cout << "SCC: -\n";
         }
+
+        //min, max, average degree
+        auto ds = g.getDegreeStats();
+        cout << "Мин. степень: "  << ds.minDeg  << "\n";
+        cout << "Макс. степень: " << ds.maxDeg  << "\n";
+        cout << "Средняя степень: " << fixed << setprecision(2) << ds.avgDeg << "\n";
+
+        // Save in CSV (k,count,P(k)) for images
+        fs::path outDir = "GraphsCSVTables";
+        if (!fs::exists(outDir))
+            fs::create_directory(outDir);
+
+        std::string base = path.substr(path.find_last_of('/') + 1);
+        fs::path csvPath = outDir / (base + "_deg_dist.csv");
+
+        {
+            std::ofstream csv(csvPath);
+            csv << "k,count,prob\n";
+            const auto& hist = g.degreeHistogram();
+            for (size_t k = 0; k < hist.size(); ++k)
+                if (hist[k])
+                    csv << k << ',' << hist[k] << ','
+                        << double(hist[k]) / g.getVertexCount() << '\n';
+        }
+        std::cout << "Гистограмма степеней сохранена в " << csvPath.string() << '\n';
 
         // auto startDS = high_resolution_clock::now();
         // int diamDS = g.estimateDiameterDoubleSweep();

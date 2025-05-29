@@ -126,6 +126,23 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
         }
     }
 
+    degrees.resize(numVertices, 0);
+    for (int u = 0; u < numVertices; ++u) {
+        std::unordered_set<int> neigh(edges[u].begin(), edges[u].end());
+        neigh.insert(reverseEdges[u].begin(), reverseEdges[u].end());
+        degrees[u] = neigh.size();
+    }
+
+    dStats.minDeg = *std::min_element(degrees.begin(), degrees.end());
+    dStats.maxDeg = *std::max_element(degrees.begin(), degrees.end());
+
+    long long sumDeg = 0;
+    for (int k : degrees) sumDeg += k;
+    dStats.avgDeg = numVertices ? double(sumDeg) / numVertices : 0.0;
+
+    degHist.assign(dStats.maxDeg + 1, 0);
+    for (int k : degrees) ++degHist[k];
+
     maxDegreeVertex = -1;
     int maxDeg = -1;
     for (int u = 0; u < static_cast<int>(numVertices); ++u) {
@@ -394,6 +411,14 @@ double Graph::averageClusteringLargestWCC(){
         sum += (2.0*tri[u]) / (k*(k-1));
     }
     return sum/comp.size;
+}
+
+Graph::DegreeStats Graph::getDegreeStats() const {
+    return dStats;
+}
+
+const std::vector<int>& Graph::degreeHistogram() const {
+    return degHist;
 }
 
 // std::vector<int> Graph::getLargestWCCVertices() {
