@@ -1,36 +1,24 @@
-use crate::{RMPSupport, RawGraph};
+use crate::{
+    RMPSupport, RawGraph,
+    utils::{BFSNodeState, ShortestPathTree},
+};
 use rand::{rng, seq::SliceRandom};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 
 #[derive(Serialize, Deserialize)]
-pub struct Landmark {
-    landmark: usize,
-    distances: HashMap<usize, BFSNodeState>,
-}
-
-impl Landmark {
-    pub fn path_to(&self, mut node: usize) -> Vec<usize> {
-        let mut path = vec![node];
-        while let Some(previous_node) = self
-            .distances
-            .get(&node)
-            .and_then(|state| state.previous_node)
-        {
-            path.push(previous_node);
-            node = previous_node;
-        }
-        path
-    }
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct Graph {
     node_count: usize,
     edge_count: usize,
-    landmarks: Option<Vec<Landmark>>,
+    landmarks: Option<Vec<ShortestPathTree>>,
     adjacency_list: HashMap<usize, Vec<usize>>,
+}
+
+pub enum Selection {
+    Random,
+    Degree,
+    BestCoverage,
 }
 
 impl RMPSupport for Graph {}
@@ -51,81 +39,54 @@ impl From<RawGraph> for Graph {
     }
 }
 
-pub enum Selection {
-    Random,
-    Degree,
-    Coverage,
-}
-
 impl Graph {
-    pub fn create_landmarks(&mut self, number_of_landmarks: usize, selection: Selection) {
+    pub fn create_landmarks(&mut self, n: usize, selection: Selection) {
         self.landmarks = Some(
             match selection {
-                Selection::Random => self.select_random_landmarks(number_of_landmarks),
-                Selection::Degree => self.select_high_degree_landmarks(number_of_landmarks),
-                Selection::Coverage => self.select_best_coverage_landmarks(number_of_landmarks),
+                Selection::Random => self.select_random_nodes(n),
+                Selection::Degree => self.select_high_degree_nodes(n),
+                Selection::BestCoverage => self.select_best_coverage_nodes(n),
             }
             .into_par_iter()
-            .map(|landmark| Landmark {
-                landmark,
-                distances: self.shortest_paths(landmark),
-            })
+            .map(|node| self.shortest_path_tree(node))
             .collect(),
         );
     }
 
-    /// Breadth-First Search: finds the shortest distance from **`start`** to **`end`**
-    pub fn distance(&self, start: usize, end: usize) -> Option<usize> {
-        let mut distances = HashMap::with_capacity(self.node_count);
-        let mut queue = VecDeque::with_capacity(self.node_count);
-        distances.insert(start, 0);
-        queue.push_back(start);
-        while let Some(node) = queue.pop_front() {
-            if let Some(neighbours) = self.adjacency_list.get(&node) {
-                for &neighbour in neighbours {
-                    if !distances.contains_key(&neighbour) {
-                        distances.insert(neighbour, distances[&node] + 1);
-                        if neighbour == end {
-                            return distances.get(&neighbour).copied();
-                        }
-                        queue.push_back(neighbour);
-                    }
+    pub fn select_random_nodes(&self, n: usize) -> Vec<usize> {
+        let mut nodes: Vec<usize> = self.adjacency_list().keys().copied().collect();
+        nodes.shuffle(&mut rng());
+        nodes.into_iter().take(n).collect()
+    }
+
+    pub fn select_high_degree_nodes(&self, n: usize) -> Vec<usize> {
+        let mut degrees = self.degrees();
+        degrees.sort_by(|a, b| b.1.cmp(&a.1));
+        degrees.into_iter().take(n).map(|(node, _)| node).collect()
+    }
+
+    pub fn select_best_coverage_nodes(&self, n: usize) -> Vec<usize> {
+        let paths: HashSet<Vec<usize>> = (0..100)
+            .into_par_iter()
+            .filter_map(|_| {
+                let nodes = self.select_random_nodes(2);
+                self.shortest_path(nodes[0], nodes[1])
+            })
+            .collect();
+        let mut nodes = HashSet::with_capacity(n);
+        for _ in 0..n {
+            let mut covered = HashMap::new();
+            for path in &paths {
+                if path.iter().all(|path_node| !nodes.contains(path_node)) {
+                    path.iter()
+                        .for_each(|&node| *covered.entry(node).or_insert(0) += 1);
                 }
             }
-        }
-        None
-    }
-
-    /// Landmarks-Basic: distance estimation through landmarks
-    pub fn estimate_distance(&self, start: usize, end: usize) -> Option<usize> {
-        let Some(landmarks) = self.landmarks.as_ref() else {
-            panic!("Missing landmarks");
-        };
-        let mut distance: Option<usize> = None;
-        for landmark in landmarks.iter() {
-            if let (Some(start), Some(end)) =
-                (landmark.distances.get(&start), landmark.distances.get(&end))
-            {
-                distance = Some(match distance {
-                    Some(distance) => distance.min(start.distance + end.distance),
-                    None => start.distance + end.distance,
-                });
+            if let Some((node, _)) = covered.into_iter().max() {
+                nodes.insert(node);
             }
         }
-        distance
-    }
-
-    /// Landmarks-BFS: distance estimation through landmarks from **`start`** to **`end`**
-    pub fn estimate_distance_bfs(&self, start: usize, end: usize) -> Option<usize> {
-        let Some(landmarks) = self.landmarks.as_ref() else {
-            panic!("Missing landmarks");
-        };
-        let mut subgraph = HashSet::new();
-        landmarks.iter().for_each(|landmark| {
-            subgraph.extend(landmark.path_to(start));
-            subgraph.extend(landmark.path_to(end));
-        });
-        self.distance_with_subgraph(subgraph, start, end)
+        nodes.into_iter().collect()
     }
 
     pub fn node_count(&self) -> usize {
@@ -154,46 +115,64 @@ impl Graph {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct BFSNodeState {
-    distance: usize,
-    previous_node: Option<usize>,
-}
-
 impl Graph {
-    /// Breadth-First Search: finds the shortest paths from **`start`** to **all other reachable**
-    fn shortest_paths(&self, start: usize) -> HashMap<usize, BFSNodeState> {
+    /// Breadth-First Search: finds the shortest distance
+    pub fn distance(&self, start: usize, end: usize) -> Option<usize> {
         let mut distances = HashMap::with_capacity(self.node_count);
         let mut queue = VecDeque::with_capacity(self.node_count);
-        distances.insert(
-            start,
-            BFSNodeState {
-                distance: 0,
-                previous_node: None,
-            },
-        );
+        distances.insert(start, 0);
         queue.push_back(start);
         while let Some(node) = queue.pop_front() {
             if let Some(neighbours) = self.adjacency_list.get(&node) {
                 for &neighbour in neighbours {
                     if !distances.contains_key(&neighbour) {
-                        distances.insert(
-                            neighbour,
-                            BFSNodeState {
-                                distance: distances[&node].distance + 1,
-                                previous_node: Some(node),
-                            },
-                        );
+                        distances.insert(neighbour, distances[&node] + 1);
+                        if neighbour == end {
+                            return distances.get(&neighbour).copied();
+                        }
                         queue.push_back(neighbour);
                     }
                 }
             }
         }
-        distances
+        None
     }
 
-    /// Breadth-First Search: finds the shortest distance from **`start`** to **`end`** with subgraph
-    fn distance_with_subgraph(
+    /// Landmarks-Basic: distance estimation through landmarks
+    pub fn estimate_distance(&self, start: usize, end: usize) -> Option<usize> {
+        let Some(landmarks) = self.landmarks.as_ref() else {
+            panic!("Missing landmarks");
+        };
+        let mut distance: Option<usize> = None;
+        landmarks.iter().for_each(|shortest_path_tree| {
+            if let (Some(start), Some(end)) =
+                (shortest_path_tree.get(&start), shortest_path_tree.get(&end))
+            {
+                distance = Some(match distance {
+                    Some(distance) => distance.min(start.distance() + end.distance()),
+                    None => start.distance() + end.distance(),
+                });
+            }
+        });
+        distance
+    }
+
+    /// Landmarks-BFS: distance estimation through landmarks
+    pub fn estimate_distance_bfs(&self, start: usize, end: usize) -> Option<usize> {
+        let Some(landmarks) = self.landmarks.as_ref() else {
+            panic!("Missing landmarks");
+        };
+        let mut subgraph = HashSet::new();
+        landmarks.iter().for_each(|landmark| {
+            subgraph.extend(landmark.path_to(start));
+            subgraph.extend(landmark.path_to(end));
+        });
+        self.distance_in_subgraph(subgraph, start, end)
+    }
+}
+
+impl Graph {
+    fn distance_in_subgraph(
         &self,
         subgraph: HashSet<usize>,
         start: usize,
@@ -222,23 +201,46 @@ impl Graph {
         None
     }
 
-    fn select_random_landmarks(&self, number_of_landmarks: usize) -> Vec<usize> {
-        let mut nodes: Vec<usize> = self.adjacency_list().keys().copied().collect();
-        nodes.shuffle(&mut rng());
-        nodes.into_iter().take(number_of_landmarks).collect()
+    fn shortest_path(&self, start: usize, end: usize) -> Option<Vec<usize>> {
+        let mut shortest_path_tree = ShortestPathTree::new();
+        let mut queue = VecDeque::with_capacity(self.node_count);
+        shortest_path_tree.insert(start, BFSNodeState::from(0, None));
+        queue.push_back(start);
+        while let Some(node) = queue.pop_front() {
+            if let Some(neighbours) = self.adjacency_list.get(&node) {
+                for &neighbour in neighbours {
+                    if !shortest_path_tree.contains_key(&neighbour) {
+                        let distance = shortest_path_tree[&node].distance() + 1;
+                        shortest_path_tree
+                            .insert(neighbour, BFSNodeState::from(distance, Some(node)));
+                        if neighbour == end {
+                            return Some(shortest_path_tree.path_to(end));
+                        }
+                        queue.push_back(neighbour);
+                    }
+                }
+            }
+        }
+        None
     }
 
-    fn select_high_degree_landmarks(&self, number_of_landmarks: usize) -> Vec<usize> {
-        let mut degrees = self.degrees();
-        degrees.sort_by(|a, b| b.1.cmp(&a.1));
-        degrees
-            .into_iter()
-            .take(number_of_landmarks)
-            .map(|(node, _)| node)
-            .collect()
-    }
-
-    fn select_best_coverage_landmarks(&self, number_of_landmarks: usize) -> Vec<usize> {
-        todo!()
+    fn shortest_path_tree(&self, start: usize) -> ShortestPathTree {
+        let mut shortest_path_tree = ShortestPathTree::new();
+        let mut queue = VecDeque::with_capacity(self.node_count);
+        shortest_path_tree.insert(start, BFSNodeState::from(0, None));
+        queue.push_back(start);
+        while let Some(node) = queue.pop_front() {
+            if let Some(neighbours) = self.adjacency_list.get(&node) {
+                for &neighbour in neighbours {
+                    if !shortest_path_tree.contains_key(&neighbour) {
+                        let distance = shortest_path_tree[&node].distance() + 1;
+                        shortest_path_tree
+                            .insert(neighbour, BFSNodeState::from(distance, Some(node)));
+                        queue.push_back(neighbour);
+                    }
+                }
+            }
+        }
+        shortest_path_tree
     }
 }
