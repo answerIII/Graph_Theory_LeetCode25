@@ -19,7 +19,7 @@ func TestPrecomputeLandmarks(t *testing.T) {
 			name: "Graph Wiki-Vote",
 			fields: fields{
 				ugraphWikiVoteFilepath,
-				SelectRandomNodes,
+				SelectBestCoverage,
 			},
 		},
 	}
@@ -39,7 +39,7 @@ func TestPrecomputeLandmarks(t *testing.T) {
 			if err := os.MkdirAll("./datasets/very_large_graphs", 0o775); err != nil {
 				t.Errorf("Error creating directory: %v\n", err)
 			}
-			err = PrecomputeLandmarks(g, landmarkRandomWikiVoteFilepath, tt.fields.method, 50)
+			err = PrecomputeLandmarks(g, landmarkRandomWikiVoteFilepath, tt.fields.method, 500)
 			if err != nil {
 				t.Errorf("Error precomputing landmarks: %v\n", err)
 			}

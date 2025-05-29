@@ -1,7 +1,6 @@
 package landmarkAlgo
 
 import (
-	"bufio"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,8 +12,6 @@ import (
 	"runtime"
 	"slices"
 	"sort"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -64,7 +61,8 @@ func SelectBestCoverage(g *graph.Graph, nodesN int) ([]graph.Node, error) {
 	nodes := make([]graph.Node, 0, nodesN)
 	nodesLen := len(g.Nodes)
 
-	const PATHS_COUNT = 500
+	maxPairCount := (g.NumberOfNodes() * (g.NumberOfNodes() - 1)) / 2
+	PATHS_COUNT := min(maxPairCount, 500)
 
 	var mu sync.Mutex
 	wp := workerpool.NewWorkerPool(runtime.NumCPU(), PATHS_COUNT)
@@ -73,6 +71,18 @@ func SelectBestCoverage(g *graph.Graph, nodesN int) ([]graph.Node, error) {
 	for len(nodes) < nodesN {
 		destinations := make([]pair, 0, PATHS_COUNT)
 		paths := make([][]graph.Node, 0, PATHS_COUNT)
+
+		if len(used) == maxPairCount {
+			for node := range g.Nodes {
+				if len(nodes) == nodesN {
+					break
+				}
+				if !slices.Contains(nodes, node) {
+					nodes = append(nodes, node)
+				}
+			}
+			return nodes, nil
+		}
 
 		for len(destinations) < PATHS_COUNT {
 			f := rand.Intn(nodesLen)
@@ -111,6 +121,10 @@ func SelectBestCoverage(g *graph.Graph, nodesN int) ([]graph.Node, error) {
 				path := []graph.Node{d.second}
 				n := d.second
 				for n != d.first {
+					if _, has := parents[n]; !has {
+						path = slices.Delete(path, 0, len(path))
+						break
+					}
 					n = parents[n]
 					path = append(path, n)
 				}
@@ -146,13 +160,13 @@ func SelectBestCoverage(g *graph.Graph, nodesN int) ([]graph.Node, error) {
 
 			nodes = append(nodes, maxNode)
 
-			for idx, path := range paths {
-				if slices.Contains(path, maxNode) {
-					for _, node := range path {
+			for idx := len(paths) - 1; idx >= 0; idx-- {
+				if slices.Contains(paths[idx], maxNode) {
+					for _, node := range paths[idx] {
 						counter[node]--
 					}
+					paths = slices.Delete(paths, idx, idx+1)
 				}
-				paths = slices.Delete(paths, idx, idx+1)
 			}
 		}
 	}
@@ -229,25 +243,32 @@ func LandmarkBasic(landmarkFilePath string, s, t int32) (int, error) {
 	return int(dist), nil
 }
 
-func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int) (int, error) {
-	landmarkFile, err := os.Open(landmarkFilePath)
+func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int, error) {
+	file, err := os.Open(landmarkFilePath)
 	if err != nil {
 		return -1, err
 	}
-	defer landmarkFile.Close()
+	defer file.Close()
 
 	dist := math.MaxInt
 
-	scanner := bufio.NewScanner(landmarkFile)
+	var numNodes int32
+	var numLandmarks int32
 
-	scanner.Scan()
+	const headerSize = 2
+	err = binary.Read(file, binary.LittleEndian, &numNodes)
+	if err != nil {
+		return 0, err
+	}
+	err = binary.Read(file, binary.LittleEndian, &numLandmarks)
+	if err != nil {
+		return 0, err
+	}
 
-	offset, err := strconv.Atoi(scanner.Text())
-
-	if s < 0 || s > offset {
+	if s < 0 || s > numNodes {
 		return -1, fmt.Errorf("there is no node %d in graph", s)
 	}
-	if t < 0 || t > offset {
+	if t < 0 || t > numNodes {
 		return -1, fmt.Errorf("there is no node %d in graph", t)
 	}
 
@@ -255,38 +276,63 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int) (int, e
 		s, t = t, s
 	}
 
-	offsetS := s + 1
-	offsetT := t - offsetS + 1
-	offsetGlobal := offset - offsetT - 1
+	const int32Size = 4
 
-	for scanner.Scan() {
-		landmark := strings.TrimSuffix(scanner.Text(), "\n")
+	skipLines := func(n int32) error {
+		for range n {
+			var lineN uint16
+			err = binary.Read(file, binary.LittleEndian, &lineN)
+			if err != nil {
+				return nil
+			}
 
-		for range offsetS {
-			scanner.Scan()
-		}
-
-		sStringPath := strings.Split(scanner.Text(), " ")
-		sStringPath[len(sStringPath)-1] = landmark
-		sPath := make([]int, len(sStringPath))
-		for idx, val := range sStringPath {
-			if sPath[idx], err = strconv.Atoi(val); err != nil {
-				return -1, err
+			lineOffset := int64(lineN) * int32Size
+			_, err = file.Seek(lineOffset, 1)
+			if err != nil {
+				return nil
 			}
 		}
+		return nil
+	}
 
-		for range offsetT {
-			scanner.Scan()
+	for i := int64(0); i < int64(numLandmarks); i++ {
+
+		var landmark int32
+
+		err = binary.Read(file, binary.LittleEndian, &landmark)
+		if err != nil {
+			return 0, err
 		}
 
-		tStringPath := strings.Split(scanner.Text(), " ")
-		tStringPath[len(tStringPath)-1] = landmark
-		tPath := make([]int, len(tStringPath))
-		for idx, val := range tStringPath {
-			if tPath[idx], err = strconv.Atoi(val); err != nil {
-				return -1, err
-			}
+		err = skipLines(s)
+		if err != nil {
+			return 0, err
 		}
+
+		var n uint16
+
+		binary.Read(file, binary.LittleEndian, &n)
+
+		sPath := make([]int32, n+1)
+
+		for i := range n {
+			binary.Read(file, binary.LittleEndian, &sPath[i])
+		}
+		sPath[n] = landmark
+
+		err = skipLines(t - s - 1)
+		if err != nil {
+			return 0, nil
+		}
+
+		binary.Read(file, binary.LittleEndian, &n)
+
+		tPath := make([]int32, n+1)
+
+		for i := range n {
+			binary.Read(file, binary.LittleEndian, &tPath[i])
+		}
+		tPath[n] = landmark
 
 		if sPath[0] != -1 && tPath[0] != -1 {
 			sLCAIdx := 0
@@ -305,9 +351,7 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int) (int, e
 			}
 		}
 
-		for range offsetGlobal {
-			scanner.Scan()
-		}
+		err = skipLines(numNodes - t - 1)
 	}
 	return dist, nil
 }
