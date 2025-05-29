@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import {
   Box,
   Button,
+  ButtonGroup,
   TextField,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Table,
   TableBody,
   TableCell,
@@ -27,12 +25,12 @@ import {
   Legend,
 } from 'chart.js';
 
-import type { DistanceResult, AlgorithmParams } from '../types/graphTypes'
+import type { DistanceResultAnalysis, AlgorithmParams } from '../types/graphTypes';
 
 // Регистрация компонентов Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const mockDistanceResults: DistanceResult[] = [
+const mockDistanceResults: DistanceResultAnalysis[] = [
   {
     id: 'bfs-1',
     algorithm: 'BFS',
@@ -63,7 +61,7 @@ const mockDistanceResults: DistanceResult[] = [
 ];
 
 const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> = ({ datasetname }) => {
-  const [data, setData] = useState<DistanceResult[]>(mockDistanceResults);
+  const [data, setData] = useState<DistanceResultAnalysis[]>(mockDistanceResults);
   const [error, setError] = useState<string | null>(null);
   const [params, setParams] = useState<{
     [key: string]: AlgorithmParams;
@@ -111,7 +109,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     }
 
     // Имитация вычисления
-    const newResult: DistanceResult = {
+    const newResult: DistanceResultAnalysis = {
       id: `${algorithm}-${Date.now()}`,
       algorithm: algorithm === 'bfs' ? 'BFS' : algorithm === 'landmarks-basic' ? 'Landmarks-Basic' : 'Landmarks-BFS',
       distance: Math.floor(Math.random() * 10),
@@ -177,20 +175,66 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
         Вычисление расстояний
       </Typography>
-      {error && <Alert severity={error.includes('Вычислено') ? 'info' : 'error'}>{error}</Alert>}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+      {error && (
+        <Alert
+          severity={error.includes('Вычислено') ? 'info' : 'error'}
+          sx={{ width: '100%', maxWidth: 800, mb: 2 }}
+        >
+          {error}
+        </Alert>
+      )}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 3,
+          mt: 2,
+          overflowX: 'auto',
+          pb: 2,
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
         {['bfs', 'landmarks-basic', 'landmarks-bfs'].map((algorithm) => (
-          <Card key={algorithm} sx={{ boxShadow: 3 }}>
-            <CardContent>
-              <Typography variant="subtitle1">
+          <Card
+            key={algorithm}
+            sx={{
+              boxShadow: 3,
+              minWidth: 300,
+              maxWidth: 330,
+              flexShrink: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              marginTop: '5px',
+            }}
+          >
+            <CardContent
+              sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>
                 {algorithm === 'bfs' ? 'BFS' : algorithm === 'landmarks-basic' ? 'Landmarks-Basic' : 'Landmarks-BFS'}
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  alignItems: 'center',
+                  width: '100%',
+                  flexGrow: 1,
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                   <TextField
                     label="Начальная вершина"
                     value={params[algorithm]?.start_node ?? ''}
@@ -202,6 +246,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                     }
                     type="number"
                     size="small"
+                    sx={{ width: 125 }}
                   />
                   <TextField
                     label="Конечная вершина"
@@ -214,13 +259,18 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                     }
                     type="number"
                     size="small"
+                    sx={{ width: 124 }}
                   />
-                  <Button variant="outlined" onClick={() => handleRandomNodes(algorithm)}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleRandomNodes(algorithm)}
+                  >
                     Случайные вершины
                   </Button>
                 </Box>
                 {algorithm !== 'bfs' && (
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
                     <TextField
                       label="Количество ориентиров"
                       value={params[algorithm]?.landmarks_count ?? '10'}
@@ -232,72 +282,119 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                       }
                       type="number"
                       size="small"
+                      sx={{ width: '100%' }}
                     />
-                    <RadioGroup
-                      row
-                      value={params[algorithm]?.landmarks_selection ?? 'random'}
-                      onChange={(e) =>
-                        setParams((prev) => ({
-                          ...prev,
-                          [algorithm]: { ...prev[algorithm], landmarks_selection: e.target.value as 'random' | 'highest_degree' | 'max_coverage' },
-                        }))
-                      }
-                    >
-                      <FormControlLabel value="random" control={<Radio />} label="Случайные" />
-                      <FormControlLabel value="highest_degree" control={<Radio />} label="Наибольшие степени" />
-                      <FormControlLabel value="max_coverage" control={<Radio />} label="Максимальное покрытие" />
-                    </RadioGroup>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Typography variant="caption" sx={{ mb: 0.5 }}>
+                        Выбор ориентиров
+                      </Typography>
+                      <ButtonGroup size="small" variant="outlined">
+                        <Button
+                          onClick={() =>
+                            setParams((prev) => ({
+                              ...prev,
+                              [algorithm]: { ...prev[algorithm], landmarks_selection: 'random' },
+                            }))
+                          }
+                          sx={{
+                            bgcolor: params[algorithm]?.landmarks_selection === 'random' ? 'action.selected' : 'inherit',
+                            fontSize: '10px'
+                          }}
+                        >
+                          Случайные
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            setParams((prev) => ({
+                              ...prev,
+                              [algorithm]: { ...prev[algorithm], landmarks_selection: 'highest_degree' },
+                            }))
+                          }
+                          sx={{
+                            bgcolor: params[algorithm]?.landmarks_selection === 'highest_degree' ? 'action.selected' : 'inherit',
+                            fontSize: '10px'
+                          }}
+                        >
+                          Наиб. степени
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            setParams((prev) => ({
+                              ...prev,
+                              [algorithm]: { ...prev[algorithm], landmarks_selection: 'max_coverage' },
+                            }))
+                          }
+                          sx={{
+                            bgcolor: params[algorithm]?.landmarks_selection === 'max_coverage' ? 'action.selected' : 'inherit',
+                            fontSize: '10px'
+                          }}
+                        >
+                          Макс. покрытие
+                        </Button>
+                      </ButtonGroup>
+                    </Box>
                   </Box>
                 )}
-                <Button variant="contained" onClick={() => handleCalculate(algorithm)}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => handleCalculate(algorithm)}
+                  sx={{ mt: 'auto', width: '100%'}}
+                >
                   Вычислить
                 </Button>
               </Box>
             </CardContent>
           </Card>
         ))}
-        {data.length > 0 ? (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Алгоритм</TableCell>
-                <TableCell>Расстояние</TableCell>
-                <TableCell>Время (мс)</TableCell>
-                <TableCell>Ориентиры</TableCell>
-                <TableCell>Начальная вершина</TableCell>
-                <TableCell>Конечная вершина</TableCell>
+      </Box>
+      {data.length > 0 ? (
+        <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Алгоритм</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Расстояние</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Время (мс)</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Ориентиры</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Начальная вершина</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Конечная вершина</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((result) => (
+              <TableRow key={result.id}>
+                <TableCell sx={{ textAlign: 'center' }}>{result.algorithm}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.distance ?? 'N/A'}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.execution_time_ms}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.landmarks.join(', ') || '-'}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.start_node}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.end_node}</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((result) => (
-                <TableRow key={result.id}>
-                  <TableCell>{result.algorithm}</TableCell>
-                  <TableCell>{result.distance ?? 'N/A'}</TableCell>
-                  <TableCell>{result.execution_time_ms}</TableCell>
-                  <TableCell>{result.landmarks.join(', ') || '-'}</TableCell>
-                  <TableCell>{result.start_node}</TableCell>
-                  <TableCell>{result.end_node}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <Alert severity="warning">Нет данных для отображения</Alert>
-        )}
-        {/* <Button variant="outlined" disabled>
-          Скачать CSV
-        </Button> */}
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Alert severity="warning" sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
+          Нет данных для отображения
+        </Alert>
+      )}
+      {/* <Button variant="outlined" disabled sx={{ mt: 2 }}>
+        Скачать CSV
+      </Button> */}
+      <Box sx={{ mt: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
+          Сравнение времени выполнения
+        </Typography>
       </Box>
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1">Сравнение времени выполнения</Typography>
-        {data.length > 0 ? (
-          <Box sx={{ maxWidth: 600, height: 300 }}>
-            <Bar data={chartData} options={chartOptions} />
-          </Box>
-        ) : (
-          <Alert severity="warning">Нет данных для гистограммы</Alert>
-        )}
-      </Box>
+      {data.length > 0 ? (
+        <Box sx={{ minWidth: 600, height: 300, margin: '0 auto' }}>
+          <Bar data={chartData} options={chartOptions} />
+        </Box>
+      ) : (
+        <Alert severity="warning" sx={{ minWidth: 800, width: '100%' }}>
+          Нет данных для гистограммы
+        </Alert>
+      )}
     </Box>
   );
 };
