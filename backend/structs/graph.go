@@ -37,3 +37,8 @@ type StatDFS struct {
 	TimeIn  int
 	TimeOut int
 }
+
+type ValueTime struct {
+	Value  float64 `json:"value" msgpack:"value"`
+	TimeMs int     `json:"execution_time_ms" msgpack:"execution_time_ms"`
+}

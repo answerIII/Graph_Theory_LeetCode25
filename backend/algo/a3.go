@@ -2,6 +2,7 @@ package algo
 
 import (
 	"sync"
+	"time"
 
 	"github.com/HikkMind/graph/structs"
 )
@@ -9,7 +10,11 @@ import (
 func CountTriangles(graph *structs.Graph) structs.AnswerA3 {
 
 	answer := structs.AnswerA3{}
-	answer.AvgClusterCoef = AvgClusterCoef(graph)
+	startTime := time.Now()
+	answer.AvgClusterCoef.Value = AvgClusterCoef(graph)
+	answer.AvgClusterCoef.TimeMs = int(time.Since(startTime).Milliseconds())
+
+	startTime = time.Now()
 
 	triangleCh := make(chan int)
 	tripleCh := make(chan int) //max possible triples
@@ -48,8 +53,9 @@ func CountTriangles(graph *structs.Graph) structs.AnswerA3 {
 	close(triangleCh)
 	close(tripleCh)
 	totalCount := <-outputCh
-	answer.TrianglesCount = totalCount[0] / 6
-	answer.GlobalClusterCoef = float64(3*answer.TrianglesCount) / float64(totalCount[1])
+	answer.TrianglesCount.TimeMs = int(time.Since(startTime).Milliseconds())
+	answer.TrianglesCount.Value = float64(totalCount[0] / 6)
+	answer.GlobalClusterCoef.Value = float64(3*answer.TrianglesCount.Value) / float64(totalCount[1])
 
 	return answer
 }

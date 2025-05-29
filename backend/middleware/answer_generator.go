@@ -5,6 +5,7 @@ import (
 
 	"encoding/json"
 	"sort"
+	"time"
 
 	"github.com/HikkMind/graph/algo"
 	"github.com/HikkMind/graph/structs"
@@ -12,6 +13,7 @@ import (
 
 func GenerateProperties(graph *structs.Graph) []byte {
 
+	var startTime time.Time
 	answer := structs.AnswerA1{
 		Directed:    graph.Directed,
 		VertexCount: graph.VertexCount,
@@ -22,12 +24,16 @@ func GenerateProperties(graph *structs.Graph) []byte {
 	excludeVertex := make(map[int]struct{})
 	// excludeVertex[7] = struct{}{}
 	// excludeVertex[4] = struct{}{}
+	startTime = time.Now()
 	answer.WCC, answer.WCCCount = algo.FindMaxWCC(*graph, excludeVertex)
+	answer.TimeWCCms = int(time.Since(startTime).Milliseconds())
 	answer.ProportionWCC = float32(answer.WCC.VertexCount) / float32(graph.VertexCount-len(excludeVertex))
 	// fmt.Println("WCC : ", answer.WCC)
 
 	if graph.Directed {
+		startTime = time.Now()
 		maxSCCSize, SCCCount := algo.FindMaxSCC(graph)
+		answer.TimeSCCms = int(time.Since(startTime).Milliseconds())
 		answer.SCCCount = SCCCount
 		answer.ProportionSCC = float32(maxSCCSize) / float32(graph.VertexCount)
 	}
@@ -40,11 +46,17 @@ func GenerateProperties(graph *structs.Graph) []byte {
 
 func GenerateDistances(graph *structs.Graph, method string, verticesCount int) []byte {
 
+	var algoTime int
+
 	var graphDistances [][]int
 	if method == "random_sample" {
+		startTime := time.Now()
 		graphDistances = algo.RandomDistances(graph, verticesCount/2)
+		algoTime = int(time.Since(startTime).Milliseconds())
 	} else if method == "snowball" {
+		startTime := time.Now()
 		graphDistances = algo.RandomDistances(algo.SnowBall(graph, verticesCount), verticesCount/2)
+		algoTime = int(time.Since(startTime).Milliseconds())
 	} else {
 		panic("distance : unknown method")
 	}
@@ -64,6 +76,7 @@ func GenerateDistances(graph *structs.Graph, method string, verticesCount int) [
 		Percentile90: graphDistances[int(0.9*distanceCount)][0],
 		Diameter:     algo.FindDiameter(graph),
 		MeanDistance: meanDistance,
+		TimeMs:       algoTime,
 	}
 	output, _ := json.Marshal(answer)
 
@@ -73,8 +86,10 @@ func GenerateDistances(graph *structs.Graph, method string, verticesCount int) [
 func GenerateClustering(graph *structs.Graph) []byte {
 
 	var answer structs.AnswerA3 = algo.CountTriangles(graph)
+	startTime := time.Now()
 	graphWCC, _ := algo.FindMaxWCC(*graph, make(map[int]struct{}))
-	answer.AvgClusterCoefWCC = algo.AvgClusterCoef(graphWCC)
+	answer.AvgClusterCoefWCC.Value = algo.AvgClusterCoef(graphWCC)
+	answer.AvgClusterCoefWCC.TimeMs = int(time.Since(startTime).Milliseconds())
 
 	output, _ := json.Marshal(answer)
 
@@ -84,7 +99,9 @@ func GenerateClustering(graph *structs.Graph) []byte {
 
 func GenerateDegrees(graph *structs.Graph) []byte {
 
+	startTime := time.Now()
 	answer := algo.GetDegreeProbability(graph)
+	answer.TimeMs = int(time.Since(startTime).Milliseconds())
 
 	output, _ := json.Marshal(answer)
 	return output
@@ -94,6 +111,7 @@ func GenerateDegrees(graph *structs.Graph) []byte {
 func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte {
 
 	var excludeVertex map[int]struct{}
+	startTime := time.Now()
 	if method == "random" {
 		excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
 	} else if method == "targeted" {
@@ -102,7 +120,12 @@ func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte
 
 	graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
 
-	answer := structs.AnswerB{Percentage: percent, Method: method, ProportionWCC: float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))}
+	answer := structs.AnswerB{
+		Percentage:    percent,
+		Method:        method,
+		ProportionWCC: float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex))),
+		TimeMs:        int(time.Since(startTime).Milliseconds()),
+	}
 
 	output, _ := json.Marshal(answer)
 
