@@ -159,6 +159,8 @@ int Graph::bfsComponent(int start, std::vector<bool>& visited) {
         int u = q.front();
         q.pop();
 
+        ++size;
+
         for (int v : edges[u]) {
             if (!visited[v]) {
                 visited[v] = true;
@@ -182,7 +184,7 @@ int Graph::countWeaklyConnectedComponentsBFS() {
     int maxSize = 0;
     int size;
 
-    for (int v = 0; v < maxDegreeVertex; ++v) {
+    for (int v = 0; v < numVertices; ++v) {
         if (!visited[v]) {
             size = bfsComponent(v, visited);
             components++;
@@ -239,7 +241,7 @@ int Graph::countWeaklyConnectedComponentsDSU() {
     std::unordered_map<int, int> componentSizes;
     componentSizes.reserve(numVertices);
     for (int i = 0; i < numVertices; ++i) {
-        componentSizes[dsuFind(i)];
+        ++componentSizes[dsuFind(i)];
     }
 
     int maxSize = 0;
@@ -300,6 +302,99 @@ int Graph::countStronglyConnectedComponents() {
     return sccCount;
 }
 
+Graph::ComponentInfo Graph::buildLargestWCC() {
+    dsuInit(numVertices);
+    for (int u = 0; u < numVertices; ++u)
+        for (int v : edges[u]) dsuUnion(u,v);
+    for (int u = 0; u < numVertices; ++u)
+        for (int v : reverseEdges[u]) dsuUnion(u,v);
+
+    std::vector<int> root(numVertices);
+    std::unordered_map<int,int> sz;
+    sz.reserve(numVertices);
+
+    for (int v = 0; v < numVertices; ++v){
+        root[v] = dsuFind(v);
+        ++sz[root[v]];
+    }
+
+    int bigRoot = std::max_element(sz.begin(), sz.end(),
+                    [](auto &a,auto &b){return a.second<b.second;})->first;
+
+    ComponentInfo info;
+    info.size = sz[bigRoot];
+    info.vertices.reserve(info.size);
+    for (int v = 0; v < numVertices; ++v)
+        if (root[v]==bigRoot) info.vertices.push_back(v);
+
+    wccRatio = double(info.size)/numVertices;
+    return info;
+}
+
+void Graph::buildUndirectedAdj(std::vector<std::vector<int>>& adj) const {
+    adj.assign(numVertices,{});
+    for (int u = 0; u < numVertices; ++u){
+        for (int v : edges[u]) if (u != v) { adj[u].push_back(v); adj[v].push_back(u); }
+        for (int v : reverseEdges[u]) if (u != v) { adj[u].push_back(v); adj[v].push_back(u); }
+    }
+    for (auto &vec:adj){
+        std::sort(vec.begin(),vec.end());
+        vec.erase(std::unique(vec.begin(),vec.end()),vec.end());
+    }
+}
+
+Graph::Ordering Graph::degeneracyOrder(const std::vector<std::vector<int>>& adj) const {
+    const int n = adj.size();
+    std::vector<int> order(n), rank(n), deg(n);
+    for (int i = 0; i < n; ++i) deg[i] = adj[i].size();
+
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(),
+              [&](int a, int b) { return deg[a] < deg[b]; });
+    for (int i = 0; i < n; ++i) rank[order[i]] = i;
+
+    std::vector<std::vector<int>> fwd(n);
+    for (int u = 0; u < n; ++u)
+        for (int v : adj[u])
+            if (rank[u] < rank[v]) fwd[u].push_back(v);
+
+    for (int u = 0; u < n; ++u)
+        std::sort(fwd[u].begin(), fwd[u].end(),
+                  [&](int a, int b) { return rank[a] < rank[b]; });
+
+    return {std::move(rank), std::move(fwd)};
+}
+
+double Graph::averageClusteringLargestWCC(){
+    ComponentInfo comp = buildLargestWCC();
+    if(comp.size==0) return 0.0;
+
+    std::vector<std::vector<int>> adj;
+    buildUndirectedAdj(adj);
+    Ordering ord = degeneracyOrder(adj);
+
+    std::vector<int> tri(numVertices,0);
+    for(int u:comp.vertices){
+        for(int v:ord.fwd[u]){
+            auto it1=ord.fwd[u].begin(), it2=ord.fwd[v].begin();
+            while(it1!=ord.fwd[u].end() && it2!=ord.fwd[v].end()){
+                if(*it1==*it2){
+                    ++tri[u]; ++tri[v]; ++tri[*it1];
+                    ++it1; ++it2;
+                } else if(ord.rank[*it1] < ord.rank[*it2]) ++it1;
+                else ++it2;
+            }
+        }
+    }
+
+    double sum = 0.0;
+    for(int u:comp.vertices){
+        int k = adj[u].size();
+        if(k<2) continue;
+        sum += (2.0*tri[u]) / (k*(k-1));
+    }
+    return sum/comp.size;
+}
 
 // std::vector<int> Graph::getLargestWCCVertices() {
 //     std::unordered_set<int> visited;

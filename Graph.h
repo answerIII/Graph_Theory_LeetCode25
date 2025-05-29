@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -20,6 +21,8 @@ public:
     double getWCCRatio() const { return wccRatio; }
     double getLargestSCCRatio() const { return sccRatio; }
     bool getDirected() const { return isDirected; }
+
+    double averageClusteringLargestWCC();
 
     // int estimateDiameterDoubleSweep();
     // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
@@ -51,4 +54,11 @@ private:
     void dsuUnion(int x, int y) const;
     void dfs1(int u, std::vector<bool>& vis, std::vector<int>& ord);
     void dfs2(int u, std::vector<bool>& vis, int& sz);
+
+    struct ComponentInfo { int size; std::vector<int> vertices; };
+
+    ComponentInfo buildLargestWCC();
+    void buildUndirectedAdj(std::vector<std::vector<int>>&) const;
+    struct Ordering { std::vector<int> rank; std::vector<std::vector<int>> fwd; };
+    Ordering degeneracyOrder(const std::vector<std::vector<int>>&) const;
 };

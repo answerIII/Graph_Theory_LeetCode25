@@ -139,6 +139,15 @@ int main() {
         auto wccTime = duration_cast<milliseconds>(endWCC - startWCC);
         cout << "WCC: " << wcc << " (" << wccTime.count() << " ms), " << formatDouble(wccRatio) << " %\n";
 
+        // average cluster coefficient
+        auto t0 = high_resolution_clock::now();
+        double Cl = g.averageClusteringLargestWCC();
+        auto t1 = high_resolution_clock::now();
+        cout << "⟨C_l⟩ (Largest WCC): "
+            << fixed << setprecision(6) << Cl
+            << " (" << duration_cast<milliseconds>(t1-t0).count() << " ms)\n";
+
+
         // SCC
         if (isDirected) {
             auto startSCC = high_resolution_clock::now();
