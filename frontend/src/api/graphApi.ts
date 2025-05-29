@@ -1,14 +1,14 @@
 // src/api/graphApi.ts
 import axiosInstance from './axiosInstance';
 import type {
-//   GraphData,
+  //   GraphData,
   GeneralPropertiesData,
   DistanceResultData,
   ClusteringData,
   DegreeDistributionData,
   RobustnessData,
   RuntimeData,
-//   ComparisonData,
+  //   ComparisonData,
 } from '../types/graphTypes';
 
 interface RequestBody {
@@ -16,11 +16,11 @@ interface RequestBody {
 }
 
 export const graphApi = {
-//   // 1. Получение графа для визуализации
-//   getGraph: async (datasetname: string): Promise<GraphData> => {
-//     const response = await axiosInstance.get(`/graphs/${datasetname}`);
-//     return response.data;
-//   },
+  //   // 1. Получение графа для визуализации
+  //   getGraph: async (datasetname: string): Promise<GraphData> => {
+  //     const response = await axiosInstance.get(`/graphs/${datasetname}`);
+  //     return response.data;
+  //   },
 
   // 2. Получение общих характеристик графа
   getGeneralProperties: async (datasetname: string): Promise<GeneralPropertiesData> => {
@@ -74,32 +74,53 @@ export const graphApi = {
   },
 
   // 8. Сравнение датасетов
-//   compareDatasets: async (
-//     datasetNames: string[],
-//     metrics: string[]
-//   ): Promise<ComparisonData[]> => {
-//     const response = await axiosInstance.post('/graphs/compare', {
-//       datasetNames,
-//       metrics,
-//     });
-//     return response.data;
-//   },
+  //   compareDatasets: async (
+  //     datasetNames: string[],
+  //     metrics: string[]
+  //   ): Promise<ComparisonData[]> => {
+  //     const response = await axiosInstance.post('/graphs/compare', {
+  //       datasetNames,
+  //       metrics,
+  //     });
+  //     return response.data;
+  //   },
 
-//   // 9. Загрузка нового графа
-//   uploadGraph: async (graph: GraphData): Promise<void> => {
-//     try {
-//       await axiosInstance.post('/upload', graph);
-//     } catch (error) {
-//       throw new Error(`Ошибка отправки графа на бэкенд: ${(error as Error).message}`);
-//     }
-//   },
+  //   // 9. Загрузка нового графа
+  //   uploadGraph: async (graph: GraphData): Promise<void> => {
+  //     try {
+  //       await axiosInstance.post('/upload', graph);
+  //     } catch (error) {
+  //       throw new Error(`Ошибка отправки графа на бэкенд: ${(error as Error).message}`);
+  //     }
+  //   },
 
   // 10. Выбор датасета
   selectDataset: async (datasetname: string): Promise<void> => {
     try {
-      await axiosInstance.post('/api/dataset', { datasetname });
+      await axiosInstance.post('/dataset', { datasetname });
     } catch (error) {
       throw new Error(`Ошибка выбора датасета ${datasetname}: ${(error as Error).message}`);
     }
   },
+
+  // 11. Получить результат вычислений расстояний (стандарт)
+  getDistanceResult: async (datasetname: string) => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/distance`);
+    return response.data;
+  },
+
+  // 12. Вычислить расстояние между вершинами
+  calculateDistance: async (
+    datasetname: string,
+    payload: {
+      start_node: number;
+      end_node: number;
+      algorithm: string;
+      landmarks: { count: number; selection: string };
+    }
+  ) => {
+    const response = await axiosInstance.post(`/graphs/${datasetname}/distance`, payload);
+    return response.data;
+  },
 };
+

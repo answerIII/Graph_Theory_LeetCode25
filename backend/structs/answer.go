@@ -33,7 +33,8 @@ type AnswerA5 struct {
 }
 
 type AnswerB struct {
-	Percentage    int     `json:"xPercent"`
-	Method        string  `json:"removalMethod"`
+	Percentage int    `json:"xPercent"`
+	Method     string `json:"removalMethod"`
+
 	ProportionWCC float32 `json:"largestComponentFraction"`
 }

@@ -1,6 +1,7 @@
 mod error;
 mod graph;
 mod raw_graph;
+mod utils;
 mod rmp_support;
 
 pub use error::{Error, Result};

@@ -18,13 +18,21 @@ export interface GeneralPropertiesData {
 }
 
 // 3. DistanceEstimationComponent
-export interface DistanceResultData {
+export interface DistanceResultEstimation {
+  id: string;
   method: 'double_sweep' | 'random_sample' | 'snowball';
-  diameter?: number;
-  percentile90?: number;
-  meanDistance?: number;
-  startNode?: number;
-  endNode?: number;
+  diameter: number;
+  percentile90: number;
+  meanDistance: number;
+}
+
+export interface MethodParams {
+  sampleSize: string; // Для random_sample и snowball
+  initialNodes?: string; // Для snowball
+}
+
+export interface DistanceEstimationComponentProps {
+  datasetname: string | undefined;
 }
 
 // 4. ClusteringComponent
@@ -66,4 +74,23 @@ export interface ComparisonData {
   clustering?: ClusteringData;
   degreeDistribution?: DegreeDistributionData;
   robustness?: RobustnessData[];
+}
+
+// 9. DistanceAnalysisComponent
+
+export interface DistanceResultAnalysis {
+  id: string;
+  algorithm: string;
+  distance: number | null;
+  execution_time_ms: number;
+  landmarks: number[];
+  start_node: number;
+  end_node: number;
+}
+
+export interface AlgorithmParams {
+  start_node: string;
+  end_node: string;
+  landmarks_count: string;
+  landmarks_selection: 'random' | 'highest_degree' | 'max_coverage';
 }
