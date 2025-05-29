@@ -10,7 +10,6 @@ import (
 )
 
 func GetDegreeDistribution(w http.ResponseWriter, r *http.Request) {
-	storageRoot := ""
 
 	vars := mux.Vars(r)
 	filename := vars["datasetname"] + ".msgpack"

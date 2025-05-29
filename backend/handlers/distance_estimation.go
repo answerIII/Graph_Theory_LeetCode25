@@ -17,9 +17,6 @@ func GetDistanceEstimation(w http.ResponseWriter, r *http.Request) {
 		SampleSize int    `json:"sampleSize" msgpack:"sampleSize"`
 	}
 
-	// storageRoot := "../.storage/msgpack/undirected/"
-	storageRoot := ""
-
 	vars := mux.Vars(r)
 	filename := vars["datasetname"] + ".msgpack"
 
