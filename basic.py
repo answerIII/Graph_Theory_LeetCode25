@@ -10,7 +10,6 @@ def load_graph_from_file(filename: str, directed: bool = True):
         G = nx.DiGraph()
     else:
         G = nx.Graph()
-
     with open(filename, 'r') as f:
         for line in f:
             line = line.strip()
@@ -22,8 +21,10 @@ def load_graph_from_file(filename: str, directed: bool = True):
             except ValueError:
                 # Если не получилось привести к int — скорее всего заголовок, пропускаем
                 continue
-
-            G.add_edge(u, v)
+            if u != v:  # фильтруем петли
+                G.add_edge(u, v)
+            else:
+                G.add_node(u)
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
     return nx.to_dict_of_lists(G)
 

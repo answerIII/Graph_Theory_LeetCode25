@@ -50,7 +50,7 @@ def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
     return min_distance if min_distance != float('inf') else -1
 
 
-def print_distance(graph: dict, directed: bool = True, landmark_selection_option = 2):
+def print_distance(graph: dict, landmark_selection_option = 2):
     # Преобразуем граф в неориентированный, если он ориентированный
     """if directed:
         working_graph = to_undirected(graph)

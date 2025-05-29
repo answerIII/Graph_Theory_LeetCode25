@@ -1,6 +1,7 @@
 import random
 import networkx as nx
 from time import perf_counter
+import numpy as np
 
 
 def load_large_graph_from_file(filename: str, vertices: set):
@@ -10,7 +11,7 @@ def load_large_graph_from_file(filename: str, vertices: set):
         for line in f:
             line = line.strip()
             if not line or line.startswith('#'):
-                continue  # пропускаем комментарии и пустые строки
+                continue
             parts = line.replace(',', ' ').split()
             if len(parts) < 2:
                 continue
@@ -19,43 +20,59 @@ def load_large_graph_from_file(filename: str, vertices: set):
             except ValueError:
                 continue
             if u in vertices and v in vertices:
-                G.add_edge(u, v)
-                edge_count += 1
+                if u != v:  # Проверка на петли
+                    G.add_edge(u, v)
+                    edge_count += 1
+        for v in vertices:
+            G.add_node(v)
     return nx.to_dict_of_lists(G), edge_count
 
 
 def load_graph(filename: str, k: int = 50000):
     unique_vertices = set()
+    degrees = dict()
     with open(filename, 'r') as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith('#'):
                 continue  # Пропускаем комментарии и пустые строки
+            parts = line.replace(',', ' ').split()
             try:
-                u, v = map(int, line.split())
+                u, v = map(int, parts[:2])
                 unique_vertices.add(u)
                 unique_vertices.add(v)
+                if u != v:
+                    degrees[u] = degrees.get(u, 0) + 1
+                    degrees[v] = degrees.get(v, 0) + 1
+
             except ValueError:
                 continue  # Пропускаем строки, где не удаётся распарсить числа
-    real_length_vertices = len(unique_vertices)
-    sampled = random.sample(list(unique_vertices), min(k, real_length_vertices))
-    vertex_dict = {v: [] for v in sampled}
+    for v in unique_vertices:
+        if v not in degrees:
+            degrees[v] = 0
+    all_degrees = list(degrees.values())
+    q1 = np.percentile(all_degrees, 25)
+    q3 = np.percentile(all_degrees, 75)
+    low = [v for v in degrees if degrees[v] <= q1]
+    medium = [v for v in degrees if q1 < degrees[v] <= q3]
+    high = [v for v in degrees if degrees[v] > q3]
+    n_low = min(len(low), int(0.3 * k))
+    n_medium = min(len(medium), int(0.4 * k))
+    n_high = min(len(high), k - n_low - n_medium)
+    sampled_vertices = set(random.sample(low, n_low) +
+                           random.sample(medium, n_medium) +
+                           random.sample(high, n_high))
 
-    graph, edge_count = load_large_graph_from_file(filename, vertex_dict)
-    print("(A1)----------")
-    start = perf_counter()
-    print(f"кол-во вершин = {real_length_vertices}")
-    print(f"кол-во ребер =  {edge_count}")
-    print(f"плотность = {2 * edge_count / (real_length_vertices * (real_length_vertices - 1))}")
-    # week_max_component : set  # самая большая компонента по количеству вершин
-    # week_component_count: int
-    # week_component_count, week_max_component = weekly_connected_components(graph)
+    # sampled = random.sample(list(unique_vertices), min(k, real_length_vertices))
+    graph, edge_count = load_large_graph_from_file(filename, set(sampled_vertices) )
+    print("LOAD_GRAPH")
+    # start = perf_counter()
+    print(f"кол-во вершин реальное = {len(unique_vertices)}")
+    # print(f"кол-во ребер =  {edge_count}")
+    # density = 2 * edge_count / (k * (k - 1))
+    # print(f"плотность = {density}")
+    # end = perf_counter()
+    # print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
+    # print("(A1)----------\n")
 
-    # fraction_of_vertices_largest_week_component = len(week_max_component)/num_of_vertices
-    # print(f"кол-во комп. слабой свзяности = {week_component_count}")
-    # print(f"дол в вершин в макс. по мощности слабой компоненте = {fraction_of_vertices_largest_week_component}")
-    end = perf_counter()
-    print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
-    print("(A1)----------\n")
-
-    return graph
+    return graph #, degrees, len(unique_vertices)

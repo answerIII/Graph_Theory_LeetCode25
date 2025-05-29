@@ -12,21 +12,24 @@ def extract_subgraph(full_graph, vertices):
 
 def main():
     directed: bool =  False
-    #G = load_graph_from_file("data/directed/Wiki-Vote.txt", directed)
+    # G = load_graph_from_file("data/undirected/Email-EuAll.txt", directed)
     
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/")
-    G = load_graph("data/very_large_graphs/very_large_graphs/com-orkut.ungraph.txt")
+
     print("Section 1------\n")
-    comp = print_analysis(G, directed, large=False)
+    # G, degrees, k = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
+    G = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
+
+    comp = print_analysis(G, directed, True) ##!!!!!! и передаем это для больших
     print("\nSection 1------\n\n")
     print("Section 2------\n")
-    subgraph = extract_subgraph(G, comp)
+    #subgraph = extract_subgraph(G, comp)
     while True:
         user_input = input( """Введите какой метод использовать для выбора ориентиров:  (для остановки введите слово 'stop')\n 1. random_selection\n 2. highest_degree_selection\n 3. best_coverage_selection\n""")
         if user_input.lower() == 'stop':
             break
-        print_distance(subgraph, directed, int(user_input))
+        print_distance(comp, int(user_input))
     print("\nSection 2------\n\n")
 
 if __name__ == "__main__":

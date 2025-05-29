@@ -7,7 +7,6 @@ def number_of_edges(graph: dict, directed: bool) -> int:
     """число ребер"""
     if not directed:
         return sum(len(neighbors) for neighbors in graph.values()) // 2
-    
     return sum(len(neighbors) for neighbors in graph.values())
 
 
