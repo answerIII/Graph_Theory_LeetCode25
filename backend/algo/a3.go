@@ -1,7 +1,6 @@
 package algo
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/HikkMind/graph/structs"
@@ -51,8 +50,6 @@ func CountTriangles(graph *structs.Graph) structs.AnswerA3 {
 	totalCount := <-outputCh
 	answer.TrianglesCount = totalCount[0] / 6
 	answer.GlobalClusterCoef = float64(3*answer.TrianglesCount) / float64(totalCount[1])
-
-	fmt.Println(totalCount)
 
 	return answer
 }
