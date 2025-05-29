@@ -14,14 +14,15 @@ type AnswerA1 struct {
 
 type AnswerA2 struct {
 	Diameter     int
-	Percentile90 float32
+	Percentile90 int
 	MeanDistance float32
 }
 
 type AnswerA3 struct {
-	TrianglesCount    int
-	AvgClusterCoef    float64
-	GlobalClusterCoef float64
+	TrianglesCount    int     `json:"trianglesCount"`
+	GlobalClusterCoef float64 `json:"globalClusteringCoef"`
+	AvgClusterCoef    float64 `json:"avgClusteringCoef"`
+	AvgClusterCoefWCC float64 `json:"avgClusterCoefLargeWCC"`
 }
 
 type AnswerA5 struct {
@@ -29,4 +30,10 @@ type AnswerA5 struct {
 	AvgDegree         float64
 	MaxDegree         int
 	ProbabilityDegree map[int]float64
+}
+
+type AnswerB struct {
+	Percentage    int     `json:"xPercent"`
+	Method        string  `json:"removalMethod"`
+	ProportionWCC float32 `json:"largestComponentFraction"`
 }
