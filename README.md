@@ -35,3 +35,6 @@ For Windows use `$env:PYTHONPATH="src";` instead of `PYTHONPATH=src`
 
 ### Run task 2 Landmarks-Basic
 `PYTHONPATH=src pypy3 src/dist_between_vertices/landmarks_basic.py`
+
+### Run task 2 Landmarks-SC
+`PYTHONPATH=src pypy3 src/dist_between_vertices/landmarks_sc.py`

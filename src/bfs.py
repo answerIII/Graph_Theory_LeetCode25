@@ -260,3 +260,24 @@ def updateLandmarkDistBFS(
                 if not visited[neighbour_node_ind]:
                     visited[neighbour_node_ind] = True
                     nodes_queue.append(neighbour_node_ind)
+
+
+def createSPTBFS(
+    undir_adj_list: Tuple[Set[int], ...], start_node_ind: int
+) -> Dict[int, int]:
+    """
+    Create shortest_path_tree as Dict[int, int] for start_node_ind
+    """
+    visited = [False for _ in range(len(undir_adj_list))]
+    nodes_queue: Deque[int] = deque()
+    nodes_queue.append(start_node_ind)
+    visited[start_node_ind] = True
+    shortest_path_tree: Dict[int, int] = {}
+    while nodes_queue:
+        parent_node = nodes_queue.popleft()
+        for neighbour_node_ind in undir_adj_list[parent_node]:
+            if not visited[neighbour_node_ind]:
+                visited[neighbour_node_ind] = True
+                nodes_queue.append(neighbour_node_ind)
+                shortest_path_tree[neighbour_node_ind] = parent_node
+    return shortest_path_tree
