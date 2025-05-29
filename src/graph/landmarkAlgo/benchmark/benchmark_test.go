@@ -46,7 +46,7 @@ var (
 
 var graphType = directed
 var graphName = wikiVote
-var selectType = SRN
+var selectType = SBC
 
 func BenchmarkLandmarkBasic(b *testing.B) {
 	input := landmarkAlgo.DatasetInputPath(graphType, fmt.Sprintf("%s-undirected.txt", graphName))
@@ -70,7 +70,7 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 	}
 	log.Printf("ACTUAL DISTANCE: %d", actual)
 
-	nodesN := []int{64, 128, 256}
+	nodesN := []int{64, 128, 256, 512}
 
 	for _, nodes := range nodesN {
 		nodes := nodes
@@ -89,11 +89,12 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 		selectName := runtime.FuncForPC(reflect.ValueOf(selectType).Pointer()).Name()
 		b.Run(fmt.Sprintf("bench %s %s landmarks %d", graphName, selectName, nodes), func(b *testing.B) {
 			iterCount = b.N
+			log.Println("Precomputing landmarks")
 			err = landmarkAlgo.PrecomputeLandmarks(ugraph, output, selectType, nodes)
 			if err != nil {
 				b.Fatalf("Precompute failed: %v", err)
 			}
-
+			log.Println("Benchmarking LandmarkBasic")
 			for i := 0; i < b.N; i++ {
 				estimated, err := landmarkAlgo.LandmarkBasic(output, int32(s), int32(t))
 				if err != nil {
@@ -107,6 +108,7 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 		avgEstimatedDistance := float64(totalEstimatedDistance) / float64(iterCount)
 		avgError := totalRelativeError / float64(iterCount)
 
+		log.Printf("Iter count: %d", iterCount)
 		log.Printf("Avg estimated distance for %d landmarks: %.2f", nodes, avgEstimatedDistance)
 		log.Printf("Avg relative error for %d landmarks: %.4f", nodes, avgError)
 
@@ -143,12 +145,12 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 	}
 	log.Printf("ACTUAL DISTANCE: %d", actual)
 
-	nodesN := []int{64, 128, 256}
+	nodesN := []int{64, 128, 256, 512}
 
 	for _, nodes := range nodesN {
 		nodes := nodes
 
-		output := landmarkAlgo.DatasetOutputPath(graphType, fmt.Sprintf("%s-random-%d.bin", graphName, nodes))
+		output := landmarkAlgo.DatasetOutputPath(graphType, fmt.Sprintf("%s-random-%d.txt", graphName, nodes))
 		dir := filepath.Dir(output)
 
 		if err = os.MkdirAll(dir, os.ModePerm); err != nil {
@@ -162,15 +164,16 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 		selectName := runtime.FuncForPC(reflect.ValueOf(selectType).Pointer()).Name()
 		b.Run(fmt.Sprintf("bench %s %s landmarks shortcut %d", graphName, selectName, nodes), func(b *testing.B) {
 			iterCount = b.N
-			err = landmarkAlgo.PrecomputeLandmarks(ugraph, output, selectType, nodes)
+			log.Println("Precomputing landmarks with paths")
+			err = landmarkAlgo.PrecomputeLandmarksWithPaths(ugraph, output, selectType, nodes)
 			if err != nil {
 				b.Fatalf("Precompute failed: %v", err)
 			}
-
+			log.Printf("Benchmarking LandmarkShortcut (%d %d)\n", s, t)
 			for i := 0; i < b.N; i++ {
-				estimated, err := landmarkAlgo.LandmarkShortcut(ugraph, output, int(s), int(t))
+				estimated, err := landmarkAlgo.LandmarkShortcut(ugraph, output, int32(s), int32(t))
 				if err != nil {
-					b.Fatalf("LandmarkBasic failed: %v", err)
+					b.Fatalf("LandmarkShortcut failed: %v", err)
 				}
 				totalEstimatedDistance += estimated
 				totalRelativeError += math.Abs(float64(estimated-actual)) / float64(actual)
@@ -180,6 +183,7 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 		avgEstimatedDistance := float64(totalEstimatedDistance) / float64(iterCount)
 		avgError := totalRelativeError / float64(iterCount)
 
+		log.Printf("iterCount: %d", iterCount)
 		log.Printf("Avg estimated distance for %d landmarks: %.2f", nodes, avgEstimatedDistance)
 		log.Printf("Avg relative error for %d landmarks: %.4f", nodes, avgError)
 
