@@ -45,6 +45,10 @@ for filename in data_files:
     y_degree = list(biggest_data.values())
 
     plt.figure(figsize=(12, 7))
+
+    graph_name = os.path.splitext(filename)[0]
+    plt.suptitle(f'Устойчивость наибольшей WCC: {graph_name}', fontsize=14, y=1.02)
+
     plt.plot(x_random, y_random, 'b-o', label='Случайное удаление', linewidth=2, markersize=8)
     plt.plot(x_degree, y_degree, 'r--s', label='Удаление по степени', linewidth=2, markersize=6)
 
