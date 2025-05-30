@@ -1,8 +1,8 @@
 mod error;
 mod graph;
 mod raw_graph;
-mod utils;
 mod rmp_support;
+mod utils;
 
 pub use error::{Error, Result};
 pub use graph::{Graph, Selection};
