@@ -30,7 +30,7 @@ def load_graph_from_file(filename: str, directed: bool = True):
     dict_of_sets = dict()
     for node, neighbors in dict_of_lists.items():
         dict_of_sets[node] = set(neighbors)
-    return dict_of_sets
+    return dict_of_sets, G
 
 def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
     """ граф ( словарь словарей ) будет храниться следующим образом:
