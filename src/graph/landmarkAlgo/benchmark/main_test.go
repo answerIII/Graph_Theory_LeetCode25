@@ -30,9 +30,8 @@ type Path struct {
 }
 
 func BenchmarkMainLandmarkBasic(b *testing.B) {
-	graphType := directed
-
-	graphNames := []string{socWikiVote}
+	graphType = large
+	graphNames := []string{youtube, vk ,orkut}
 
 	for _, graphName := range graphNames {
 		start := time.Now()
@@ -153,8 +152,8 @@ func BenchmarkMainLandmarkBasic(b *testing.B) {
 }
 
 func BenchmarkMainLandmarkShortcut(b *testing.B) {
-	graphType := directed
-	graphNames := []string{google}
+	graphType = large
+	graphNames := []string{youtube, vk}
 	for _, graphName := range graphNames {
 		start := time.Now()
 		// Create log file
