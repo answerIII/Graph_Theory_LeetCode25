@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"io"
+	"fmt"
 
 	"github.com/HikkMind/graph/middleware"
 	"github.com/gorilla/mux"
@@ -106,4 +108,19 @@ func GetClusteringVertex(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(middleware.GenerateClusteringVertex(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Vertex))
+}
+
+func GetDistanceAnalysis(w http.ResponseWriter, r *http.Request) {
+	// vars := mux.Vars(r)
+	// filename := vars["datasetname"]
+
+	req, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	fmt.Println(string(req))
+	
 }

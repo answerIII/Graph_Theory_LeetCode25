@@ -25,6 +25,7 @@ func main() {
 	router.HandleFunc("/graphs/{datasetname}/degree-distribution", handlers.GetDegreeDistribution).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/robustness", handlers.GetRobustnessComponent).Methods("POST")
 	router.HandleFunc("/graphs/{datasetname}/getrandomnodes", handlers.GetRandomNodes).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/distance/analysis", handlers.GetDistanceAnalysis).Methods("POST")
 
 	serverPort := os.Getenv("PORT")
 	fmt.Println("server started on port " + serverPort)
