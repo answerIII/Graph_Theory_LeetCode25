@@ -1,112 +1,111 @@
-ACTUAL DISTANCE: 4 (took 0 ms)
 graph_theory/graph/landmarkAlgo.SelectRandomNodes
 landmarks: 4
 precomputing time: 0 ms
-Avg estimated dist: 523668428822730.88
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.07 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.1800
 file size: 0.01 MB
 landmarks: 8
 precomputing time: 1 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.12 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0900
 file size: 0.03 MB
 landmarks: 16
-precomputing time: 2 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.22 ms
+precomputing time: 1 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0600
 file size: 0.05 MB
 landmarks: 32
 precomputing time: 3 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.41 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0300
 file size: 0.11 MB
 landmarks: 64
 precomputing time: 5 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.83 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.04
+Mean absolute error: 0.0000
 file size: 0.22 MB
 landmarks: 128
-precomputing time: 9 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 1.67 ms
+precomputing time: 10 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 1.02
+Mean absolute error: 0.0000
 file size: 0.43 MB
 graph_theory/graph/landmarkAlgo.SelectHighestDegree
 landmarks: 4
-precomputing time: 0 ms
-Avg estimated dist: -1.00
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.04 ms
+precomputing time: 1 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.2600
 file size: 0.01 MB
 landmarks: 8
 precomputing time: 1 ms
-Avg estimated dist: -1.00
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.08 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.1000
 file size: 0.03 MB
 landmarks: 16
-precomputing time: 1 ms
-Avg estimated dist: -1.00
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.17 ms
+precomputing time: 2 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0300
 file size: 0.05 MB
 landmarks: 32
 precomputing time: 3 ms
-Avg estimated dist: 2603266169024773.50
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.34 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0100
 file size: 0.11 MB
 landmarks: 64
-precomputing time: 5 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.70 ms
+precomputing time: 6 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.02
+Mean absolute error: 0.0000
 file size: 0.22 MB
 landmarks: 128
-precomputing time: 11 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 1.44 ms
+precomputing time: 10 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 1.00
+Mean absolute error: 0.0100
 file size: 0.43 MB
 graph_theory/graph/landmarkAlgo.SelectBestCoverage
 landmarks: 4
 precomputing time: 22 ms
-Avg estimated dist: 340458899149339.25
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.05 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.2400
 file size: 0.01 MB
 landmarks: 8
 precomputing time: 21 ms
-Avg estimated dist: -1.00
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.09 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.1400
 file size: 0.03 MB
 landmarks: 16
-precomputing time: 21 ms
-Avg estimated dist: -1.00
-Avg relative error: 2305843009213693952.0000
-Avg time algorithm: 0.19 ms
+precomputing time: 23 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0600
 file size: 0.05 MB
 landmarks: 32
-precomputing time: 24 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.36 ms
+precomputing time: 23 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.0100
 file size: 0.11 MB
 landmarks: 64
-precomputing time: 43 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.79 ms
+precomputing time: 46 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 0.01
+Mean absolute error: 0.0200
 file size: 0.22 MB
 landmarks: 128
-precomputing time: 82 ms
-Avg estimated dist: 4.00
-Avg relative error: 0.0000
-Avg time algorithm: 1.60 ms
+precomputing time: 71 ms
+Avg actual distance time: 0.00 ms
+Avg estimated distance time: 1.03
+Mean absolute error: 0.0100
 file size: 0.43 MB
