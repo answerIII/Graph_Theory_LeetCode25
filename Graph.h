@@ -48,10 +48,19 @@ public:
     int landmarkBasicDistance(int s, int t) const;
     int exactDistance(int s, int t) const;
 
-    // int estimateDiameterDoubleSweep();
-    // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
-    // std::pair<int, int> estimateDiameterSnowballSample(int targetSize = 500);
-    // std::vector<int> getLargestWCCVertices();
+    int estimateDiameterDoubleSweep() const;
+
+    std::pair<int,double> distanceStatsRandomPairs(int numPairs = 500) const;
+
+    std::vector<int> snowballSample(int targetSize = 500) const;
+
+    std::pair<int,double> distanceStatsOnSample(const std::vector<int>& sample, int numPairs = 500) const;
+
+    struct DiamP90 { 
+        int diameter;
+        int p90;
+    };
+    DiamP90 snowballDiameterAndP90(int sampleSize = 500, int iterations = 5) const;
 
 private:
     int numVertices;
@@ -82,6 +91,8 @@ private:
     struct ComponentInfo { int size; std::vector<int> vertices; };
 
     ComponentInfo buildLargestWCC();
+    ComponentInfo buildLargestWCCConst() const;
+
     void buildUndirectedAdj(std::vector<std::vector<int>>&) const;
     struct Ordering { std::vector<int> rank; std::vector<std::vector<int>> fwd; };
     Ordering degeneracyOrder(const std::vector<std::vector<int>>&) const;

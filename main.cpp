@@ -156,6 +156,16 @@ int main() {
             cout << "SCC: -\n";
         }
 
+        int diamDS = g.estimateDiameterDoubleSweep();
+        cout << "Диаметр наибольшей WCC (The Double Sweep): " << diamDS << "\n";
+
+        auto [diamRP, p90RP] = g.distanceStatsRandomPairs(500);
+        cout << "90 процентиль расстояний: " << fixed << setprecision(2) << p90RP << "\n";
+
+        auto res = g.snowballDiameterAndP90(1000, 5);
+        cout << "Диаметр наибольшей WCC (Snowball): " << res.diameter << "\n";
+        cout << "90 процентиль расстояний (Snowball): " << res.p90 << "\n";
+
         // average cluster coefficient
         auto t0 = high_resolution_clock::now();
         double Cl = g.averageClusteringLargestWCC();
@@ -217,7 +227,6 @@ int main() {
 
         std::cout << "Таблица изменений долей вершин по процентам сохранена в " << vfcDir.string() << '\n';
 
-        using namespace std::chrono;
         int n = g.getVertexCount();
 
         int trials = 100;  
@@ -279,20 +288,6 @@ int main() {
                     << "Avg landmark time: " << avgApprox << " μs\n";
             }
         }
-
-        // auto startDS = high_resolution_clock::now();
-        // int diamDS = g.estimateDiameterDoubleSweep();
-        // auto endDS = high_resolution_clock::now();
-        // auto dsTime = duration_cast<milliseconds>(endDS - startDS);
-        // cout << "Диаметр Double Sweep: " << diamDS << " (" << dsTime.count() << " ms)\n";
-
-        // auto startRP = high_resolution_clock::now();
-        // auto [diamRP, p90RP] = g.estimateDiameterRandomPairs(500);
-        // auto endRP = high_resolution_clock::now();
-        // auto rpTime = duration_cast<milliseconds>(endRP - startRP);
-        // cout << "Диаметр Random Pairs: " << diamRP << " (" << rpTime.count() << " ms)\n";
-        // cout << "P90 Random Pairs: " << formatDouble(p90RP) << " (" << rpTime.count() << " ms)\n";
-        // cout << endl;
     }
 
     return 0;

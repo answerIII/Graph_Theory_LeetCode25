@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <atomic>
+#include <random>
 
 Graph::Graph()
     : numVertices(0)
@@ -647,256 +648,301 @@ int Graph::exactDistance(int s, int t) const {
     return -1;
 }
 
-// std::vector<int> Graph::getLargestWCCVertices() {
-//     std::unordered_set<int> visited;
-//     std::vector<int> largestComponent;
-//     int maxSize = 0;
+int Graph::estimateDiameterDoubleSweep() const {
+    std::mt19937_64 rng(12345);
+    std::uniform_int_distribution<int> vid(0, numVertices - 1);
+    int r = vid(rng);
 
-//     for (int v = 0; v < numVertices; ++v) {
-//         if (visited.find(v) == visited.end()) {
-//             std::unordered_set<int> componentVisited;
-//             bfsComponent(v, componentVisited);
-//             if (componentVisited.size() > maxSize) {
-//                 maxSize = componentVisited.size();
-//                 largestComponent.assign(componentVisited.begin(), componentVisited.end());
-//             }
-//             visited.insert(componentVisited.begin(), componentVisited.end());
-//         }
-//     }
+    std::vector<int> d(numVertices, -1);
+    std::queue<int> q;
+    d[r] = 0; q.push(r);
+    int a = r;
 
-//     return largestComponent;
-// }
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (long v : edges[u]) {
+            if (d[v] < 0) { d[v] = d[u] + 1; q.push(v); a = v; }
+        }
+        for (long v : reverseEdges[u]) {
+            if (d[v] < 0) { d[v] = d[u] + 1; q.push(v); a = v; }
+        }
+    }
 
-// std::pair<int, int> Graph::bfsFurthestNode(int start) {
-//     std::unordered_map<int, int> distances;
-//     std::queue<int> q;
-//     q.push(start);
-//     distances[start] = 0;
-//     int furthestNode = start;
-//     int maxDistance = 0;
+    std::fill(d.begin(), d.end(), -1);
+    d[a] = 0; q.push(a);
+    int diam = 0;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (long v : edges[u]) {
+            if (d[v] < 0) {
+                d[v] = d[u] + 1;
+                q.push(v);
+                diam = std::max(diam, d[v]);
+            }
+        }
+        for (long v : reverseEdges[u]) {
+            if (d[v] < 0) {
+                d[v] = d[u] + 1;
+                q.push(v);
+                diam = std::max(diam, d[v]);
+            }
+        }
+    }
+    return diam;
+}
 
-//     while (!q.empty()) {
-//         int current = q.front();
-//         q.pop();
+std::pair<int,double> Graph::distanceStatsRandomPairs(int numPairs) const {
+    std::mt19937_64 rng(12345);
+    std::uniform_int_distribution<int> vid(0, numVertices - 1);
 
-//         if (edges.count(current)) {
-//             for (int neighbor : edges.at(current)) {
-//                 if (distances.find(neighbor) == distances.end()) {
-//                     distances[neighbor] = distances[current] + 1;
-//                     q.push(neighbor);
-//                     if (distances[neighbor] > maxDistance) {
-//                         maxDistance = distances[neighbor];
-//                         furthestNode = neighbor;
-//                     }
-//                 }
-//             }
-//         }
+    std::vector<int> distList;
+    distList.reserve(numPairs);
 
-//         if (reverseEdges.count(current)) {
-//             for (int neighbor : reverseEdges.at(current)) {
-//                 if (distances.find(neighbor) == distances.end()) {
-//                     distances[neighbor] = distances[current] + 1;
-//                     q.push(neighbor);
-//                     if (distances[neighbor] > maxDistance) {
-//                         maxDistance = distances[neighbor];
-//                         furthestNode = neighbor;
-//                     }
-//                 }
-//             }
-//         }
-//     }
+    for (int i = 0; i < numPairs; ++i) {
+        int s = vid(rng), t = vid(rng);
+        while (t == s) t = vid(rng);
+        int d = exactDistance(s, t);
+        if (d > 0) distList.push_back(d);
+    }
+    if (distList.empty()) return {0, 0.0};
 
-//     return {furthestNode, maxDistance};
-// }
+    std::sort(distList.begin(), distList.end());
+    int diam = distList.back();
+    int idx90 = std::min(int(distList.size()) - 1,
+                         int(0.9 * distList.size()));
+    double p90 = distList[idx90];
+    return {diam, p90};
+}
 
-// int Graph::estimateDiameterDoubleSweep() {
-//     std::vector<int> vertices = getLargestWCCVertices();
-//     if (vertices.empty()) return 0;
+std::vector<int> Graph::snowballSample(int targetSize) const {
+    std::mt19937_64 rng(12345);
+    std::uniform_int_distribution<int> vid(0, numVertices - 1);
 
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<> distr(0, vertices.size() - 1);
-//     int randomStart = vertices[distr(gen)];
+    std::vector<int> sample;
+    sample.reserve(targetSize);
+    std::vector<char> used(numVertices, 0);
+    std::queue<int> q;
 
-//     auto [nodeA, _] = bfsFurthestNode(randomStart);
-//     auto [nodeB, diameter] = bfsFurthestNode(nodeA);
+    for (int i = 0; i < 3; ++i) {
+        int u = vid(rng);
+        if (!used[u]) {
+            used[u] = 1;
+            sample.push_back(u);
+            q.push(u);
+        }
+    }
 
-//     return diameter;
-// }
+    while (!q.empty() && int(sample.size()) < targetSize) {
+        int u = q.front(); q.pop();
+        for (long v : edges[u]) {
+            if (!used[v] && int(sample.size()) < targetSize) {
+                used[v] = 1;
+                sample.push_back(v);
+                q.push(v);
+            }
+        }
+        for (long v : reverseEdges[u]) {
+            if (!used[v] && int(sample.size()) < targetSize) {
+                used[v] = 1;
+                sample.push_back(v);
+                q.push(v);
+            }
+        }
+    }
+    return sample;
+}
 
-// std::pair<int, int> Graph::estimateDiameterRandomPairs(int numPairs) {
-//     std::vector<int> vertices = getLargestWCCVertices();
-//     if (vertices.empty()) return {0, 0};
+std::pair<int,double> Graph::distanceStatsOnSample(const std::vector<int>& sample, int numPairs) const
+{
+    int nS = sample.size();
+    if (nS == 0) return {0, 0.0};
 
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<> distr(0, vertices.size() - 1);
+    std::vector<int> toLocal(numVertices, -1);
+    for (int i = 0; i < nS; ++i) toLocal[sample[i]] = i;
 
-//     std::vector<int> distances;
-//     for (int i = 0; i < numPairs; ++i) {
-//         int u = vertices[distr(gen)];
-//         int v = vertices[distr(gen)];
-//         if (u == v) continue;
+    std::vector<std::vector<int>> sadj(nS);
+    for (int i = 0; i < nS; ++i) {
+        int u = sample[i];
+        for (long v : edges[u])
+            if (toLocal[v] >= 0) sadj[i].push_back(toLocal[v]);
+        for (long v : reverseEdges[u])
+            if (toLocal[v] >= 0) sadj[i].push_back(toLocal[v]);
+        auto& nbr = sadj[i];
+        std::sort(nbr.begin(), nbr.end());
+        nbr.erase(std::unique(nbr.begin(), nbr.end()), nbr.end());
+    }
 
-//         std::unordered_map<int, int> dist;
-//         std::queue<int> q;
-//         q.push(u);
-//         dist[u] = 0;
+    auto bfs_local = [&](int start){
+        std::vector<int> d(nS, -1);
+        std::queue<int> q;
+        d[start] = 0; q.push(start);
+        int far = start;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int v : sadj[u]) {
+                if (d[v] < 0) {
+                    d[v] = d[u] + 1;
+                    far = v;
+                    q.push(v);
+                }
+            }
+        }
+        return std::make_pair(far, d);
+    };
 
-//         bool found = false;
-//         while (!q.empty() && !found) {
-//             int current = q.front();
-//             q.pop();
+    std::mt19937_64 rng(12345);
+    int r0 = rng() % nS;
+    auto [a,_] = bfs_local(r0);
+    auto [b,d2] = bfs_local(a);
+    int diam = d2[b];
 
-//             if (edges.count(current)) {
-//                 for (int neighbor : edges.at(current)) {
-//                     if (dist.find(neighbor) == dist.end()) {
-//                         dist[neighbor] = dist[current] + 1;
-//                         if (neighbor == v) {
-//                             distances.push_back(dist[neighbor]);
-//                             found = true;
-//                             break;
-//                         }
-//                         q.push(neighbor);
-//                     }
-//                 }
-//             }
+    std::uniform_int_distribution<int> vidS(0, nS - 1);
+    std::vector<int> distList;
+    distList.reserve(numPairs);
+    for (int i = 0; i < numPairs; ++i) {
+        int s = vidS(rng), t = vidS(rng);
+        while (t == s) t = vidS(rng);
+        auto [_, dvec] = bfs_local(s);
+        if (dvec[t] >= 0) distList.push_back(dvec[t]);
+    }
+    std::sort(distList.begin(), distList.end());
+    double p90 = 0.0;
+    if (!distList.empty()) {
+        int idx90 = std::min(int(distList.size()) - 1,
+                             int(0.9 * distList.size()));
+        p90 = distList[idx90];
+    }
 
-//             if (found) break;
+    return {diam, p90};
+}
 
-//             if (reverseEdges.count(current)) {
-//                 for (int neighbor : reverseEdges.at(current)) {
-//                     if (dist.find(neighbor) == dist.end()) {
-//                         dist[neighbor] = dist[current] + 1;
-//                         if (neighbor == v) {
-//                             distances.push_back(dist[neighbor]);
-//                             found = true;
-//                             break;
-//                         }
-//                         q.push(neighbor);
-//                     }
-//                 }
-//             }
-//         }
-//     }
+Graph::ComponentInfo Graph::buildLargestWCCConst() const {
+    dsuInit(numVertices);
+    for (int u = 0; u < numVertices; ++u)
+        for (int v : edges[u]) dsuUnion(u,v);
+    for (int u = 0; u < numVertices; ++u)
+        for (int v : reverseEdges[u]) dsuUnion(u,v);
 
-//     if (distances.empty()) return {0, 0};
+    std::vector<int> root(numVertices);
+    std::unordered_map<int,int> sz;
+    sz.reserve(numVertices);
 
-//     std::sort(distances.begin(), distances.end());
-//     int diameter = *std::max_element(distances.begin(), distances.end());
-//     int percentile90 = distances[static_cast<int>(0.9 * distances.size())];
+    for (int v = 0; v < numVertices; ++v){
+        root[v] = dsuFind(v);
+        ++sz[root[v]];
+    }
 
-//     return {diameter, percentile90};
-// }
+    int bigRoot = std::max_element(sz.begin(), sz.end(),
+                    [](auto &a,auto &b){return a.second<b.second;})->first;
 
-// std::vector<int> Graph::snowballSample(int targetSize) {
-//     std::vector<int> vertices = getLargestWCCVertices();
-//     if (vertices.empty() || targetSize >= vertices.size()) {
-//         return vertices;
-//     }
+    ComponentInfo info;
+    info.size = sz[bigRoot];
+    info.vertices.reserve(info.size);
+    for (int v = 0; v < numVertices; ++v)
+        if (root[v]==bigRoot) info.vertices.push_back(v);
 
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<> distr(0, vertices.size() - 1);
+    return info;
+}
 
-//     std::unordered_set<int> sampled;
-//     std::queue<int> q;
+Graph::DiamP90 Graph::snowballDiameterAndP90(int sampleSize, int iterations) const {
+    ComponentInfo comp = buildLargestWCCConst();
+    const auto& compV = comp.vertices;
+    int compN = compV.size();
+    if (compN == 0) return {0,0};
 
-//     // Начинаем с 2-3 случайных вершин
-//     int initialNodes = std::min(3, static_cast<int>(vertices.size()));
-//     for (int i = 0; i < initialNodes; ++i) {
-//         int node = vertices[distr(gen)];
-//         if (sampled.find(node) == sampled.end()) {
-//             sampled.insert(node);
-//             q.push(node);
-//         }
-//     }
+    int bestDiam = 0, sumP90 = 0;
+    const int INIT_NEI = 2;
 
-//     while (!q.empty() && sampled.size() < targetSize) {
-//         int current = q.front();
-//         q.pop();
+    for (int it = 0; it < iterations; ++it) {
+        int init = compV[0];
+        for (int u : compV) {
+            int deg = edges[u].size() + reverseEdges[u].size();
+            if (deg >= INIT_NEI) { init = u; break; }
+        }
 
-//         if (edges.count(current)) {
-//             for (int neighbor : edges.at(current)) {
-//                 if (sampled.find(neighbor) == sampled.end() && sampled.size() < targetSize) {
-//                     sampled.insert(neighbor);
-//                     q.push(neighbor);
-//                 }
-//             }
-//         }
+        std::vector<int> sample = {init};
+        int need = INIT_NEI;
+        for (long v : edges[init]) {
+            if (!need--) { sample.push_back(v); break; }
+        }
+        for (long v : reverseEdges[init]) {
+            if (need > 0) { sample.push_back(v); --need; }
+        }
 
-//         if (reverseEdges.count(current)) {
-//             for (int neighbor : reverseEdges.at(current)) {
-//                 if (sampled.find(neighbor) == sampled.end() && sampled.size() < targetSize) {
-//                     sampled.insert(neighbor);
-//                     q.push(neighbor);
-//                 }
-//             }
-//         }
-//     }
+        std::unordered_set<int> inS(sample.begin(), sample.end());
+        std::queue<int> q;
+        for (int u : sample) q.push(u);
 
-//     return std::vector<int>(sampled.begin(), sampled.end());
-// }
+        while (!q.empty() && int(sample.size()) < sampleSize) {
+            int u = q.front(); q.pop();
+            for (long v : edges[u]) {
+                if (inS.insert(v).second && int(sample.size())<sampleSize) {
+                    sample.push_back(v); q.push(v);
+                }
+            }
+            for (long v : reverseEdges[u]) {
+                if (inS.insert(v).second && int(sample.size())<sampleSize) {
+                    sample.push_back(v); q.push(v);
+                }
+            }
+        }
 
-// std::pair<int, int> Graph::estimateDiameterSnowballSample(int targetSize) {
-//     std::vector<int> sampledVertices = snowballSample(targetSize);
-//     if (sampledVertices.empty()) return {0, 0};
+        int nS = sample.size();
+        if (nS < 2) { sumP90 += 0; continue; }
 
-//     std::vector<int> distances;
-//     for (size_t i = 0; i < sampledVertices.size(); ++i) {
-//         int u = sampledVertices[i];
-//         for (size_t j = i + 1; j < sampledVertices.size(); ++j) {
-//             int v = sampledVertices[j];
-//             if (u == v) continue;
+        std::vector<int> toLocal(numVertices, -1);
+        for (int i = 0; i < nS; ++i) toLocal[sample[i]] = i;
 
-//             std::unordered_map<int, int> dist;
-//             std::queue<int> q;
-//             q.push(u);
-//             dist[u] = 0;
+        std::vector<std::vector<int>> sadj(nS);
+        for (int i = 0; i < nS; ++i) {
+            int u = sample[i];
+            for (long v : edges[u]) if (toLocal[v]>=0) sadj[i].push_back(toLocal[v]);
+            for (long v : reverseEdges[u]) if (toLocal[v]>=0) sadj[i].push_back(toLocal[v]);
+            auto &nbr = sadj[i];
+            std::sort(nbr.begin(), nbr.end());
+            nbr.erase(std::unique(nbr.begin(), nbr.end()), nbr.end());
+        }
 
-//             bool found = false;
-//             while (!q.empty() && !found) {
-//                 int current = q.front();
-//                 q.pop();
+        auto bfs_local = [&](int s){
+            std::vector<int> d(nS,-1);
+            std::queue<int> qq;
+            d[s] = 0; qq.push(s);
+            int far = s;
+            while (!qq.empty()) {
+                int u = qq.front(); qq.pop();
+                for (int v : sadj[u]) {
+                    if (d[v]<0) {
+                        d[v] = d[u]+1;
+                        far = v;
+                        qq.push(v);
+                    }
+                }
+            }
+            return std::make_pair(far,d);
+        };
 
-//                 if (edges.count(current)) {
-//                     for (int neighbor : edges.at(current)) {
-//                         if (dist.find(neighbor) == dist.end()) {
-//                             dist[neighbor] = dist[current] + 1;
-//                             if (neighbor == v) {
-//                                 distances.push_back(dist[neighbor]);
-//                                 found = true;
-//                                 break;
-//                             }
-//                             q.push(neighbor);
-//                         }
-//                     }
-//                 }
+        std::mt19937_64 rng(12345+it);
+        int r0 = rng()%nS;
+        auto [a,_da] = bfs_local(r0);
+        auto [b,db ] = bfs_local(a);
+        bestDiam = std::max(bestDiam, db[b]);
 
-//                 if (found) break;
+        std::vector<int> allD;
+        allD.reserve(size_t(nS)*(nS-1)/2);
+        for (int i = 0; i < nS; ++i) {
+            auto [_f, di] = bfs_local(i);
+            for (int j = i+1; j < nS; ++j) {
+                if (di[j]>=0) allD.push_back(di[j]);
+            }
+        }
+        if (!allD.empty()) {
+            std::sort(allD.begin(), allD.end());
+            int idx90 = std::round(allD.size()*0.9);
+            if (idx90 >= (int)allD.size()) idx90 = allD.size()-1;
+            sumP90 += allD[idx90];
+        }
+    }
 
-//                 if (reverseEdges.count(current)) {
-//                     for (int neighbor : reverseEdges.at(current)) {
-//                         if (dist.find(neighbor) == dist.end()) {
-//                             dist[neighbor] = dist[current] + 1;
-//                             if (neighbor == v) {
-//                                 distances.push_back(dist[neighbor]);
-//                                 found = true;
-//                                 break;
-//                             }
-//                             q.push(neighbor);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     if (distances.empty()) return {0, 0};
-
-//     std::sort(distances.begin(), distances.end());
-//     int diameter = *std::max_element(distances.begin(), distances.end());
-//     int percentile90 = distances[static_cast<int>(0.9 * distances.size())];
-
-//     return {diameter, percentile90};
-// }
+    int avgP90 = std::round(double(sumP90)/iterations);
+    return { bestDiam, avgP90 };
+}
