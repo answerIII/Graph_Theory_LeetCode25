@@ -30,7 +30,7 @@ def node_clustering(graph: dict, node: int) -> float:
 
 def main():
     directed: bool =  False
-    G, library_graph = load_graph_from_file("data/test/graph_1.txt", directed)#!!!используем это для обычных
+    G, library_graph = load_graph_from_file("data/test/graph_0.txt", directed)#!!!используем это для обычных
     # directed: bool = False
     # G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
 
@@ -48,6 +48,7 @@ def main():
     v2 = max(G) # максимальная вершина
     print(v1, v2)
     print_distance(G, 2, v1, v2)
+    print_distance(G, 3, v1, v2)
     ####------------------
     
     
