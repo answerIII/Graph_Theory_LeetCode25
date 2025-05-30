@@ -2,9 +2,10 @@
 #define GRAPH_H
 
 #include <map>
-#include <strings.h>
+#include <string>
 #include <utility>
 
+#include "progress.hpp"
 #include "../libs.h"
 #include "Node.h"
 
@@ -448,6 +449,9 @@ class DirectedGraph : public Graph {
         }
     };
 
+    ProgressBlock block;
+    ProgressStage& stage = block.create_stage(vertexCount);
+
     auto worker = [&](int start, int end) {
         int localTriangles = 0;
         std::unordered_map<int, int> localMap;
@@ -473,8 +477,9 @@ class DirectedGraph : public Graph {
                 }
             }
 
-            completed.fetch_add(1);
-            printProgress(vertexCount);
+            stage.arrive();
+            // completed.fetch_add(1);
+            // printProgress(vertexCount);
         }
 
         std::lock_guard<std::mutex> lock1(countMutex);
@@ -774,6 +779,9 @@ class DirectedGraph : public Graph {
         std::mutex printLock;
         std::atomic<size_t> completedLandmarks = 1;
 
+        ProgressBlock block;
+        ProgressStage& stage = block.create_stage(landmarksCount);
+
         auto printProgress = [&](size_t total) {
             size_t done = completedLandmarks.load();
             int percent = static_cast<int>((100.0 * done) / total);
@@ -833,8 +841,9 @@ class DirectedGraph : public Graph {
                     landmarks.emplace_back(std::move(localMap));
                 }
 
-                completedLandmarks.fetch_add(1);
-                printProgress(landmarksCount);
+                stage.arrive();
+                // completedLandmarks.fetch_add(1);
+                // printProgress(landmarksCount);
             }
         };
 
@@ -888,6 +897,10 @@ class DirectedGraph : public Graph {
                 lastPrinted = percent;
             }
         };
+
+        ProgressBlock block;
+        ProgressStage& stage = block.create_stage(landmarksCount);
+
         auto worker = [&](size_t times) {
             while (times-- != 0) {
                 // Part 2: Landmark initialization
@@ -912,8 +925,9 @@ class DirectedGraph : public Graph {
                     landmarks.emplace_back(std::move(localMap));
                 }
 
-                completedLandmarks.fetch_add(1);
-                printProgress(landmarksCount);
+                stage.arrive();
+                // completedLandmarks.fetch_add(1);
+                // printProgress(landmarksCount);
             }
         };
 
