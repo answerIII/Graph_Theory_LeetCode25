@@ -1,6 +1,9 @@
 package algo
 
 import (
+	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -19,15 +22,43 @@ func CountTriangles(graph *structs.Graph) structs.AnswerA3 {
 	triangleCh := make(chan int)
 	tripleCh := make(chan int) //max possible triples
 
+	goroutineCh := make(chan int)
 	outputCh := make(chan []int)
 
 	defer close(outputCh)
 
 	var wg sync.WaitGroup
-	for vertex := range graph.AdjList {
-		wg.Add(1)
-		go countTriples(graph, vertex, triangleCh, tripleCh, &wg)
+	goroutineCount, err := strconv.Atoi(os.Getenv("GOROUTINECOUNT"))
+	if err != nil || goroutineCount < 0 {
+		goroutineCount = len(graph.AdjList)
+		fmt.Println("use max goroutine count : ", goroutineCount)
 	}
+	// fmt.Println("goroutine count : ", goroutineCount)
+	for range goroutineCount {
+		wg.Add(1)
+		go func(graph *structs.Graph, triangleCh, tripleCh chan<- int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			for {
+				vertex, ok := <-goroutineCh
+				if !ok {
+					break
+				}
+				countTriples(graph, vertex, triangleCh, tripleCh)
+			}
+		}(graph, triangleCh, tripleCh, &wg)
+	}
+
+	go func(graph *structs.Graph) {
+		for vertex := range graph.AdjList {
+			goroutineCh <- vertex
+		}
+		close(goroutineCh)
+	}(graph)
+
+	// for vertex := range graph.AdjList {
+	// 	wg.Add(1)
+	// 	go countTriples(graph, vertex, triangleCh, tripleCh, &wg)
+	// }
 
 	go func(triangleCh, tripleCh <-chan int, outputCh chan<- []int) {
 		totalTriangles := 0
@@ -60,9 +91,9 @@ func CountTriangles(graph *structs.Graph) structs.AnswerA3 {
 	return answer
 }
 
-func countTriples(graph *structs.Graph, vertex int, triangleCh, tripleCh chan<- int, wg *sync.WaitGroup) {
+func countTriples(graph *structs.Graph, vertex int, triangleCh, tripleCh chan<- int) {
 
-	defer wg.Done()
+	// defer wg.Done()
 
 	visited := make(map[int]struct{})
 	for _, neighbor := range graph.AdjList[vertex] {
