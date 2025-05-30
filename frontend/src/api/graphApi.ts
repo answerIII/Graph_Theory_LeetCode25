@@ -3,7 +3,8 @@ import axiosInstance from './axiosInstance';
 import type {
   //   GraphData,
   GeneralPropertiesData,
-  DistanceResultData,
+  DistanceResultEstimation,
+  DistanceResultAnalysis,
   ClusteringData,
   DegreeDistributionData,
   RobustnessData,
@@ -29,16 +30,18 @@ export const graphApi = {
   },
 
   // 3. Оценка расстояний
+  getDiameter: async (datasetname: string): Promise<{ diameter: number }> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/diameter`);
+    return response.data;
+  },
+
   getDistances: async (
     datasetname: string,
-    method: 'double_sweep' | 'random_sample' | 'snowball',
-    sampleSize?: number
-  ): Promise<DistanceResultData> => {
-    const body: RequestBody = { method };
-    if (sampleSize && method !== 'double_sweep') {
-      body.sampleSize = sampleSize;
-    }
-    const response = await axiosInstance.post(`/graphs/${datasetname}/distances`, body);
+    method: 'random_sample' | 'snowball' | 'random_sample_snowball',
+    sampleSize: number
+  ): Promise<DistanceResultEstimation> => {
+    const body: RequestBody = { method, sampleSize };
+    const response = await axiosInstance.post(`/graphs/${datasetname}/distance/estimate`, body);
     return response.data;
   },
 
@@ -57,12 +60,10 @@ export const graphApi = {
   // 6. Анализ устойчивости
   getRobustness: async (
     datasetname: string,
-    xPercent: number,
-    removalMethod: 'random' | 'targeted'
+    xPercent: number[],
   ): Promise<RobustnessData[]> => {
     const response = await axiosInstance.post(`/graphs/${datasetname}/robustness`, {
       xPercent,
-      removalMethod,
     });
     return response.data;
   },
@@ -104,8 +105,8 @@ export const graphApi = {
   },
 
   // 11. Получить результат вычислений расстояний (стандарт)
-  getDistanceResult: async (datasetname: string) => {
-    const response = await axiosInstance.get(`/graphs/${datasetname}/distance`);
+  getDistanceResult: async (datasetname: string): Promise<DistanceResultAnalysis> => {
+    const response = await axiosInstance.get(`/graphs/${datasetname}/distance/analysis`);
     return response.data;
   },
 
@@ -115,12 +116,13 @@ export const graphApi = {
     payload: {
       start_node: number;
       end_node: number;
-      algorithm: string;
-      landmarks: { count: number; selection: string };
+      algorithm: 'bfs' | 'landmarks-basic' | 'landmarks-bfs';
+      landmarks?: { count: number; selection: 'random' | 'highest_degree' | 'max_coverage' };
     }
-  ) => {
-    const response = await axiosInstance.post(`/graphs/${datasetname}/distance`, payload);
+  ): Promise<DistanceResultAnalysis> => {
+    const response = await axiosInstance.post(`/graphs/${datasetname}/distance/analysis`, payload);
     return response.data;
   },
+
 };
 
