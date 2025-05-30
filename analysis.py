@@ -78,11 +78,12 @@ def print_analysis(graph: dict, directed: bool):
         count, strong_max_comp_length = strongly_connected_components(graph)
         print(f"кол-во компонент сильной свзяности = {count} )")
         print(f"доля вершин графа в наибольшей компоненте сильной связности = {strong_max_comp_length/num_of_vertices}")
+    else:
+        undirected_graph = graph
     end = perf_counter()
     print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
     print("(A1)----------\n")
-    else:
-        undirected_graph = graph
+
 
     print("(A2)----------")
     start = perf_counter()
