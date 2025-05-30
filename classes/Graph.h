@@ -109,8 +109,8 @@ class DirectedGraph : public Graph {
         std::sort(weekComponents.begin(), weekComponents.end(),
     [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
         return a.size() > b.size();}
-        );  
-        
+        );
+
         removeMarks();
     }
 
@@ -211,217 +211,229 @@ class DirectedGraph : public Graph {
         std::uniform_int_distribution<> distrib(0, weekComponents[0].size() - 1);
 
         int randomIndex = distrib(gen);
-        while (weekComponents[0][randomIndex]->num == -1) {randomIndex = distrib(gen);}
+        while (weekComponents[0][randomIndex]->num == -1) {
+            randomIndex = distrib(gen);
+        }
+
         Node* r = weekComponents[0][randomIndex];
+
+        std::cout << "\rApproximate diameter: 0% [..........]" << std::flush;
         std::pair<int, Node*> a = getFarthestVertexInsideWWC(r);
+        std::cout << "\rApproximate diameter: 50% [#####.....]" << std::flush;
+
         std::pair<int, Node*> b = getFarthestVertexInsideWWC(a.second);
+        std::cout << "\rApproximate diameter: 100% [##########]\n" << std::flush;
 
         seedNode = r;
         farthestNode = b.second;
         approximateDiameter = b.first;
     }
 
-
     void init90PercentileB() {
+    if (weekComponents.empty()) initWeekComponents();
 
-        if (weekComponents.empty()) initWeekComponents();
+    int samples = 500;
+    int componentSize = weekComponents[0].size();
+    if (componentSize < 500) samples = componentSize;
 
-        //calculate samples count
-        int samples = 500;
-        int componentSize = weekComponents[0].size();
-        if (componentSize < 500) samples = componentSize;
-        std::vector<int> distances;
-        distances.reserve(samples);
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, componentSize - 1);
-        seedUsed = rd();
+    std::vector<int> distances;
+    distances.reserve(samples);
 
-        //mark week component, work only with theLargestWCC nodes
-        for (Node* node : weekComponents[0]) {
-            if (node->num != -1) node->marked = true;
-        }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, componentSize - 1);
+    seedUsed = rd();
 
-        //make calculation parralel i have 12 logic threads
-        int numThreads = std::min(samples, 12);
-        std::mutex distMutex;
-
-        //unsing a bfs try to find the distance
-        //between two random nodes inside the LargestWCC
-        //put result to distances
-        auto worker = [&](Node* u, Node* v) {
-            std::queue<Node*> queue;
-            std::unordered_map<int, int> lengths;
-            lengths[u->num] = 0;
-            queue.push(u);
-            while (!queue.empty()) {
-                Node* currentNode = queue.front(); queue.pop();
-                if (currentNode->num == v->num) break;
-                for (int neighborhood : undirectedPaths[currentNode->num]) {
-                    if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
-                    lengths[neighborhood] = lengths[currentNode->num] + 1;
-                    queue.push(&nodes[neighborhood]);
-                }
-            }
-            // thead safety add len
-            std::lock_guard<std::mutex> lock(distMutex);
-            if (lengths.contains(v->num)) {
-                distances.push_back(lengths[v->num]);
-            }
-        };
-
-        std::vector<std::thread> threads;
-        int perThread = samples / numThreads;
-        int remainder = samples % numThreads;
-        int start = 0;
-
-        //how many times the thread should compute  worker(u, v);
-        auto workerBatch = [&](int count) {
-            for (int i = 0; i < count; ++i) {
-                Node* u = weekComponents[0][dis(gen)];
-                Node* v = weekComponents[0][dis(gen)];
-                worker(u, v);
-            }
-        };
-
-        for (int i = 0; i < numThreads; ++i) {
-            int count = start + perThread + (i < remainder ? 1 : 0);
-            //emplace_back like push_back, but object creating inside vector
-            threads.emplace_back(workerBatch, count);
-        }
-
-        for (auto& t : threads) t.join();
-
-        if (distances.empty()) {
-            percentileB = -1;
-            maxDist = -1;
-            meanDist = -1;
-            medianDist = -1;
-            usedPairs = 0;
-            return;
-        }
-        usedPairs = distances.size();
-        sort(distances.begin(), distances.end());
-        int index90 = (int)(0.9 * distances.size());
-        percentileB = distances[index90];
-
-        maxDist = distances.back();
-        meanDist = std::accumulate(distances.begin(), distances.end(), 0.0) / distances.size();
-        if (distances.size() % 2 == 0) {
-            medianDist = (distances[distances.size()/2 - 1] + distances[distances.size()/2]) / 2;
-        }
-        else {
-            medianDist = distances[distances.size()/2];
-        }
+    for (Node* node : weekComponents[0]) {
+        if (node->num != -1) node->marked = true;
     }
 
-    void init90PercentileC() {
+    int numThreads = std::min(samples, 12);
+    std::mutex distMutex;
+    std::atomic<int> progressCounter(0);
 
-        if (weekComponents.empty()) initWeekComponents();
-        removeMarks();
-
-        //create a snowball
-        int snowballSize = 500;
-        int componentSize = weekComponents[0].size();
-        if (componentSize < 500) snowballSize = componentSize;
-        std::vector<Node*> snowball;
-        snowball.reserve(snowballSize);
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        snowballSeed = rd();
-        std::uniform_int_distribution<> dis(0, snowballSize - 1);
-        int numThreads = std::min(snowballSize, 12);
-        std::mutex distMutex;
-
-        //pull a snowball;
-        Node* node = weekComponents[0][0];
+    auto worker = [&](Node* u, Node* v) {
         std::queue<Node*> queue;
-        queue.push(node);
-        node->marked = true;
-        while (!queue.empty() && snowball.size() <= snowballSize) {
+        std::unordered_map<int, int> lengths;
+        lengths[u->num] = 0;
+        queue.push(u);
+        while (!queue.empty()) {
             Node* currentNode = queue.front(); queue.pop();
-            snowball.push_back(currentNode);
+            if (currentNode->num == v->num) break;
             for (int neighborhood : undirectedPaths[currentNode->num]) {
-                if (nodes[neighborhood].marked) continue;
-                nodes[neighborhood].marked = true;
+                if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
+                lengths[neighborhood] = lengths[currentNode->num] + 1;
                 queue.push(&nodes[neighborhood]);
             }
         }
-
-        std::vector<int> distances;
-        distances.reserve(snowballSize);
-
-        auto worker = [&](Node* u, Node* v) {
-            std::queue<Node*> queue;
-            std::unordered_map<int, int> lengths;
-            lengths[u->num] = 0;
-            queue.push(u);
-            while (!queue.empty()) {
-                Node* currentNode = queue.front(); queue.pop();
-                if (currentNode->num == v->num) break;
-                for (int neighborhood : undirectedPaths[currentNode->num]) {
-                    if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
-                    lengths[neighborhood] = lengths[currentNode->num] + 1;
-                    queue.push(&nodes[neighborhood]);
-                }
-            }
-            // thead safety add len
-            std::lock_guard<std::mutex> lock(distMutex);
-            if (lengths.contains(v->num)) {
-                distances.push_back(lengths[v->num]);
-            }
-        };
-
-        //how many times the thread should compute  worker(u, v);
-        auto workerBatch = [&](int count) {
-            for (int i = 0; i < count; ++i) {
-                Node* u = snowball[dis(gen)];
-                Node* v = snowball[dis(gen)];
-                worker(u, v);
-            }
-        };
-
-        std::vector<std::thread> threads;
-        int perThread = snowballSize / numThreads;
-        int remainder = snowballSize % numThreads;
-        int start = 0;
-
-        for (int i = 0; i < numThreads; ++i) {
-            int count = start + perThread + (i < remainder ? 1 : 0);
-            //emplace_back like push_back, but object creating inside vector
-            threads.emplace_back(workerBatch, count);
+        std::lock_guard<std::mutex> lock(distMutex);
+        if (lengths.contains(v->num)) {
+            distances.push_back(lengths[v->num]);
         }
+    };
 
-        for (auto& t : threads) t.join();
+    std::vector<std::thread> threads;
+    int perThread = samples / numThreads;
+    int remainder = samples % numThreads;
 
-        sort(distances.begin(), distances.end());
-        int index90 = (int)(0.9 * distances.size());
-        percentileC = distances[index90];
+    auto workerBatch = [&](int count) {
+        for (int i = 0; i < count; ++i) {
+            Node* u = weekComponents[0][dis(gen)];
+            Node* v = weekComponents[0][dis(gen)];
+            worker(u, v);
 
-        int num_pairs = distances.size();
-        double mean_dist = std::accumulate(distances.begin(), distances.end(), 0.0) / num_pairs;
-        int median_dist = distances[num_pairs / 2];
-        int p90_dist = distances[index90];
-        int max_dist = distances.back();
-        int actual_snowball_size = snowball.size();
+            int completed = ++progressCounter;
+            if (completed % (samples / 100) == 0 || completed == samples) {
+                std::cout << "\r90PercentileB: " << (completed * 100 / samples)
+                          << "% (" << completed << "/" << samples << ")" << std::flush;
+            }
+        }
+    };
 
-        snowballSampleSize = actual_snowball_size;
-        snowballSamplePairs = num_pairs;
-        snowballMean = mean_dist;
-        snowballMedian = median_dist;
-        snowballP90 = p90_dist;
-        snowballMax = max_dist;
-
+    for (int i = 0; i < numThreads; ++i) {
+        int count = perThread + (i < remainder ? 1 : 0);
+        threads.emplace_back(workerBatch, count);
     }
 
-    void initTrianglesCount() {
+    for (auto& t : threads) t.join();
+
+    std::cout << "\r90PercentileB: 100% (" << samples << "/" << samples << ")\n"; // Завершающая строка
+
+    if (distances.empty()) {
+        percentileB = -1;
+        maxDist = -1;
+        meanDist = -1;
+        medianDist = -1;
+        usedPairs = 0;
+        return;
+    }
+
+    usedPairs = distances.size();
+    std::sort(distances.begin(), distances.end());
+
+    int index90 = static_cast<int>(0.9 * distances.size());
+    percentileB = distances[index90];
+
+    maxDist = distances.back();
+    meanDist = std::accumulate(distances.begin(), distances.end(), 0.0) / distances.size();
+    if (distances.size() % 2 == 0) {
+        medianDist = (distances[distances.size()/2 - 1] + distances[distances.size()/2]) / 2;
+    } else {
+        medianDist = distances[distances.size()/2];
+    }
+}
+
+    void init90PercentileC() {
+    if (weekComponents.empty()) initWeekComponents();
+    removeMarks();
+
+    int snowballSize = 500;
+    int componentSize = weekComponents[0].size();
+    if (componentSize < 500) snowballSize = componentSize;
+
+    std::vector<Node*> snowball;
+    snowball.reserve(snowballSize);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    snowballSeed = rd();
+    std::uniform_int_distribution<> dis(0, snowballSize - 1);
+    int numThreads = std::min(snowballSize, 12);
+    std::mutex distMutex;
+    std::atomic<int> progressCounter(0);
+
+    // Сбор снежка
+    Node* node = weekComponents[0][0];
+    std::queue<Node*> queue;
+    queue.push(node);
+    node->marked = true;
+    while (!queue.empty() && snowball.size() <= snowballSize) {
+        Node* currentNode = queue.front(); queue.pop();
+        snowball.push_back(currentNode);
+        for (int neighborhood : undirectedPaths[currentNode->num]) {
+            if (nodes[neighborhood].marked) continue;
+            nodes[neighborhood].marked = true;
+            queue.push(&nodes[neighborhood]);
+        }
+    }
+
+    std::vector<int> distances;
+    distances.reserve(snowballSize);
+
+    auto worker = [&](Node* u, Node* v) {
+        std::queue<Node*> queue;
+        std::unordered_map<int, int> lengths;
+        lengths[u->num] = 0;
+        queue.push(u);
+        while (!queue.empty()) {
+            Node* currentNode = queue.front(); queue.pop();
+            if (currentNode->num == v->num) break;
+            for (int neighborhood : undirectedPaths[currentNode->num]) {
+                if (!nodes[neighborhood].marked || lengths.contains(neighborhood)) continue;
+                lengths[neighborhood] = lengths[currentNode->num] + 1;
+                queue.push(&nodes[neighborhood]);
+            }
+        }
+        std::lock_guard<std::mutex> lock(distMutex);
+        if (lengths.contains(v->num)) {
+            distances.push_back(lengths[v->num]);
+        }
+    };
+
+    auto workerBatch = [&](int count) {
+        for (int i = 0; i < count; ++i) {
+            Node* u = snowball[dis(gen)];
+            Node* v = snowball[dis(gen)];
+            worker(u, v);
+
+            int completed = ++progressCounter;
+            if (completed % (snowballSize / 100) == 0 || completed == snowballSize) {
+                std::cout << "\r90PercentileC: " << (completed * 100 / snowballSize)
+                          << "% (" << completed << "/" << snowballSize << ")" << std::flush;
+            }
+        }
+    };
+
+    std::vector<std::thread> threads;
+    int perThread = snowballSize / numThreads;
+    int remainder = snowballSize % numThreads;
+
+    for (int i = 0; i < numThreads; ++i) {
+        int count = perThread + (i < remainder ? 1 : 0);
+        threads.emplace_back(workerBatch, count);
+    }
+
+    for (auto& t : threads) t.join();
+
+    std::cout << "\r90PercentileC: 100% (" << snowballSize << "/" << snowballSize << ")\n";
+
+    std::sort(distances.begin(), distances.end());
+    int index90 = static_cast<int>(0.9 * distances.size());
+    percentileC = distances[index90];
+
+    int num_pairs = distances.size();
+    double mean_dist = std::accumulate(distances.begin(), distances.end(), 0.0) / num_pairs;
+    int median_dist = distances[num_pairs / 2];
+    int p90_dist = distances[index90];
+    int max_dist = distances.back();
+    int actual_snowball_size = snowball.size();
+
+    snowballSampleSize = actual_snowball_size;
+    snowballSamplePairs = num_pairs;
+    snowballMean = mean_dist;
+    snowballMedian = median_dist;
+    snowballP90 = p90_dist;
+    snowballMax = max_dist;
+}
+
+void initTrianglesCount() {
     trianglesCount = 0;
     trianglePerNode.clear();
 
     if (undirectedPaths.empty()) initUndirectedPaths();
 
     std::unordered_map<int, std::unordered_set<int>> adj;
-    for (int u = 0; u < undirectedPaths.size(); ++u) {
+    for (int u = 0; u < (int)undirectedPaths.size(); ++u) {
         for (int v : undirectedPaths[u]) {
             adj[u].insert(v);
             adj[v].insert(u);
@@ -449,14 +461,11 @@ class DirectedGraph : public Graph {
         int done = completed.load();
         int percent = static_cast<int>((100.0 * done) / total);
         if (percent != lastPrinted.load()) {
-            std::lock_guard<std::mutex> block(printLock);
-            std::cout << "\rProgress: " << std::setw(3) << percent << "% completed" << std::flush;
+            std::lock_guard<std::mutex> lock(printLock);
+            std::cout << "\rTriangles Count: " << std::setw(3) << percent << "% " << std::flush;
             lastPrinted = percent;
         }
     };
-
-    ProgressBlock block;
-    ProgressStage& stage = block.create_stage(vertexCount);
 
     auto worker = [&](int start, int end) {
         int localTriangles = 0;
@@ -483,17 +492,20 @@ class DirectedGraph : public Graph {
                 }
             }
 
-            stage.arrive();
-            // completed.fetch_add(1);
-            // printProgress(vertexCount);
+            ++completed;
+            printProgress(totalNodes);
         }
 
-        std::lock_guard<std::mutex> lock1(countMutex);
-        trianglesCount += localTriangles;
+        {
+            std::lock_guard<std::mutex> lock1(countMutex);
+            trianglesCount += localTriangles;
+        }
 
-        std::lock_guard<std::mutex> lock2(mapMutex);
-        for (const auto& [node, count] : localMap) {
-            trianglePerNode[node] += count;
+        {
+            std::lock_guard<std::mutex> lock2(mapMutex);
+            for (const auto& [node, count] : localMap) {
+                trianglePerNode[node] += count;
+            }
         }
     };
 
@@ -505,7 +517,14 @@ class DirectedGraph : public Graph {
     }
 
     for (auto& t : threads) t.join();
+
+    // Завершаем прогресс-бар новой строкой
+    {
+        std::lock_guard<std::mutex> lock(printLock);
+        std::cout << "\rTriangles Count: 100%          \n";
+    }
 }
+
     void backupOriginalGraph() {
         originalNodes = nodes;
         originalPaths = paths;
@@ -868,90 +887,93 @@ class DirectedGraph : public Graph {
         for (auto& thread : workers) thread.join();
     }
 
-    void initLandmarksHeightDegrees()  {
-        landmarks.clear();
-        if (undirectedPaths.empty()) initUndirectedPaths();
-        size_t landmarksCount = 0;
-        if (vertexCount > 100000) {
-            landmarksCount = 200;
-        } else if (vertexCount > 1000) {
-            landmarksCount = 50;
-        } else {
-            landmarksCount = 5;
+    void initLandmarksHeightDegrees() {
+    landmarks.clear();
+    if (undirectedPaths.empty()) initUndirectedPaths();
+    size_t landmarksCount = 0;
+    if (vertexCount > 100000) {
+        landmarksCount = 200;
+    } else if (vertexCount > 1000) {
+        landmarksCount = 50;
+    } else {
+        landmarksCount = 5;
+    }
+    landmarks.reserve(landmarksCount);
+
+    std::mutex lock;
+    std::mutex printLock;
+    std::atomic<size_t> completedLandmarks = 0;
+
+    // chose the nodes with most degrees
+    std::vector<int> nodeSorted;
+    nodeSorted.reserve(nodes.size());
+    for (Node& node : nodes) nodeSorted.push_back(node.num);
+    std::sort(nodeSorted.begin(), nodeSorted.end(),
+        [this](const int& a, const int& b) {
+            return paths[a].size() < paths[b].size();
+        });
+
+    std::atomic<int> index = 0;
+
+    auto printProgress = [&](size_t total) {
+        size_t done = completedLandmarks.load();
+        int percent = static_cast<int>((100.0 * done) / total);
+        static std::atomic<int> lastPrinted{-1};
+        if (percent != lastPrinted.load()) {
+            std::lock_guard<std::mutex> block(printLock);
+            std::cout << "\rLandmarks Height Degrees: " << std::setw(3) << percent << "%" << std::flush;
+            lastPrinted = percent;
         }
-        landmarks.reserve(landmarksCount);
+    };
 
-        std::mutex lock;
-        std::mutex printLock;
-        std::atomic<size_t> completedLandmarks = 0;
+    // Используем worker с передачей количества задач на поток
+    auto worker = [&](size_t times) {
+        while (times-- != 0) {
+            Node* landmarkNode = &nodes[nodeSorted[index++]];
+            std::unordered_map<int,int> localMap;
+            std::queue<Node*> queue;
+            queue.push(landmarkNode);
+            localMap[landmarkNode->num] = 0;
 
-        //chose the nodes with most degrees
-        std::vector<int> nodeSorted;
-        nodeSorted.reserve(nodes.size());
-        for (Node& node : nodes) nodeSorted.push_back(node.num);
-        std::sort(nodeSorted.begin(), nodeSorted.end(),
-            [this](const int& a, const int& b) {
-                return paths[a].size() < paths[b].size();
-            });
-        std::atomic<int> index = 0;
-
-        auto printProgress = [&](size_t total) {
-            size_t done = completedLandmarks.load();
-            int percent = static_cast<int>((100.0 * done) / total);
-            static std::atomic<int> lastPrinted{-1};
-            if (percent != lastPrinted.load()) {
-                std::lock_guard<std::mutex> block(printLock);
-                std::cout << "\rProgress: " << std::setw(3) << percent << "% completed" << std::flush;
-                lastPrinted = percent;
-            }
-        };
-
-        ProgressBlock block;
-        ProgressStage& stage = block.create_stage(landmarksCount);
-
-        auto worker = [&](size_t times) {
-            while (times-- != 0) {
-                // Part 2: Landmark initialization
-                Node* landmarkNode = &nodes[nodeSorted[index++]];
-                std::unordered_map<int,int> localMap;
-                std::queue<Node*> queue;
-                queue.push(landmarkNode);
-                localMap[landmarkNode->num] = 0;
-
-                while (!queue.empty()) {
-                    Node* currentNode = queue.front(); queue.pop();
-                    for (int neighborhood : undirectedPaths[currentNode->num]) {
-                        if (!localMap.contains(neighborhood)) {
-                            localMap[neighborhood] = localMap[currentNode->num] + 1;
-                            queue.push(&nodes[neighborhood]);
-                        }
+            while (!queue.empty()) {
+                Node* currentNode = queue.front(); queue.pop();
+                for (int neighborhood : undirectedPaths[currentNode->num]) {
+                    if (!localMap.contains(neighborhood)) {
+                        localMap[neighborhood] = localMap[currentNode->num] + 1;
+                        queue.push(&nodes[neighborhood]);
                     }
                 }
-
-                {
-                    std::lock_guard<std::mutex> block(lock);
-                    landmarks.emplace_back(std::move(localMap));
-                }
-
-                stage.arrive();
-                // completedLandmarks.fetch_add(1);
-                // printProgress(landmarksCount);
             }
-        };
 
-        std::vector<std::thread> workers;
-        size_t remaining = landmarksCount - 1;
-        for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
-            size_t tasks = remaining / (NUM_OF_THREADS - i);
-            remaining -= tasks;
-            if (tasks > 0) {
-                workers.emplace_back(worker, tasks);
+            {
+                std::lock_guard<std::mutex> block(lock);
+                landmarks.emplace_back(std::move(localMap));
             }
+
+            completedLandmarks.fetch_add(1);
+            printProgress(landmarksCount);
         }
+    };
 
-        for (auto& thread : workers) thread.join();
-
+    std::vector<std::thread> workers;
+    size_t remaining = landmarksCount;
+    const size_t NUM_OF_THREADS = std::min(12, (int)landmarksCount);
+    for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
+        size_t tasks = remaining / (NUM_OF_THREADS - i);
+        remaining -= tasks;
+        if (tasks > 0) {
+            workers.emplace_back(worker, tasks);
+        }
     }
+
+    for (auto& thread : workers) thread.join();
+
+    // Завершаем прогресс-бар новой строкой
+    {
+        std::lock_guard<std::mutex> block(printLock);
+        std::cout << "\rLandmarks Height Degrees: 100% completed           \n";
+    }
+}
 
 public:
 
@@ -1045,32 +1067,51 @@ public:
         getVertexDegreeStats(graph_id, is_directed, file);
     }
 
-    int getDistanceBetweenNodes(int num_u, int num_v) {
-        if (landmarks.empty()) initLandmarksHeightDegrees();
-        if (num_u >= nodes.size() || num_v >= nodes.size() || num_v*num_u < 0) { std::cout << "One of this nodes are absent in graph" << std::endl; return 0;}
-
-
-        int minDistance = INT_MAX;
-        bool pathNotFound = true;
-        for (const auto& map : landmarks) {
-            if (!(map.contains(num_u) && map.contains(num_v))) {continue;}
-            if (map.at(num_u) + map.at(num_v) < minDistance) minDistance = map.at(num_u) + map.at(num_v); pathNotFound = false;
-        }
-
-        if (pathNotFound) {
-            std::cout << "Path not found" << std::endl;
-            return -1;
-        }
-        return minDistance;
+int getDistanceBetweenNodes(int num_u, int num_v) {
+    if (landmarks.empty()) initLandmarksHeightDegrees();
+    if (num_u >= nodes.size() || num_v >= nodes.size() || num_v * num_u < 0) {
+        std::cout << "One of these nodes is absent in graph" << std::endl;
+        return 0;
     }
+
+    int minDistance = INT_MAX;
+    bool pathNotFound = true;
+
+    int processed = 0;
+
+
+    for (const auto& map : landmarks) {
+        if (!(map.contains(num_u) && map.contains(num_v))) {
+            ++processed;
+            continue;
+        }
+        int dist = map.at(num_u) + map.at(num_v);
+        if (dist < minDistance) {
+            minDistance = dist;
+            pathNotFound = false;
+        }
+
+        ++processed;
+    }
+
+
+    if (pathNotFound) {
+        std::cout << "Path not found" << std::endl;
+        return -1;
+    }
+
+    return minDistance;
+}
+
 
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
 
     double getGlobalClusteringCoefficient() {
-    if (undirectedPaths.empty())
-        initUndirectedPaths();
-    double triplets = 0;
+    if (undirectedPaths.empty()) initUndirectedPaths();
+    if (trianglesCount == -1) initTrianglesCount();
+
+    long double triplets = 0;
 
     for (int u = 0; u < undirectedPaths.size(); ++u) {
         size_t k = undirectedPaths[u].size();
