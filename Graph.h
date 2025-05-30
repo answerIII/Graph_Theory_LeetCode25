@@ -22,6 +22,12 @@ public:
     double getLargestSCCRatio() const { return sccRatio; }
     bool getDirected() const { return isDirected; }
 
+    long long countTriangles() const;
+
+    double averageClusteringCoefficient() const;
+
+    double globalClusteringCoefficient() const;
+
     double averageClusteringLargestWCC();
 
     struct DegreeStats {
@@ -34,6 +40,13 @@ public:
     const std::vector<int>& degreeHistogram() const;
 
     double ratioAfterRemoval(double perc, bool targetedByDeg, uint32_t seed = 42) const;
+
+    enum class LandmarkSelect { Random, HighestDegree };
+
+    void precomputeLandmarks(int k, LandmarkSelect sel = LandmarkSelect::Random, uint32_t seed = 42);
+
+    int landmarkBasicDistance(int s, int t) const;
+    int exactDistance(int s, int t) const;
 
     // int estimateDiameterDoubleSweep();
     // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
@@ -76,4 +89,8 @@ private:
     std::vector<int> degrees;
     std::vector<int> degHist;
     DegreeStats dStats{};
+
+    std::vector<int> landmarks;
+    std::vector<std::vector<int>> Ldist;
+    bool landmarksReady = false;
 };

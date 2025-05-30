@@ -144,15 +144,6 @@ int main() {
         auto wccTime = duration_cast<milliseconds>(endWCC - startWCC);
         cout << "WCC: " << wcc << " (" << wccTime.count() << " ms), " << formatDouble(wccRatio) << " %\n";
 
-        // average cluster coefficient
-        auto t0 = high_resolution_clock::now();
-        double Cl = g.averageClusteringLargestWCC();
-        auto t1 = high_resolution_clock::now();
-        cout << "⟨C_l⟩ (Largest WCC): "
-            << fixed << setprecision(6) << Cl
-            << " (" << duration_cast<milliseconds>(t1-t0).count() << " ms)\n";
-
-
         // SCC
         if (isDirected) {
             auto startSCC = high_resolution_clock::now();
@@ -164,6 +155,20 @@ int main() {
         } else {
             cout << "SCC: -\n";
         }
+
+        // average cluster coefficient
+        auto t0 = high_resolution_clock::now();
+        double Cl = g.averageClusteringLargestWCC();
+        auto t1 = high_resolution_clock::now();
+        cout << "⟨C_l⟩ (Largest WCC): " << fixed << setprecision(6) << Cl << " (" << duration_cast<milliseconds>(t1-t0).count() << " ms)\n";
+
+        auto tri = g.countTriangles();
+        auto avgC = g.averageClusteringCoefficient();
+        auto globC = g.globalClusteringCoefficient();
+
+        cout << "Количество треугольников: " << tri << "\n";
+        cout << "Средний коэффициент кластеризации: " << fixed << setprecision(6) << avgC << "\n";
+        cout << "Глобальный коэффициент кластеризации: " << fixed << setprecision(6) << globC << "\n";
 
         //min, max, average degree
         auto ds = g.getDegreeStats();
@@ -211,6 +216,69 @@ int main() {
         }
 
         std::cout << "Таблица изменений долей вершин по процентам сохранена в " << vfcDir.string() << '\n';
+
+        using namespace std::chrono;
+        int n = g.getVertexCount();
+
+        int trials = 100;  
+        std::mt19937_64 rng(12345);
+        std::uniform_int_distribution<int> vid(0, n-1);
+        std::vector<std::pair<int,int>> queries;
+        queries.reserve(trials);
+        for (int i = 0; i < trials; ++i) {
+            int s = vid(rng), t = vid(rng);
+            while (t == s) t = vid(rng);
+            queries.emplace_back(s, t);
+        }
+
+        std::vector<int> Ks = {64, 128, 256};
+
+        vector<pair<string, Graph::LandmarkSelect>> methods = {
+            {"Random", Graph::LandmarkSelect::Random},
+            {"HighestDegree", Graph::LandmarkSelect::HighestDegree}
+        };
+
+        for (auto &m : methods) {
+            const string &methodName = m.first;
+            auto methodSel = m.second;
+
+            cout << "\n### Способ: " << methodName << " ###\n";
+
+            for (int K : Ks) {
+                cout << "\nLandmarks-Basic K=" << K << " (" << methodName << ")\n";
+
+                auto t0 = high_resolution_clock::now();
+                g.precomputeLandmarks(K, methodSel);
+                auto t1 = high_resolution_clock::now();
+                cout << "Precompute BFS: " << duration_cast<milliseconds>(t1-t0).count() << " ms\n";
+
+                double sumRelErr = 0;
+                double sumExactT = 0, sumApproxT = 0;
+
+                for (auto [s,t] : queries) {
+                    auto te0 = high_resolution_clock::now();
+                    int exact = g.exactDistance(s, t);
+                    auto te1 = high_resolution_clock::now();
+                    sumExactT += duration_cast<microseconds>(te1-te0).count();
+
+                    auto ta0 = high_resolution_clock::now();
+                    int approx = g.landmarkBasicDistance(s, t);
+                    auto ta1 = high_resolution_clock::now();
+                    sumApproxT += duration_cast<microseconds>(ta1-ta0).count();
+
+                    if (exact > 0 && approx > 0)
+                        sumRelErr += std::abs(double(approx - exact)) / exact;
+                }
+
+                double avgErr = sumRelErr / trials * 100.0;
+                double avgExact = sumExactT / trials;
+                double avgApprox = sumApproxT / trials;
+
+                cout << fixed << setprecision(2) << "Avg rel error: " 
+                    << avgErr << " %\n" << "Avg exact BFS time: " << avgExact << " μs\n" 
+                    << "Avg landmark time: " << avgApprox << " μs\n";
+            }
+        }
 
         // auto startDS = high_resolution_clock::now();
         // int diamDS = g.estimateDiameterDoubleSweep();

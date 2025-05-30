@@ -382,6 +382,71 @@ Graph::Ordering Graph::degeneracyOrder(const std::vector<std::vector<int>>& adj)
     return {std::move(rank), std::move(fwd)};
 }
 
+long long Graph::countTriangles() const {
+    std::vector<std::vector<int>> adj;
+    buildUndirectedAdj(adj);
+
+    long long triangles = 0;
+    int n = numVertices;
+
+    for(int u = 0; u < n; ++u){
+        for(int v: adj[u]){
+            if(v <= u) continue;
+            for(int w: adj[v]){
+                if(w <= v) continue;
+
+                if(std::binary_search(adj[u].begin(), adj[u].end(), w)){
+                    ++triangles;
+                }
+            }
+        }
+    }
+    return triangles;
+}
+
+double Graph::averageClusteringCoefficient() const {
+    std::vector<std::vector<int>> adj;
+    buildUndirectedAdj(adj);
+
+    double sumC = 0.0;
+    int n = numVertices;
+
+    for(int u = 0; u < n; ++u){
+        int k = adj[u].size();
+        if(k < 2) continue;
+
+        int links = 0;
+        for(int i = 0; i < k; ++i){
+            int v = adj[u][i];
+            for(int j = i+1; j < k; ++j){
+                int w = adj[u][j];
+                if(std::binary_search(adj[v].begin(), adj[v].end(), w))
+                    ++links;
+            }
+        }
+
+        double Cu = (2.0 * links) / (double(k) * double(k-1));
+        sumC += Cu;
+    }
+
+    return sumC / n;
+}
+
+double Graph::globalClusteringCoefficient() const {
+    long long T = countTriangles();
+    std::vector<std::vector<int>> adj;
+    buildUndirectedAdj(adj);
+
+    long long triplets = 0;
+    for(auto &nbrs : adj){
+        long long k = nbrs.size();
+        triplets += k * (k - 1) / 2;
+    }
+    if(triplets == 0) return 0.0;
+
+    return double(3LL * T) / double(triplets);
+}
+
 double Graph::averageClusteringLargestWCC(){
     ComponentInfo comp = buildLargestWCC();
     if(comp.size==0) return 0.0;
@@ -485,6 +550,101 @@ double Graph::ratioAfterRemoval(double perc, bool targetedByDeg, uint32_t seed) 
     int left = numVertices - k;
 
     return left ? double(lcc) / left : 0.0;
+}
+
+void Graph::precomputeLandmarks(int k, LandmarkSelect sel, uint32_t seed)
+{
+    landmarks.clear();
+    landmarks.reserve(k);
+    int n = numVertices;
+
+    if (sel == LandmarkSelect::HighestDegree) {
+        std::vector<int> idx(n);
+        std::iota(idx.begin(), idx.end(), 0);
+        std::sort(idx.begin(), idx.end(),
+                  [&](int a, int b){
+                      int da = edges[a].size() + reverseEdges[a].size();
+                      int db = edges[b].size() + reverseEdges[b].size();
+                      return da > db;
+                  });
+        for (int i = 0; i < k && i < n; ++i)
+            landmarks.push_back(idx[i]);
+    } else {
+        std::mt19937_64 rng(seed);
+        std::uniform_int_distribution<int> dist(0, n-1);
+        std::unordered_set<int> used;
+        while ((int)used.size() < std::min(k,n)) {
+            used.insert(dist(rng));
+        }
+        landmarks.assign(used.begin(), used.end());
+    }
+
+    Ldist.assign(landmarks.size(), std::vector<int>(n, -1));
+    for (size_t i = 0; i < landmarks.size(); ++i) {
+        int src = landmarks[i];
+        auto& d = Ldist[i];
+        std::queue<int> q;
+        d[src] = 0;
+        q.push(src);
+
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            int du = d[u];
+            for (int v : edges[u]) {
+                if (d[v] < 0) { d[v] = du + 1; q.push(v); }
+            }
+            for (int v : reverseEdges[u]) {
+                if (d[v] < 0) { d[v] = du + 1; q.push(v); }
+            }
+        }
+    }
+
+    landmarksReady = true;
+}
+
+int Graph::landmarkBasicDistance(int s, int t) const
+{
+    if (!landmarksReady) return -1;
+    int best = std::numeric_limits<int>::max();
+    for (size_t i = 0; i < landmarks.size(); ++i) {
+        int ds = Ldist[i][s];
+        int dt = Ldist[i][t];
+        if (ds >= 0 && dt >= 0) {
+            best = std::min(best, ds + dt);
+        }
+    }
+    return best == std::numeric_limits<int>::max() ? -1 : best;
+}
+
+int Graph::exactDistance(int s, int t) const {
+    if (s < 0 || s >= numVertices || t < 0 || t >= numVertices) 
+        return -1;
+    if (s == t) return 0;
+
+    std::vector<int> dist(numVertices, -1);
+    std::queue<int>  q;
+    dist[s] = 0;
+    q.push(s);
+
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        int du = dist[u];
+        for (long v : edges[u]) {
+            if (dist[v] < 0) {
+                dist[v] = du + 1;
+                if (v == t) return dist[v];
+                q.push(v);
+            }
+        }
+        for (long v : reverseEdges[u]) {
+            if (dist[v] < 0) {
+                dist[v] = du + 1;
+                if (v == t) return dist[v];
+                q.push(v);
+            }
+        }
+    }
+    return -1;
 }
 
 // std::vector<int> Graph::getLargestWCCVertices() {
