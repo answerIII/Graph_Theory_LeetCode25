@@ -76,7 +76,7 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 	}
 	b.Logf("ACTUAL DISTANCE: %d (took %d ms)", actual, time.Since(actualStart).Milliseconds())
 
-	nodesN := []int{64, 128, 256, 512}
+	nodesN := []int{1, 2, 4, 8, 16, 32, 64, 128, 256, 512}
 
 	for _, nodes := range nodesN {
 		nodes := nodes
@@ -171,7 +171,7 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 	}
 	b.Logf("ACTUAL DISTANCE: %d (took %d ms)", actual, time.Since(actualStart).Milliseconds())
 
-	nodesN := []int{64, 128, 256, 512}
+	nodesN := []int{1, 2, 4, 8, 16}
 
 	for _, nodes := range nodesN {
 		nodes := nodes
