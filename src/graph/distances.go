@@ -9,6 +9,50 @@ import (
 	"sync"
 )
 
+func (g *Graph) GetPreciseDiameter() int {
+	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(g.Nodes))
+	defer wp.Shutdown()
+
+	var mu sync.Mutex
+	diameter := -1
+	cnt := 0.
+	prevProcent := 0.
+
+	for node := range g.Nodes {
+		wp.Submit(func() error {
+			dists, err := BFS(
+				g,
+				[]Node{node},
+				nil,
+				nil,
+				nil,
+			)
+			if err != nil {
+				return err
+			}
+			maxDist := -1
+			for _, dist := range dists {
+				maxDist = max(maxDist, dist)
+			}
+			mu.Lock()
+			diameter = max(diameter, maxDist)
+			cnt++
+			procent := cnt / float64(len(g.Nodes)) * 100
+			log.Println(procent)
+			if procent-prevProcent > .01 {
+				log.Println(procent)
+				prevProcent = procent
+			}
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	wp.Wait()
+
+	return diameter
+}
+
 func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
 	source := []Node{randomNode}
 

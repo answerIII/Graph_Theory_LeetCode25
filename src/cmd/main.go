@@ -12,10 +12,12 @@ import (
 	"sort"
 )
 
+var SnowballSizes []int = []int{500, 1000}         // Number of nodes to include in snowball graph
+var PercentileSampleSizes []int = []int{500, 1000} // Number of random node pairs to sample when estimating the percentile
+
 const (
-	SnowballSize         int     = 500 // Number of nodes to include in snowball graph
-	Percentile           float64 = 0.9 // 90th percentile for distance calculation
-	PercentileSampleSize int     = 500 // Number of random node pairs to sample when estimating the percentile
+	Percentile        float64 = 0.9 // 90th percentile for distance calculation
+	EstimateTestCount int     = 50  // Number of tests when estimating
 )
 
 func main() {
@@ -79,19 +81,34 @@ func main() {
 
 	log.Println("Поиск компонент слабой связности в неорграфе")
 	wcc := getWCC(ugraph)
-	randomNode := getRandomNode(wcc[0])
-	log.Println("Расчет диаметра методом Double Sweep")
-	maxWCCDiameterTDS := ugraph.GetDiameterDoubleSweep(randomNode)
 
-	log.Printf("Расчет %.2f процентиля\n", Percentile*100)
-	percentile := getPercentile(ugraph, wcc[0])
-	log.Println("Генерация подграфа методом Snowball")
-	snowball := getSnowball(ugraph, wcc[0])
-	snowballNodes := snowball.GetNodesSlice()
-	log.Println("Расчет диаметра методом Double Sweep на snowball подграфе")
-	maxWCCDiameterSTDS := snowball.GetDiameterDoubleSweep(getRandomNode(snowballNodes))
-	log.Printf("Расчет %.2f процентиля на snowball подграфе\n", Percentile*100)
-	snowballPercentile := getPercentile(snowball, snowballNodes)
+	maxWCCDiameterTDS := 0
+	percentiles := make([]float64, len(PercentileSampleSizes))
+	maxWCCDiameterSTDS := make([]int, len(SnowballSizes))
+	snowballPercentiles := make([]float64, len(SnowballSizes))
+
+	for i := range EstimateTestCount {
+		log.Printf("Iteration %d / %d\n", i, EstimateTestCount)
+
+		randomNode := getRandomNode(wcc[0])
+		log.Println("Расчет диаметра методом Double Sweep")
+		maxWCCDiameterTDS += ugraph.GetDiameterDoubleSweep(randomNode)
+
+		log.Printf("Расчет %.2f процентиля\n", Percentile*100)
+		for j, PercentileSampleSize := range PercentileSampleSizes {
+			percentiles[j] += getPercentile(ugraph, wcc[0], PercentileSampleSize)
+		}
+
+		log.Println("Генерация подграфа методом Snowball")
+		log.Println("Расчет диаметра методом Double Sweep на snowball подграфе")
+		log.Printf("Расчет %.2f процентиля на snowball подграфе\n", Percentile*100)
+		for j, SnowballSize := range SnowballSizes {
+			snowball := getSnowball(ugraph, wcc[0], SnowballSize)
+			snowballNodes := snowball.GetNodesSlice()
+			maxWCCDiameterSTDS[j] += snowball.GetDiameterDoubleSweep(getRandomNode(snowballNodes))
+			snowballPercentiles[j] += getPercentile(snowball, snowballNodes, SnowballSize)
+		}
+	}
 
 	log.Println("Подсчет треугольников в неорграфе")
 	triangles := getTriangles(ugraph)
@@ -124,10 +141,18 @@ func main() {
 	writef("Доля вершин в наибольшей WCC: %.6f\n", float64(len(wcc[0]))/float64(ugraph.NumberOfNodes()))
 	writef("Количество SCC: %d\n", sccCount)
 	writef("Доля вершин в наибольшей SCC: %.6f\n", float64(maxSccSize)/float64(ugraph.NumberOfNodes()))
-	writef("Диаметр наибольшей WCC (The Double Sweep): %d\n", maxWCCDiameterTDS)
-	writef("%d процентиль расстояний: %.2f\n", int(Percentile*100), percentile)
-	writef("Диаметр наибольшей WCC (Snowball + Double Sweep): %d\n", maxWCCDiameterSTDS)
-	writef("%d процентиль расстояний (Snowball): %.2f\n", int(Percentile*100), snowballPercentile)
+	writef("Диаметр наибольшей WCC (The Double Sweep): %.2f\n", float64(maxWCCDiameterTDS)/float64(EstimateTestCount))
+	for i, PercentileSampleSize := range PercentileSampleSizes {
+		writef("%d процентиль расстояний (random %d): %.2f\n", int(Percentile*100), PercentileSampleSize, percentiles[i]/float64(EstimateTestCount))
+	}
+	for i, SnowballSize := range SnowballSizes {
+
+		writef("Диаметр наибольшей WCC (Snowball-%d + Double Sweep): %.2f\n", SnowballSize, float64(maxWCCDiameterSTDS[i])/float64(EstimateTestCount))
+	}
+	for i, SnowballSize := range SnowballSizes {
+
+		writef("%d процентиль расстояний (Snowball-%d): %.2f\n", int(Percentile*100), SnowballSize, snowballPercentiles[i]/float64(EstimateTestCount))
+	}
 	writef("Количество треугольников: %d\n", triangles)
 	writef("Средний коэффициент кластеризации: %.4f\n", avgCC)
 	writef("Глобальный коэффициент кластеризации: %.4f\n", globalCC)
@@ -177,7 +202,7 @@ func getRandomNode(nodes []graph.Node) graph.Node {
 	return nodes[rand.IntN(len(nodes))]
 }
 
-func getPercentile(g *graph.Graph, nodes []graph.Node) float64 {
+func getPercentile(g *graph.Graph, nodes []graph.Node, PercentileSampleSize int) float64 {
 	val, err := g.GetDistancePercentile(nodes, Percentile, PercentileSampleSize)
 	if err != nil {
 		log.Printf("Error calculating percentile: %v", err)
@@ -185,7 +210,7 @@ func getPercentile(g *graph.Graph, nodes []graph.Node) float64 {
 	return val
 }
 
-func getSnowball(g *graph.Graph, base []graph.Node) *graph.Graph {
+func getSnowball(g *graph.Graph, base []graph.Node, SnowballSize int) *graph.Graph {
 	snowballGraph, err := graph.GetSnowballGraph(g, base, SnowballSize)
 	if err != nil {
 		log.Printf("Error building snowball: %v", err)

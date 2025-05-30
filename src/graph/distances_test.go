@@ -5,6 +5,34 @@ import (
 	"testing"
 )
 
+func TestGraph_GetPreciseDiameter(t *testing.T) {
+	type fields struct {
+		undirectedGraphFilepath string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   int
+	}{
+		{
+			name:   "Graph wiki-vote",
+			fields: fields{ugraphWebNotreDameFilepath},
+			want:   21,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			graph, err := FromFile(tt.fields.undirectedGraphFilepath, false)
+			if err != nil {
+				t.Errorf("Error reading graph file: %v\n", err)
+			}
+			if got := graph.GetPreciseDiameter(); got != tt.want {
+				t.Errorf("GetDiameterDoubleSweep() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGraph_GetDiameterDoubleSweep(t *testing.T) {
 	type fields struct {
 		sortedGraphFilepath string
