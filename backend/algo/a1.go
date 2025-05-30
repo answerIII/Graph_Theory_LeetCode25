@@ -96,8 +96,10 @@ func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.G
 	}
 	graphWCC.EdgesCount /= 2
 
-	SavedWCC = &graphWCC
-	SavedWCCCount = countWCC
+	if len(excludeVertex) == 0 {
+		SavedWCC = &graphWCC
+		SavedWCCCount = countWCC
+	}
 
 	return &graphWCC, countWCC
 }
