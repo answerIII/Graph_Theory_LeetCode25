@@ -30,17 +30,14 @@ def node_clustering(graph: dict, node: int) -> float:
 
 def main():
     directed: bool =  True
-    #G, library_graph = load_graph_from_file("data/test/digraph_3.txt", directed)#!!!используем это для обычных
-    # directed: bool = False
-
-    #для больших графов
-    # G = load_large_graph_from_file("data/very_large_graphs/") старая версия
+    G, library_graph = load_graph_from_file("data/test/digraph_3.txt", directed)####### для обычных 
 
     print("Section 1------\n")
-    G = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
+    # G = load_graph("data/undirected/Email-EuAll.txt")   ####### для больших 
 
-    comp, G = print_analysis(G, directed, True)
-    
+    comp, G = print_analysis(G, directed, False, library_graph) ####### для обычных 
+    comp, G = print_analysis(G, directed, False, library_graph) ####### для больших 
+
     # ####--------доп задание----------
     # G = to_undirected(G)
     # print(f"\nКластерный коэффициент для первой вершины: {node_clustering(G, 1)}")
