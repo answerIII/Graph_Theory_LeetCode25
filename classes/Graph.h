@@ -763,17 +763,9 @@ void initTrianglesCount() {
         calc_stats(total_degrees, "total");
     }
 
-    void initLandmarksFarthestFirst() {
+    void initLandmarksFarthestFirst(int landmarksCount) {
         landmarks.clear();
-        if (undirectedPaths.empty()) initUndirectedPaths();
-        size_t landmarksCount = 0;
-        if (vertexCount > 100000) {
-            landmarksCount = 200;
-        } else if (vertexCount > 1000) {
-            landmarksCount = 50;
-        } else {
-            landmarksCount = 5;
-        }
+        landmarksCount = std::min(vertexCount/2, landmarksCount);
         landmarks.reserve(landmarksCount);
 
         //first landmark
@@ -882,17 +874,10 @@ void initTrianglesCount() {
         for (auto& thread : workers) thread.join();
     }
 
-    void initLandmarksHeightDegrees() {
+    void initLandmarksHeightDegrees(int landmarksCount) {
     landmarks.clear();
     if (undirectedPaths.empty()) initUndirectedPaths();
-    size_t landmarksCount = 0;
-    if (vertexCount > 100000) {
-        landmarksCount = 200;
-    } else if (vertexCount > 1000) {
-        landmarksCount = 50;
-    } else {
-        landmarksCount = 5;
-    }
+    landmarksCount = std::min(vertexCount/2, landmarksCount);
     landmarks.reserve(landmarksCount);
 
     std::mutex lock;
@@ -1062,8 +1047,8 @@ public:
         getVertexDegreeStats(graph_id, is_directed, file);
     }
 
-int getDistanceBetweenNodes(int num_u, int num_v) {
-    if (landmarks.empty()) initLandmarksHeightDegrees();
+    int getDistanceBetweenNodes(int num_u, int num_v, int landmarksCount) {
+    if (landmarks.empty()) initLandmarksHeightDegrees(landmarksCount);
     if (num_u >= nodes.size() || num_v >= nodes.size() || num_v * num_u < 0) {
         std::cout << "One of these nodes is absent in graph" << std::endl;
         return 0;
@@ -1098,6 +1083,34 @@ int getDistanceBetweenNodes(int num_u, int num_v) {
     return minDistance;
 }
 
+    int getMinDistanceBetweenNodes(int num_u, int num_v) {
+        if (num_u >= nodes.size() || num_v >= nodes.size() || num_v * num_u < 0) {
+            std::cout << "One of these nodes is absent in graph" << std::endl;
+            return 0;
+        }
+        if (undirectedPaths.empty()) initUndirectedPaths();
+
+        Node* u = &nodes[num_u];
+        std::queue<Node*> queue;
+        std::vector<int> distances;
+        distances.resize(nodes.size());
+        queue.push(u);
+        u->marked = true;
+        distances[u->num] = 0;
+
+        while (!queue.empty()) {
+            Node* currentNode = queue.front(); queue.pop();
+            if (currentNode->num == num_v) return distances[currentNode->num];
+            for (int neighborhood : undirectedPaths[currentNode->num]) {
+                if (!nodes[neighborhood].marked) {
+                    nodes[neighborhood].marked = true;
+                    distances[neighborhood] = distances[currentNode->num] + 1;
+                    queue.push(&nodes[neighborhood]);
+                }
+            }
+        }
+        removeMarks();
+    }
 
     DirectedGraph(Graph& graph)
     : Graph(graph) {}
