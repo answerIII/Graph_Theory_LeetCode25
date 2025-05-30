@@ -12,15 +12,15 @@ def extract_subgraph(full_graph, vertices):
 
 def main():
     directed: bool =  False
-    # G = load_graph_from_file("data/undirected/Email-EuAll.txt", directed)#!!!используем это для обычных
+    G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
     
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
 
     print("Section 1------\n")
-    G = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
+    #G, library_graph = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
 
-    comp = print_analysis(G, directed)
+    comp = print_analysis(G, directed, library_graph)
     print("\nSection 1------\n\n")
     print("Section 2------\n")
     subgraph = {v: {n for n in G[v] if n in comp} for v in comp}
