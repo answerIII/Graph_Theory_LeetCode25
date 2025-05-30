@@ -21,7 +21,7 @@ func main() {
 	router.HandleFunc("/graphs/{datasetname}/properties", handlers.GetGeneralProperties).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/distance/estimate", handlers.GetDistanceEstimation).Methods("POST")
 	router.HandleFunc("/graphs/{datasetname}/clustering", handlers.GetClusteringInfo).Methods("GET")
-	router.HandleFunc("/graphs/{datasetname}/clustering/vertex", handlers.GetClusteringInfo).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/clustering/vertex", handlers.GetClusteringVertex).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/degree-distribution", handlers.GetDegreeDistribution).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/robustness", handlers.GetRobustnessComponent).Methods("POST")
 	router.HandleFunc("/graphs/{datasetname}/getrandomnodes", handlers.GetRandomNodes).Methods("GET")

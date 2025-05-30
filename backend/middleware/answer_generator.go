@@ -268,8 +268,8 @@ func GenerateRandomNodes(graph *structs.Graph) []byte {
 
 func GenerateClusteringVertex(graph *structs.Graph, vertex int) []byte {
 	type ClusterVertexCoef struct {
-		Vertex int `json"vertex"`
-		ClusterCoef int `json:"cluster_coef"`
+		Vertex      int     `json:"vertex"`
+		ClusterCoef float64 `json:"cluster_coef"`
 	}
 
 	var answer ClusterVertexCoef
@@ -277,7 +277,7 @@ func GenerateClusteringVertex(graph *structs.Graph, vertex int) []byte {
 	ch := make(chan float64)
 	answer.Vertex = vertex
 	go algo.ClusterCoef(graph, vertex, ch)
-	answer.ClusterCoef <- ch
+	answer.ClusterCoef = <-ch
 
 	output, _ := json.Marshal(answer)
 
