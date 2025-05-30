@@ -52,11 +52,7 @@ def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
 
 def print_distance(graph: dict, landmark_selection_option = 2):
     # Преобразуем граф в неориентированный, если он ориентированный
-    """if directed:
-        working_graph = to_undirected(graph)
-    else:
-        working_graph = {node: set(neighbors) for node, neighbors in graph.items()}"""
-        
+  
     working_graph = graph
     start = perf_counter()
     # Выбираем ориентиры (5% вершин, но не менее 5 и не более 50)
@@ -93,7 +89,6 @@ def print_distance(graph: dict, landmark_selection_option = 2):
     for u, v in test_pairs:
         estimated_distances[u, v] = landmarks_basic(working_graph, landmarks, u, v)
     end = perf_counter()
-    # Выводим результаты
     print(f"{'Пара':<20}{'Реальное':<20}{'Оценка':<20}")
     print("-" * 45)   
     for (u, v), exact in exact_distances.items():
@@ -115,13 +110,6 @@ def print_distance(graph: dict, landmark_selection_option = 2):
         print("No valid pairs for error calculation\n")
     print(f"\n⏱ Время выполнения Landmarks-Basic: {end - start:.6f} секунд\n\n")
 
-    # Дополнительная статистика
-    # reachable_pairs = sum(1 for d in exact_distances.values() if d != -1)
-    # estimated_reachable = sum(1 for d in estimated_distances.values() if d != -1)
-    
-    # print(f"Reachable pairs (exact): {reachable_pairs}/5")
-    # print(f"Reachable pairs (estimated): {estimated_reachable}/5")
-    # print("----------------------------------")
     
     print("\n\n\nLandmarks-LCA")
     data = landmarks_LCA(graph, landmarks)

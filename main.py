@@ -31,6 +31,8 @@ def node_clustering(graph: dict, node: int) -> float:
 def main():
     directed: bool =  False
     G, library_graph = load_graph_from_file("data/undirected/graph_1.txt", directed)#!!!используем это для обычных
+    directed: bool = False
+    G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
 
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
