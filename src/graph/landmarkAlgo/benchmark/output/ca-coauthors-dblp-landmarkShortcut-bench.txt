@@ -1,0 +1,111 @@
+graph_theory/graph/landmarkAlgo.SelectRandomNodes
+landmarks: 4
+precomputing time: 1586 ms
+Avg actual distance time: 398.18 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.3000
+file size: 8.25 MB
+landmarks: 8
+precomputing time: 2170 ms
+Avg actual distance time: 401.76 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.4000
+file size: 16.49 MB
+landmarks: 16
+precomputing time: 4075 ms
+Avg actual distance time: 406.37 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.0000
+file size: 32.99 MB
+landmarks: 32
+precomputing time: 8426 ms
+Avg actual distance time: 405.74 ms
+Avg estimated distance time: 0.01
+Mean absolute error: 0.5400
+file size: 65.98 MB
+landmarks: 64
+precomputing time: 15032 ms
+Avg actual distance time: 398.48 ms
+Avg estimated distance time: 0.59
+Mean absolute error: 0.2300
+file size: 131.96 MB
+landmarks: 128
+precomputing time: 28796 ms
+Avg actual distance time: 402.53 ms
+Avg estimated distance time: 1.53
+Mean absolute error: 0.1400
+file size: 263.91 MB
+graph_theory/graph/landmarkAlgo.SelectHighestDegree
+landmarks: 4
+precomputing time: 2175 ms
+Avg actual distance time: 376.80 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.4100
+file size: 8.25 MB
+landmarks: 8
+precomputing time: 2758 ms
+Avg actual distance time: 368.94 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.1200
+file size: 16.49 MB
+landmarks: 16
+precomputing time: 4837 ms
+Avg actual distance time: 452.01 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.8400
+file size: 32.99 MB
+landmarks: 32
+precomputing time: 9606 ms
+Avg actual distance time: 408.91 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.6700
+file size: 65.98 MB
+landmarks: 64
+precomputing time: 15379 ms
+Avg actual distance time: 375.01 ms
+Avg estimated distance time: 0.07
+Mean absolute error: 0.6100
+file size: 131.96 MB
+landmarks: 128
+precomputing time: 29432 ms
+Avg actual distance time: 407.64 ms
+Avg estimated distance time: 1.06
+Mean absolute error: 0.3100
+file size: 263.91 MB
+graph_theory/graph/landmarkAlgo.SelectBestCoverage
+landmarks: 4
+precomputing time: 55053 ms
+Avg actual distance time: 440.80 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 1.2800
+file size: 8.25 MB
+landmarks: 8
+precomputing time: 53039 ms
+Avg actual distance time: 396.30 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.9800
+file size: 16.49 MB
+landmarks: 16
+precomputing time: 56558 ms
+Avg actual distance time: 412.47 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.6900
+file size: 32.99 MB
+landmarks: 32
+precomputing time: 56672 ms
+Avg actual distance time: 433.45 ms
+Avg estimated distance time: 0.00
+Mean absolute error: 0.5700
+file size: 65.98 MB
+landmarks: 64
+precomputing time: 65276 ms
+Avg actual distance time: 371.08 ms
+Avg estimated distance time: 0.16
+Mean absolute error: 0.2700
+file size: 131.96 MB
+landmarks: 128
+precomputing time: 79139 ms
+Avg actual distance time: 388.89 ms
+Avg estimated distance time: 1.17
+Mean absolute error: 0.0900
+file size: 263.91 MB
