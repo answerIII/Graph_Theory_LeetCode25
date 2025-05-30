@@ -281,3 +281,58 @@ def createSPTBFS(
                 nodes_queue.append(neighbour_node_ind)
                 shortest_path_tree[neighbour_node_ind] = parent_node
     return shortest_path_tree
+
+
+def getDistNodesPair(
+    undir_adj_list: Tuple[Set[int], ...], node1_ind: int, node2_ind: int
+) -> int:
+    """
+    Returns real distance in graph undir_adj_list between node1 and node2
+    """
+    distance = -1
+    visited = [False for _ in range(len(undir_adj_list))]
+    nodes_queue: Deque[int] = deque()
+    visited[node1_ind] = True
+    nodes_queue.append(node1_ind)
+    while nodes_queue:
+        queue_size = len(nodes_queue)
+        distance += 1
+        for _ in range(queue_size):
+            new_node_ind = nodes_queue.popleft()
+            if new_node_ind == node2_ind:
+                return distance
+            for neighbour_node_ind in undir_adj_list[new_node_ind]:
+                if not visited[neighbour_node_ind]:
+                    visited[neighbour_node_ind] = True
+                    nodes_queue.append(neighbour_node_ind)
+    return -1
+
+
+def getShortestPathNodesBFS(
+    undir_adj_list: Tuple[Set[int], ...], node1_ind: int, node2_ind: int
+) -> Set[int]:
+    """
+    Returns set of nodes in shortest path in graph undir_adj_list
+    between node1 and node2
+    """
+    total_nodes = len(undir_adj_list)
+    visited = [False for _ in range(total_nodes)]
+    parent_node_lst = [-1 for _ in range(total_nodes)]
+    nodes_queue: Deque[int] = deque()
+    visited[node1_ind] = True
+    nodes_queue.append(node1_ind)
+    while nodes_queue:
+        new_node_ind = nodes_queue.popleft()
+        if new_node_ind == node2_ind:
+            shortest_path: Set[int] = set()
+            curr_node = new_node_ind
+            while curr_node != -1:
+                shortest_path.add(curr_node)
+                curr_node = parent_node_lst[curr_node]
+            return shortest_path
+        for neighbour_node_ind in undir_adj_list[new_node_ind]:
+            if not visited[neighbour_node_ind]:
+                visited[neighbour_node_ind] = True
+                nodes_queue.append(neighbour_node_ind)
+                parent_node_lst[neighbour_node_ind] = new_node_ind
+    return set()

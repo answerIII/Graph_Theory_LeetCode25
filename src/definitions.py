@@ -46,10 +46,6 @@ IMAGES_VERTEX_DEGREE_PROB_LOGLOG_SCALE = (
     "images/vertex_degree_prob/loglog_scale/"
 )
 
-IMAGES_VERTEX_LWC_RATIO_RANDOM = (
-    "images/lwc_ratio/random/"
-)
+IMAGES_VERTEX_LWC_RATIO_RANDOM = "images/lwc_ratio/random/"
 
-IMAGES_VERTEX_LWC_RATIO_BY_DEGREE = (
-    "images/lwc_ratio/by_degree/"
-)
+IMAGES_VERTEX_LWC_RATIO_BY_DEGREE = "images/lwc_ratio/by_degree/"

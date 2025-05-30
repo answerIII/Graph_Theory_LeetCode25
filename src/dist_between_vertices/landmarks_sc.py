@@ -12,6 +12,14 @@ from definitions import (
     REF_DATASETS_LARGE_DIR,
 )
 
+from dist_between_vertices.landmark_selection import (
+    chooseRandomNodes,
+    chooseBestCoverageNodes,
+    chooseHighestDegreeNodes,
+)
+
+from bfs import getDistNodesPair
+
 from create_adj_list import createLWCUndirAdjList
 
 from dist_between_vertices.create_spt import createSPTList
@@ -84,12 +92,17 @@ def processFile(file_path: str) -> None:
     lwc_nodes = len(lwc_undir_adj_list)
     # Landmarks chosen randomly
     # TODO add new approaches for landmarks selection
-    landmarks_lst = sample(range(lwc_nodes), TOTAL_LANDMARKS)
+    # landmarks_lst = chooseRandomNodes(lwc_undir_adj_list, TOTAL_LANDMARKS)
+    # landmarks_lst = chooseHighestDegreeNodes(
+    #     lwc_undir_adj_list, TOTAL_LANDMARKS
+    # )
+    landmarks_lst = chooseBestCoverageNodes(lwc_undir_adj_list, TOTAL_LANDMARKS)
     spt_lst = createSPTList(lwc_undir_adj_list, landmarks_lst)
     # TODO The code below is only for demonstration of the algorithm's work
     # Delete it later
-    TOTAL_DIST_COMPUTES = 1000
+    TOTAL_DIST_COMPUTES = 100
     dist_sum = 0
+    dist_sum_real = 0
     for _ in range(TOTAL_DIST_COMPUTES):
         node1_ind, node2_ind = sample(range(lwc_nodes), 2)
         dist_sum += landmarksSC(
@@ -100,9 +113,13 @@ def processFile(file_path: str) -> None:
             node1_ind,
             node2_ind,
         )
+        dist_sum_real += getDistNodesPair(
+            lwc_undir_adj_list, node1_ind, node2_ind
+        )
     print(
         f"Avg estimated dist with Landmark-SC: {dist_sum / TOTAL_DIST_COMPUTES}"
     )
+    print(f"Avg real dist with BFS: {dist_sum_real / TOTAL_DIST_COMPUTES}")
 
 
 if __name__ == "__main__":
