@@ -141,7 +141,7 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 			b.Logf("Landmark file size: %.2f MB", float64(info.Size())/1024/1024)
 		}
 
-		_ = os.Remove(output)
+		//_ = os.Remove(output)
 	}
 }
 
@@ -236,7 +236,7 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 			b.Logf("Landmark file size: %.2f MB", float64(info.Size())/1024/1024)
 		}
 
-		_ = os.Remove(output)
+		//_ = os.Remove(output)
 	}
 }
 
