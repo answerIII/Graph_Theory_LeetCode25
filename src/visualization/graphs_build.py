@@ -33,6 +33,9 @@ for filename in data_files:
 
     plt.figure(figsize=(14, 6))
 
+    graph_name = os.path.splitext(filename)[0]
+    plt.suptitle(f'Распределение степеней вершин: {graph_name}', fontsize=14, y=1.02)
+
     plt.subplot(1, 2, 1)
     plt.scatter(degrees_sorted, prob_sorted, color='blue', alpha=0.7)
     plt.xlabel('Степень вершины (k)')
