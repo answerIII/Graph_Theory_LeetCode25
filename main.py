@@ -23,11 +23,14 @@ def main():
     comp = print_analysis(G, directed)
     print("\nSection 1------\n\n")
     print("Section 2------\n")
+    subgraph = {v: {n for n in G[v] if n in comp} for v in comp}
+
     while True:
         user_input = input( """Введите какой метод использовать для выбора ориентиров:  (для остановки введите слово 'stop')\n 1. random_selection\n 2. highest_degree_selection\n 3. best_coverage_selection\n""")
         if user_input.lower() == 'stop':
             break
-        print_distance(comp, int(user_input))
+    
+        print_distance(subgraph, int(user_input))
     print("\nSection 2------\n\n")
 
 if __name__ == "__main__":
