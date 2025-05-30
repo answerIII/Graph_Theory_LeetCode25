@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"graph_theory/graph"
 	"graph_theory/workerpool"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,7 +19,6 @@ func PrecomputeLandmarks(
 	selectFunction func(*graph.Graph, int) ([]graph.Node, error),
 	nodesN int,
 ) error {
-	log.Println("Selecting")
 	landmarks, err := selectFunction(g, nodesN)
 	if err != nil {
 		return errors.New("can't select nodes for landmarks")
@@ -38,8 +36,6 @@ func PrecomputeLandmarks(
 	}
 
 	nodes := g.GetNodesSlice()
-
-	log.Println("Calculating distances")
 
 	var mu sync.Mutex
 	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(landmarks))
@@ -79,7 +75,6 @@ func PrecomputeLandmarksWithPaths(
 	selectFunction func(*graph.Graph, int) ([]graph.Node, error),
 	nodesN int,
 ) error {
-	log.Println("Selecting")
 	landmarks, err := selectFunction(g, nodesN)
 	if err != nil {
 		return errors.New("can't select nodes for landmarks")
@@ -96,7 +91,6 @@ func PrecomputeLandmarksWithPaths(
 		return err
 	}
 
-	log.Println("Calculating distances")
 	nodes := g.GetNodesSlice()
 
 	var mu sync.Mutex
