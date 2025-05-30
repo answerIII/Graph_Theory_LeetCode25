@@ -1,0 +1,7 @@
+selection,n,create_landmarks_time,estimate_distance,estimate_distance_time,estimate_distance_error,estimate_distance_bfs,estimate_distance_bfs_time,estimate_distance_bfs_error
+Random,20,6.226772,12,0.000035,0.3333333333333333,9,0.002672,0
+HighDegree,20,6.879939,9,0.000018,0,9,0.003427,0
+BestCoverage,20,12.640257,11,0.000018,0.2222222222222222,9,0.002827,0
+Random,100,20.800176,11,0.000096,0.2222222222222222,9,0.007666,0
+HighDegree,100,18.023751,9,0.000129,0,9,0.009866,0
+BestCoverage,100,22.697794,9,0.000098,0,9,0.006985,0
