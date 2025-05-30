@@ -284,3 +284,27 @@ func FromFile(filePath string, directed bool) (*Graph, error) {
 	}
 	return graph, nil
 }
+
+func GetMappedNode(filePath string, node Node) (Node, error) {
+	mapper := map[Node]Node{}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return -1, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		parts := strings.Fields(scanner.Text())
+
+		u, err1 := strconv.Atoi(parts[0])
+		v, err2 := strconv.Atoi(parts[1])
+		if err1 != nil || err2 != nil {
+			continue
+		}
+		mapper[Node(u)] = Node(v)
+	}
+	return mapper[Node(node)], nil
+}
