@@ -4,6 +4,21 @@
 #include "functions/parserf.h"
 #include "functions/CsvParser.h"
 #include "functions/getOutput.h"
+
+int chooseAlgo() {
+    int algo = 0;
+    std::cout << "\nВыберите задание:\n";
+    std::cout << "1 - Анализ структуры сети\n";
+    std::cout << "2 - Вычисление расстояний между вершинами сети\n";
+    std::cout << "Введите номер: ";
+    std::cin >> algo;
+    while (algo != 1 && algo != 2) {
+        std::cout << "Введено неверное число! Попробуйте заново: ";
+        std::cin >> algo;
+
+    }
+    return algo;
+}
 int main(const int argc, const char *argv[]) {
     validateArgs(argc, argv);
         std::string dataset_root = "datasets";
@@ -45,8 +60,9 @@ int main(const int argc, const char *argv[]) {
             std::cerr << "Некорректный выбор!\n";
             return 1;
         }
+        int algo = chooseAlgo();
 
-        get_results(graph_files[choice - 1].path.c_str(), graph_files[choice - 1].category);
+        get_results(graph_files[choice - 1].path.c_str(), graph_files[choice - 1].category, algo);
 
     } else if (mode == 2) {
         std::vector<std::string> categories;
@@ -66,20 +82,22 @@ int main(const int argc, const char *argv[]) {
             std::cerr << "Некорректный выбор!\n";
             return 1;
         }
+        int algo = chooseAlgo();
 
         std::string selected_cat = categories[choice - 1];
         std::cout << "\nЗапускаем обработку всех файлов из: " << selected_cat << "\n";
 
         for (const auto& file : category_map[selected_cat]) {
             std::cout << "→ Обработка: " << file.display_name << "\n";
-            get_results(file.path.c_str(), file.category);
+            get_results(file.path.c_str(), file.category,algo);
         }
 
     } else if (mode == 3) {
+        int algo = chooseAlgo();
         std::cout << "\nЗапускаем обработку всех файлов...\n";
         for (const auto& file : graph_files) {
             std::cout << "→ Обработка: " << file.display_name << " [" << file.category << "]\n";
-            get_results(file.path.c_str(), file.category);
+            get_results(file.path.c_str(), file.category,algo);
         }
         std::cout << line << "\nЗапускаем объединение CSV-файлов...\n";
         merge_csv_files_in_folder("output_data");
