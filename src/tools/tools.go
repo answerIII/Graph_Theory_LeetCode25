@@ -12,10 +12,11 @@ import (
 	"strings"
 )
 
+type Map map[int]int
 type Nodes []int
 type Adjacency map[int][]int
 type EdgeFunction func(u, v int) error
-type Converter func() (*Nodes, *Adjacency, EdgeFunction)
+type Converter func() (*Map, *Nodes, *Adjacency, EdgeFunction)
 
 var SUPPORTED_EXTENSIONS = []string{".csv", ".txt", ".mtx"}
 
@@ -130,16 +131,22 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	if !slices.Contains(SUPPORTED_EXTENSIONS, ext) {
 		return errors.New(ext + " files are unsupported")
 	}
-
+	mapperDir := GetFileDestination(pathIn) + "mapper/"
+	if err := os.MkdirAll(mapperDir, 0o775); err != nil {
+		fmt.Errorf("Error creating directory: %v\n", err)
+	}
 	fileOut, err := os.Create(pathOut)
+	mapperFile, err := os.Create(mapperDir + GetFileNameWithoutExt(pathIn) + "-mapper.txt")
 	if err != nil {
 		return errors.New("can't open a file " + pathOut)
 	}
 	defer fileOut.Close()
+	defer mapperFile.Close()
 
 	writer := bufio.NewWriter(fileOut)
+	mapperWriter := bufio.NewWriter(mapperFile)
 
-	nodes, adj, edgeFunc := converter()
+	Map, nodes, adj, edgeFunc := converter()
 
 	var numberRealEdges int
 	if numberRealEdges, err = parser(pathIn, edgeFunc); err != nil {
@@ -159,6 +166,15 @@ func convert(pathIn, pathOut string, converter Converter) error {
 	slices.Sort(*nodes)
 
 	for u := range *nodes {
+		if _, has := (*Map)[u]; has {
+			_, err := mapperWriter.WriteString(strconv.Itoa(u) + " " + strconv.Itoa((*Map)[u]) + "\n")
+			if err != nil {
+				return err
+			}
+			if err := mapperWriter.Flush(); err != nil {
+				return err
+			}
+		}
 		(*adj)[u] = removeDuplicate((*adj)[u])
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
@@ -177,14 +193,14 @@ func convert(pathIn, pathOut string, converter Converter) error {
 
 func SortNodesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
-		func() (*Nodes, *Adjacency, EdgeFunction) {
-			mapper := map[int]int{}
+		func() (*Map, *Nodes, *Adjacency, EdgeFunction) {
+			mapper := Map{}
 			nodes := Nodes{}
 			adj := Adjacency{}
 
 			mapperIdx := 0
 
-			return &nodes, &adj, func(u, v int) error {
+			return &mapper, &nodes, &adj, func(u, v int) error {
 				if _, has := mapper[u]; !has {
 					mapper[u] = mapperIdx
 					mapperIdx++
@@ -207,14 +223,14 @@ func SortNodesInFile(pathIn, pathOut string) error {
 
 func InvertEdgesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
-		func() (*Nodes, *Adjacency, EdgeFunction) {
-			mapper := map[int]int{}
+		func() (*Map, *Nodes, *Adjacency, EdgeFunction) {
+			mapper := Map{}
 			nodes := Nodes{}
 			adj := Adjacency{}
 
 			mapperIdx := 0
 
-			return &nodes, &adj, func(u, v int) error {
+			return &mapper, &nodes, &adj, func(u, v int) error {
 				if _, has := mapper[u]; !has {
 					mapper[u] = mapperIdx
 					mapperIdx++
@@ -237,14 +253,14 @@ func InvertEdgesInFile(pathIn, pathOut string) error {
 
 func UndirectEdgesInFile(pathIn, pathOut string) error {
 	err := convert(pathIn, pathOut,
-		func() (*Nodes, *Adjacency, EdgeFunction) {
-			mapper := map[int]int{}
+		func() (*Map, *Nodes, *Adjacency, EdgeFunction) {
+			mapper := Map{}
 			nodes := Nodes{}
 			adj := Adjacency{}
 
 			mapperIdx := 0
 
-			return &nodes, &adj, func(u, v int) error {
+			return &mapper, &nodes, &adj, func(u, v int) error {
 				if _, has := mapper[u]; !has {
 					mapper[u] = mapperIdx
 					mapperIdx++
