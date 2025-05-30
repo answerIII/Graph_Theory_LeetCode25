@@ -87,3 +87,23 @@ func GetRandomNodes(w http.ResponseWriter, r *http.Request) {
 	w.Write(middleware.GenerateRandomNodes(middleware.ReadGraph(storageRoot+filename+".msgpack", filename)))
 
 }
+
+func GetClusteringVertex(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	filename := vars["datasetname"]
+
+	type GetVertex struct {
+		Vertex int `json:"vertex"`
+	}
+
+	var req GetVertex
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Ошибка разбора JSON", http.StatusBadRequest)
+		return
+	}
+
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(middleware.GenerateClusteringVertex(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Vertex))
+}
