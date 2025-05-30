@@ -33,6 +33,8 @@ public:
     DegreeStats getDegreeStats() const;
     const std::vector<int>& degreeHistogram() const;
 
+    double ratioAfterRemoval(double perc, bool targetedByDeg, uint32_t seed = 42) const;
+
     // int estimateDiameterDoubleSweep();
     // std::pair<int, int> estimateDiameterRandomPairs(int numPairs = 500);
     // std::pair<int, int> estimateDiameterSnowballSample(int targetSize = 500);

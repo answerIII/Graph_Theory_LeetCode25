@@ -91,6 +91,8 @@ int main() {
         }
     }
 
+    const std::vector<double> removalPerc = {10,20,30,40,50,60,70,80,90};
+
     for (int idx : selectedIndexes) {
         string path = allGraphs[idx];
         string ext = path.substr(path.find_last_of('.'));
@@ -187,6 +189,28 @@ int main() {
                         << double(hist[k]) / g.getVertexCount() << '\n';
         }
         std::cout << "Гистограмма степеней сохранена в " << csvPath.string() << '\n';
+
+        fs::path vfcDir = "VertexFractionChange";
+        if (!fs::exists(vfcDir)) fs::create_directory(vfcDir);
+
+        base = path.substr(path.find_last_of('/') + 1);
+        fs::path csvVFC = vfcDir / (base + "_vfc.csv");
+
+        {
+            std::ofstream csv(csvVFC);
+            csv << "percent,random,top_degree\n";
+
+            for (double p : removalPerc) {
+                double ratioRand = g.ratioAfterRemoval(p, false);
+                double ratioTarget = g.ratioAfterRemoval(p, true);
+
+                csv << p << ','
+                    << std::fixed << std::setprecision(4) << ratioRand << ','
+                    << std::fixed << std::setprecision(4) << ratioTarget << '\n';
+            }
+        }
+
+        std::cout << "Таблица изменений долей вершин по процентам сохранена в " << vfcDir.string() << '\n';
 
         // auto startDS = high_resolution_clock::now();
         // int diamDS = g.estimateDiameterDoubleSweep();
