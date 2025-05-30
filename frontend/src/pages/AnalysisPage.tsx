@@ -18,7 +18,6 @@ import DistanceEstimationComponent from '../components/DistanceEstimationCompone
 import ClusteringComponent from '../components/ClusteringComponent';
 import DegreeDistributionComponent from '../components/DegreeDistributionComponent';
 import RobustnessComponent from '../components/RobustnessComponent';
-import AlgorithmsRuntimeComponent from '../components/AlgorithmsRuntimeComponent';
 import GraphVisualizationComponent from '../components/GraphVisualizationComponent';
 import DistanceAnalysisComponent from '../components/DistanceAnalysisComponent';
 
@@ -79,7 +78,6 @@ const AnalysisPage: React.FC = () => {
     { label: 'Кластеризация', component: <ClusteringComponent datasetname={datasetname} /> },
     { label: 'Распределение степеней', component: <DegreeDistributionComponent datasetname={datasetname} /> },
     { label: 'Устойчивость', component: <RobustnessComponent datasetname={datasetname} /> },
-    { label: 'Время выполнения', component: <AlgorithmsRuntimeComponent datasetname={datasetname} /> },
     { label: 'Вычисление расстояний', component: <DistanceAnalysisComponent datasetname={datasetname} /> },
   ];
 
