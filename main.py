@@ -11,20 +11,18 @@ def extract_subgraph(full_graph, vertices):
             if v in vertices}
 
 def main():
-    directed: bool =  False
-    G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
-    
+    directed: bool =  True
+    G, library_graph = load_graph_from_file("data/graph_0.txt", directed)#!!!используем это для обычных
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
 
     print("Section 1------\n")
     #G, library_graph = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
 
-    comp = print_analysis(G, directed, library_graph)
+    comp, G = print_analysis(G, directed, library_graph)
     print("\nSection 1------\n\n")
     print("Section 2------\n")
     subgraph = {v: {n for n in G[v] if n in comp} for v in comp}
-
     while True:
         user_input = input( """Введите какой метод использовать для выбора ориентиров:  (для остановки введите слово 'stop')\n 1. random_selection\n 2. highest_degree_selection\n 3. best_coverage_selection\n""")
         if user_input.lower() == 'stop':

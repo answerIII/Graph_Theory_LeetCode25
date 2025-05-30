@@ -94,23 +94,29 @@ def print_analysis(graph: dict, directed: bool, library_graph: nx.Graph, large: 
         fraction_of_vertices_largest_week_component_real = largest_component_size_real / library_graph.number_of_nodes()
         print(f"реальное кол-во компонент слабой связности = {week_component_count_real}")
         print(f"реальная доля вершин в макс. по мощности слабой компоненте = {fraction_of_vertices_largest_week_component_real}")
+        if directed:
+            scc = list(nx.strongly_connected_components(library_graph))
+            strong_comp_count_real = len(scc)
+            strong_max_comp_length = max(len(comp) for comp in scc)
+            print(f"реальное кол-во компонент сильной связности = {strong_comp_count_real}")
+            print(f"реальаня доля вершин в наибольшей компоненте сильной связности = {strong_max_comp_length / library_graph.number_of_nodes()}")
         end = perf_counter()
         print(f"\n⏱ Время выполнения A1: {end - start:.6f} секунд")
 
     print("(A1)----------\n")
 
 
-        
-    # print("(A2)----------")
-    # start = perf_counter()
+    graph = undirected_graph
+    print("(A2)----------")
+    start = perf_counter()
     
-    # if (num_of_vertices < 300000):
-    #     print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
-    #     print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
-    # print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")
-    # end = perf_counter()
-    # print(f"\n⏱ Время выполнения A2: {end - start:.6f} секунд")
-    # print("(A2)----------\n")
+    if (num_of_vertices < 300000):
+        print(f"диаметр Double sweep = {double_sweep(undirected_graph, week_max_component)}")    
+        print(f"диаметр Random = {random_pairwise_distances(undirected_graph, week_max_component)}")
+    print(f"диаметр Snowball sample = {snowball_sampling(undirected_graph, week_max_component)}")
+    end = perf_counter()
+    print(f"\n⏱ Время выполнения A2: {end - start:.6f} секунд")
+    print("(A2)----------\n")
     print("(A3)----------")
     start = perf_counter()
     print(f"число треугольников = {count_triangles(undirected_graph)}")
@@ -121,9 +127,14 @@ def print_analysis(graph: dict, directed: bool, library_graph: nx.Graph, large: 
    
     if not large:
         start = perf_counter()
-        print(f"\n\nреальное число треугольников = { sum(nx.triangles(library_graph).values()) // 3}")
-        print(f"реальный средний кластерный коэффициент = {nx.average_clustering(library_graph)}")
-        print(f"реальный глобальный кластерный коэффициент = { nx.transitivity(library_graph)}")
+        if directed:
+            undirected_library_graph = library_graph.to_undirected()
+        else:
+            undirected_library_graph = library_graph
+        print(f"\n\nреальное число треугольников = { sum(nx.triangles(undirected_library_graph).values()) // 3}")
+        print(f"реальный средний кластерный коэффициент (может отличаться) = {nx.average_clustering(undirected_library_graph)}")
+
+        print(f"реальный глобальный кластерный коэффициент = { nx.transitivity(undirected_library_graph)}")
         end = perf_counter()
         print(f"\n⏱ Время выполнения A3: {end - start:.6f} секунд")    
         print("(A3)----------\n")
@@ -244,5 +255,5 @@ def print_analysis(graph: dict, directed: bool, library_graph: nx.Graph, large: 
 
     print("\n(B2)----------")
     plot_comparisons(stats1, stats2)
-    return week_max_component
+    return week_max_component, graph 
 
