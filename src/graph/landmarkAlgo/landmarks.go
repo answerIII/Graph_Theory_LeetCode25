@@ -246,7 +246,7 @@ func LandmarkBasic(landmarkFilePath string, s, t int32) (int, error) {
 func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int, error) {
 	file, err := os.Open(landmarkFilePath)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	defer file.Close()
 
@@ -266,10 +266,10 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int,
 	}
 
 	if s < 0 || s > numNodes {
-		return -1, fmt.Errorf("there is no node %d in graph", s)
+		return 0, fmt.Errorf("there is no node %d in graph", s)
 	}
 	if t < 0 || t > numNodes {
-		return -1, fmt.Errorf("there is no node %d in graph", t)
+		return 0, fmt.Errorf("there is no node %d in graph", t)
 	}
 
 	if s > t {
@@ -334,13 +334,15 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int,
 			for i := range sLCAIdx {
 				for j := range tLCAIdx {
 					if g.HasEdge(graph.Node(sPath[i]), graph.Node(tPath[j])) {
-						if i+1+j < dist {
-							dist = i + 1 + j
-						}
+						dist = min(dist, i+1+j)
 					}
 				}
 			}
+			dist = min(dist, sLCAIdx+tLCAIdx)
 		}
+	}
+	if dist == math.MaxInt {
+		dist = -1
 	}
 	return dist, nil
 }
