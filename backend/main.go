@@ -22,7 +22,7 @@ func main() {
 	router.HandleFunc("/graphs/{datasetname}/distances", handlers.GetDistanceEstimation).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/clustering", handlers.GetClusteringInfo).Methods("GET")
 	router.HandleFunc("/graphs/{datasetname}/degree-distribution", handlers.GetDegreeDistribution).Methods("GET")
-	router.HandleFunc("/graphs/{datasetname}/robustness", handlers.GetRobustnessComponent).Methods("GET")
+	router.HandleFunc("/graphs/{datasetname}/robustness", handlers.GetRobustnessComponent).Methods("POST")
 	router.HandleFunc("/graphs/{datasetname}/getrandomnodes", handlers.GetRandomNodes).Methods("GET")
 
 	serverPort := os.Getenv("PORT")
