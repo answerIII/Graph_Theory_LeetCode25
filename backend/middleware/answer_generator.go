@@ -114,7 +114,7 @@ func GenerateDegrees(graph *structs.Graph) []byte {
 
 }
 
-func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte {
+func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 
 	// var excludeVertex map[int]struct{}
 	// if method == "random" {
@@ -164,25 +164,29 @@ func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte
 		}(graph, goroutineCh, answerCh, &wg)
 	}
 
-	go func(goroutineCh chan<- int) {
-		for percent := 0; percent < 100; percent++ {
+	go func(percentage []int, goroutineCh chan<- int) {
+		for _, percent := range percentage {
 			goroutineCh <- percent
-			fmt.Println(percent)
 		}
 		close(goroutineCh)
-	}(goroutineCh)
+	}(percentage, goroutineCh)
 
-	answer := make([]structs.AnswerB, 100)
+	answer := make([]structs.AnswerB, len(percentage))
 	go func(answerCh <-chan structs.AnswerB, answer []structs.AnswerB) {
+		ind := 0
 		for {
 			t, ok := <-answerCh
 			if !ok {
 				break
 			}
-			fmt.Println("from ansch : ", t)
-			answer[t.Percentage] = t
+			// answer[t.Percentage] = t
+			if t.Percentage == 100 {
+				t.RandomFraction = 0
+				t.TargetFraction = 0
+			}
+			answer[ind] = t
+			ind++
 		}
-
 	}(answerCh, answer)
 
 	// for percent := 0; percent < 100; percent++ {

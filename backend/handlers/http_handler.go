@@ -63,8 +63,8 @@ func GetRobustnessComponent(w http.ResponseWriter, r *http.Request) {
 	filename := vars["datasetname"]
 
 	type GetRobustness struct {
-		Percentage int    `json:"xPercent" msgpack:"xPercent"`
-		Method     string `json:"removalMethod" msgpack:"removalMethod"`
+		Percentage []int `json:"xPercentages" msgpack:"xPercentages"`
+		// Method     string `json:"removalMethod" msgpack:"removalMethod"`
 	}
 
 	var req GetRobustness
@@ -75,7 +75,7 @@ func GetRobustnessComponent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateRobustness(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Method, req.Percentage))
+	w.Write(middleware.GenerateRobustness(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Percentage))
 
 }
 
