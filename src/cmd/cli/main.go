@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"graph_theory/graph"
+	"graph_theory/graph/landmarkAlgo"
 	"graph_theory/tools"
 	"math/rand/v2"
 	"os"
@@ -29,6 +30,7 @@ func main() {
 	var ug *graph.Graph
 	var wcc [][]graph.Node
 	var triangles int64 = -1
+	var graphName string
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Graph CLI started. Type '0' for help.")
@@ -62,7 +64,8 @@ func main() {
 			wcc = nil
 			triangles = -1
 
-			filePath := getFilepath(args[1], args[2])
+			graphName = args[2]
+			filePath := getFilepath(args[1], graphName)
 			ug, err = loadGraph(filePath)
 			if err != nil {
 				fmt.Printf("Error loading graph: %v\n", err)
@@ -191,7 +194,7 @@ func main() {
 			} else {
 				fmt.Printf("Average clustering coefficient: %.4f\n", val)
 			}
-		case "10":
+		case "10": // average clustering coefficient (largest WCC)
 			if ug == nil || wcc == nil {
 				fmt.Println("Run WCC calculation first (option 3).")
 				continue
@@ -202,7 +205,7 @@ func main() {
 			} else {
 				fmt.Printf("Average clustering coefficient (largest WCC): %.4f\n", val)
 			}
-		case "11":
+		case "11": // global clustering coefficient
 			if ug == nil {
 				fmt.Println("Load a graph first.")
 				continue
@@ -222,7 +225,7 @@ func main() {
 			} else {
 				fmt.Printf("Global clustering coefficient: %.4f\n", val)
 			}
-		case "12":
+		case "12": // degrees
 			if ug == nil {
 				fmt.Println("Load a graph first.")
 				continue
@@ -233,9 +236,9 @@ func main() {
 			} else {
 				fmt.Printf("Degree stats - Min: %d, Avg: %.2f, Max: %d\n", minD, avgD, maxD)
 			}
-		case "13":
+		case "13": // largest WCC size ration after node removals
 			if len(args) < 2 {
-				fmt.Println("Usage: 11 <percent to remove>")
+				fmt.Println("Usage: 13 <percent to remove>")
 				continue
 			}
 			if ug == nil {
@@ -254,6 +257,126 @@ func main() {
 				fmt.Printf("Largest WCC size ratio after random removals: %.4f\n", randRatio)
 				fmt.Printf("Largest WCC size ratio after max-degree removals: %.4f\n", maxDegRatio)
 			}
+		case "14":
+			if len(args) < 3 {
+				fmt.Println("Usage: 14 <node_id> <node_id>")
+			}
+			if ug == nil {
+				fmt.Println("Load a graph first.")
+				continue
+			}
+			s, err := strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Println("Error: ", err)
+				continue
+			}
+			t, err := strconv.Atoi(args[2])
+			if err != nil {
+				fmt.Println("Error: ", err)
+				continue
+			}
+			fmt.Println("Choose selection method:")
+			fmt.Println("1 - Select random nodes")
+			fmt.Println("2 - Select highest degree nodes")
+			fmt.Println("3 - Select best coverage")
+
+			fmt.Print("> ")
+			method, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Printf("Error reading input: %v\n", err)
+				continue
+			}
+
+			method = strings.TrimSpace(method)
+
+			var selectFunction func(*graph.Graph, int) ([]graph.Node, error)
+			switch method {
+			case "1":
+				selectFunction = landmarkAlgo.SelectRandomNodes
+			case "2":
+				selectFunction = landmarkAlgo.SelectHighestDegree
+			case "3":
+				selectFunction = landmarkAlgo.SelectBestCoverage
+			default:
+				fmt.Printf("Unknown method %s", method)
+				continue
+			}
+
+			fmt.Println("Choose landmark algorithm:")
+			fmt.Println("1 - Basic Landmark")
+			fmt.Println("2 - Shortcut Landmark")
+			fmt.Print("> ")
+			algorithm, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Printf("Error reading input: %v\n", err)
+				continue
+			}
+
+			algorithm = strings.TrimSpace(algorithm)
+
+			fmt.Print("Input number of landmarks (1-1000): ")
+			number, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Printf("Error reading input: %v\n", err)
+				continue
+			}
+
+			number = strings.TrimSpace(number)
+
+			numberInt, err := strconv.Atoi(number)
+			if err != nil {
+				fmt.Println("Error: ", err)
+				continue
+			}
+
+			if numberInt < 1 || numberInt > 1000 {
+				fmt.Println("Invalid number of landmarks: ", numberInt)
+				continue
+			}
+
+			filePath, err := getLandmarkFilepath(graphName, algorithm)
+			if err != nil {
+				fmt.Println("Error: ", err)
+				continue
+			}
+
+			var dist int
+
+			err = func() error {
+				defer os.Remove(filePath)
+
+				switch algorithm {
+				case "1":
+					err := landmarkAlgo.PrecomputeLandmarks(ug, filePath, selectFunction, numberInt)
+					if err != nil {
+						return err
+					}
+					dist, err = landmarkAlgo.LandmarkBasic(filePath, int32(s), int32(t))
+					if err != nil {
+						return err
+					}
+				case "2":
+					err := landmarkAlgo.PrecomputeLandmarksWithPaths(ug, filePath, selectFunction, numberInt)
+					if err != nil {
+						return err
+					}
+					dist, err = landmarkAlgo.LandmarkShortcut(ug, filePath, int32(s), int32(t))
+					if err != nil {
+						return err
+					}
+				default:
+					fmt.Println("Unknown algorithm")
+					return fmt.Errorf("unknown algorithm: %s", algorithm)
+				}
+				return nil
+			}()
+			if err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+
+			fmt.Printf("Approx distance between %d and %d: %d\n", s, t, dist)
+
 		case "99":
 			fmt.Println("Exiting...")
 			return
@@ -280,6 +403,7 @@ func printHelp() {
 	fmt.Println("11                           - global clustering coefficient")
 	fmt.Println("12                           - degree distribution")
 	fmt.Println("13 <percent>                 - WCC ratio after x% node removals")
+	fmt.Println("14 <node_id> <node_id>       - approx distance between two nodes")
 	fmt.Println("99                           - exit")
 }
 
