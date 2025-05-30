@@ -10,9 +10,10 @@ int chooseAlgo() {
     std::cout << "\nВыберите задание:\n";
     std::cout << "1 - Анализ структуры сети\n";
     std::cout << "2 - Вычисление расстояний между вершинами сети\n";
+    std::cout << "3 - Вычисление расстояний между вершинами сети(модификация)\n";
     std::cout << "Введите номер: ";
     std::cin >> algo;
-    while (algo != 1 && algo != 2) {
+    while (algo != 1 && algo != 2 && algo != 3) {
         std::cout << "Введено неверное число! Попробуйте заново: ";
         std::cin >> algo;
 
@@ -21,7 +22,7 @@ int chooseAlgo() {
 }
 int main(const int argc, const char *argv[]) {
     validateArgs(argc, argv);
-        std::string dataset_root = "tests";
+        std::string dataset_root = "datasets";
     std::vector<GraphFile> graph_files;
 
     for (const auto& dir_entry : fs::recursive_directory_iterator(dataset_root)) {

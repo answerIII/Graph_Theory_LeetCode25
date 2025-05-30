@@ -59,6 +59,31 @@ void get_results(const char* file_path, const std::string& category, int algo) {
         std::cout <<"\nАлгоритм сработал за: "<<elapsed2<<"мс\n";;
 
         std::cout << line;
+    }else {
+        int v1 = -1;
+        int v2 = -1;
+        std::cout << "Количество вершин в графе:\t"<< g.getVertexCount() <<"\n";
+        std::cout <<"Выберите вершины:\n";
+        std::cout << "v1:";
+        std::cin >> v1;
+        std::cout << "v2:";
+        std::cin >> v2;
+
+        g.getDistanceBetweenNodesLTC(v1,v2);
+        auto start_time = std::chrono::steady_clock::now();
+        int result = g.getDistanceBetweenNodesLTC(v1,v2);
+        auto end_time = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::cout << line;
+        std::cout <<"\n LANDMARKS LTC:\nРасстояние между вершинами " <<v1 << " и " << v2 << " равно: " <<result<<"\nАлгоритм сработал за: "<<elapsed<<"мс\n\n";
+
+        auto start_time2 = std::chrono::steady_clock::now();
+        std::cout <<"BFS:\nМинимальное расстояние между вершинами " <<v1 << " и " << v2 << " равно: " <<g.getMinDistanceBetweenNodes(v1,v2)<<"\n";
+        auto end_time2 = std::chrono::steady_clock::now();
+        auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time2 - start_time2).count();
+        std::cout <<"\nАлгоритм сработал за: "<<elapsed2<<"мс\n";;
+
+        std::cout << line;
     }
 
     delete graph;
