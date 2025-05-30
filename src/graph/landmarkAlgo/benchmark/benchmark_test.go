@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"sync"
 	"testing"
 )
 
@@ -86,22 +87,26 @@ func BenchmarkLandmarkBasic(b *testing.B) {
 		var totalRelativeError float64
 		var iterCount int
 
+		var mu sync.Mutex
+
 		selectName := runtime.FuncForPC(reflect.ValueOf(selectType).Pointer()).Name()
 		b.Run(fmt.Sprintf("bench %s %s landmarks %d", graphName, selectName, nodes), func(b *testing.B) {
-			iterCount = b.N
 			log.Println("Precomputing landmarks")
 			err = landmarkAlgo.PrecomputeLandmarks(ugraph, output, selectType, nodes)
 			if err != nil {
 				b.Fatalf("Precompute failed: %v", err)
 			}
 			log.Println("Benchmarking LandmarkBasic")
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				estimated, err := landmarkAlgo.LandmarkBasic(output, int32(s), int32(t))
 				if err != nil {
 					b.Fatalf("LandmarkBasic failed: %v", err)
 				}
+				mu.Lock()
+				iterCount++
 				totalEstimatedDistance += estimated
 				totalRelativeError += math.Abs(float64(estimated-actual)) / float64(actual)
+				mu.Unlock()
 			}
 		})
 
@@ -161,22 +166,26 @@ func BenchmarkLandmarkShortcut(b *testing.B) {
 		var totalRelativeError float64
 		var iterCount int
 
+		var mu sync.Mutex
+
 		selectName := runtime.FuncForPC(reflect.ValueOf(selectType).Pointer()).Name()
 		b.Run(fmt.Sprintf("bench %s %s landmarks shortcut %d", graphName, selectName, nodes), func(b *testing.B) {
-			iterCount = b.N
 			log.Println("Precomputing landmarks with paths")
 			err = landmarkAlgo.PrecomputeLandmarksWithPaths(ugraph, output, selectType, nodes)
 			if err != nil {
 				b.Fatalf("Precompute failed: %v", err)
 			}
 			log.Printf("Benchmarking LandmarkShortcut (%d %d)\n", s, t)
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				estimated, err := landmarkAlgo.LandmarkShortcut(ugraph, output, int32(s), int32(t))
 				if err != nil {
 					b.Fatalf("LandmarkShortcut failed: %v", err)
 				}
+				mu.Lock()
+				iterCount++
 				totalEstimatedDistance += estimated
 				totalRelativeError += math.Abs(float64(estimated-actual)) / float64(actual)
+				mu.Unlock()
 			}
 		})
 

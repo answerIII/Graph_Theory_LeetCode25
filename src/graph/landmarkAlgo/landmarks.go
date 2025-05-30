@@ -209,30 +209,30 @@ func LandmarkBasic(landmarkFilePath string, s, t int32) (int, error) {
 	dist := int32(math.MaxInt32)
 
 	for i := int64(0); i < int64(numLandmarks); i++ {
-		baseOffset := headerSize*int32Size + i*int64(numNodes)*int32Size
+		baseOffset := headerSize*int32Size + i*int64(numNodes)
 
-		_, err = file.Seek(baseOffset+int64(s)*int32Size, 0)
+		_, err = file.Seek(baseOffset+int64(s), 0)
 		if err != nil {
 			return 0, err
 		}
-		var sDist int32
+		var sDist int8
 		err = binary.Read(file, binary.LittleEndian, &sDist)
 		if err != nil {
 			return 0, err
 		}
 
-		_, err = file.Seek(baseOffset+int64(t)*int32Size, 0)
+		_, err = file.Seek(baseOffset+int64(t), 0)
 		if err != nil {
 			return 0, err
 		}
-		var tDist int32
+		var tDist int8
 		err = binary.Read(file, binary.LittleEndian, &tDist)
 		if err != nil {
 			return 0, err
 		}
 
 		if sDist != -1 && tDist != -1 {
-			dist = min(dist, sDist+tDist)
+			dist = min(dist, int32(sDist)+int32(tDist))
 		}
 	}
 
@@ -278,61 +278,52 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int,
 
 	const int32Size = 4
 
-	skipLines := func(n int32) error {
-		for range n {
-			var lineN uint16
-			err = binary.Read(file, binary.LittleEndian, &lineN)
-			if err != nil {
-				return nil
-			}
+	getPath := func(s, t int32, landmarkOffset int64) ([]int32, error) {
+		path := make([]int32, 0)
 
-			lineOffset := int64(lineN) * int32Size
-			_, err = file.Seek(lineOffset, 1)
+		var node int32
+		for node = s; node != t; {
+			if node == -1 {
+				return []int32{-1}, nil
+			}
+			path = append(path, node)
+			_, err := file.Seek(landmarkOffset+int64(node)*int32Size, 0)
 			if err != nil {
-				return nil
+				return nil, err
+			}
+			err = binary.Read(file, binary.LittleEndian, &node)
+			if err != nil {
+				return nil, err
 			}
 		}
-		return nil
+		path = append(path, node)
+		return path, nil
 	}
 
 	for i := int64(0); i < int64(numLandmarks); i++ {
+		landmarkOffset := headerSize*int32Size + i*(1+int64(numNodes))*int32Size
+
+		_, err := file.Seek(landmarkOffset, 0)
+		if err != nil {
+			return 0, err
+		}
 
 		var landmark int32
-
 		err = binary.Read(file, binary.LittleEndian, &landmark)
 		if err != nil {
 			return 0, err
 		}
+		landmarkOffset += int32Size
 
-		err = skipLines(s)
+		sPath, err := getPath(s, landmark, landmarkOffset)
 		if err != nil {
 			return 0, err
 		}
 
-		var n uint16
-
-		binary.Read(file, binary.LittleEndian, &n)
-
-		sPath := make([]int32, n+1)
-
-		for i := range n {
-			binary.Read(file, binary.LittleEndian, &sPath[i])
-		}
-		sPath[n] = landmark
-
-		err = skipLines(t - s - 1)
+		tPath, err := getPath(t, landmark, landmarkOffset)
 		if err != nil {
-			return 0, nil
+			return 0, err
 		}
-
-		binary.Read(file, binary.LittleEndian, &n)
-
-		tPath := make([]int32, n+1)
-
-		for i := range n {
-			binary.Read(file, binary.LittleEndian, &tPath[i])
-		}
-		tPath[n] = landmark
 
 		if sPath[0] != -1 && tPath[0] != -1 {
 			sLCAIdx := 0
@@ -350,8 +341,6 @@ func LandmarkShortcut(g *graph.Graph, landmarkFilePath string, s, t int32) (int,
 				}
 			}
 		}
-
-		err = skipLines(numNodes - t - 1)
 	}
 	return dist, nil
 }

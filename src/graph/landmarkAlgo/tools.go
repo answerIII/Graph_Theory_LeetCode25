@@ -51,18 +51,16 @@ func PrecomputeLandmarks(
 			if err != nil {
 				return errors.New(fmt.Sprintf("can't calculate distances for node %d\n", u))
 			}
-			realBuf := make([]byte, len(nodes)*4)
-			buf := realBuf
+			buf := make([]byte, 0, len(nodes))
 			for _, v := range nodes {
-				var dist int32 = -1
+				var dist int8 = -1
 				if d, ok := dists[v]; ok {
-					dist = int32(d)
-					binary.LittleEndian.PutUint32(buf, uint32(dist))
-					buf = buf[4:]
+					dist = int8(d)
 				}
+				buf = append(buf, uint8(dist))
 			}
 			mu.Lock()
-			if err = binary.Write(file, binary.LittleEndian, realBuf); err != nil {
+			if err = binary.Write(file, binary.LittleEndian, buf); err != nil {
 				return err
 			}
 			mu.Unlock()
@@ -108,7 +106,7 @@ func PrecomputeLandmarksWithPaths(
 	for _, u := range landmarks {
 		wp.Submit(func() error {
 			parents := make(map[graph.Node]graph.Node)
-			dists, err := graph.BFS(
+			_, err := graph.BFS(
 				g,
 				[]graph.Node{u},
 				nil,
@@ -121,41 +119,16 @@ func PrecomputeLandmarksWithPaths(
 				return errors.New("can't calculate distances for node " + strconv.Itoa(int(u)) + "\n")
 			}
 
-			cnt := 0
-			paths := make([][]int32, 0)
-
+			buf := make([]byte, 0, len(nodes)*4+4)
+			buf = binary.LittleEndian.AppendUint32(buf, uint32(u))
 			for _, v := range nodes {
-				if _, has := dists[v]; has {
-					path := make([]int32, 0)
-					node := v
-					for node != u {
-						path = append(path, int32(node))
-						node = parents[node]
-					}
-					paths = append(paths, path)
-					cnt += len(path)
-				} else {
-					paths = append(paths, []int32{-1})
-					cnt += 1
+				if _, has := parents[v]; !has {
+					parents[v] = -1
 				}
-			}
-
-			totalSize := cnt*4 + len(nodes)*2 + 4
-			realBuf := make([]byte, totalSize)
-			buf := realBuf
-			binary.LittleEndian.PutUint32(buf, uint32(u))
-			buf = buf[4:]
-
-			for _, path := range paths {
-				binary.LittleEndian.PutUint16(buf, uint16(len(path)))
-				buf = buf[2:]
-				for _, v := range path {
-					binary.LittleEndian.PutUint32(buf, uint32(v))
-					buf = buf[4:]
-				}
+				buf = binary.LittleEndian.AppendUint32(buf, uint32(parents[v]))
 			}
 			mu.Lock()
-			if err = binary.Write(file, binary.LittleEndian, realBuf); err != nil {
+			if err = binary.Write(file, binary.LittleEndian, buf); err != nil {
 				return err
 			}
 			mu.Unlock()
