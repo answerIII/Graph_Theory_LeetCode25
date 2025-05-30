@@ -3,7 +3,6 @@ package algo
 import (
 	//"fmt"
 
-	"fmt"
 	"log"
 	"sort"
 
@@ -18,7 +17,7 @@ var (
 
 func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.Graph, int) {
 	if SavedWCC != nil && len(excludeVertex) == 0 {
-		fmt.Println("using saved WCC")
+		// fmt.Println("using saved WCC")
 		return SavedWCC, SavedWCCCount
 	}
 	graphWCC := structs.Graph{Directed: false}
