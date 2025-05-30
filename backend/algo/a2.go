@@ -1,18 +1,19 @@
 package algo
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"sync"
 	"time"
 
 	//"github.com/HikkMind/graph/algo"
+
 	"github.com/HikkMind/graph/structs"
 )
 
 func FindDiameter(graph *structs.Graph) int {
 
+	graph, _ = FindMaxWCC(*graph, make(map[int]struct{}))
 	var startVertex, vertex, vertexDist int
 	for v := range graph.AdjList {
 		startVertex = v
@@ -47,7 +48,6 @@ func FindDiameter(graph *structs.Graph) int {
 	for len(bfsQueueDist) > 0 {
 		vertex = bfsQueueDist[0][0]
 		vertexDist = bfsQueueDist[0][1]
-		fmt.Println(bfsQueueDist)
 		for _, next := range graph.AdjList[vertex] {
 			if _, ok := visited[next]; !ok {
 				visited[next] = struct{}{}
@@ -166,7 +166,8 @@ func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
 	for i := 0; i+1 < vertexCount && i/2 < pairCount; i += 2 {
 		source = vertexList[i]
 		target = vertexList[i+1]
-		result[i/2] = []int{FindDistanceBFS(graph, source, target), source, target}
+		dist := max(FindDistanceBFS(graph, source, target), 0)
+		result[i/2] = []int{dist, source, target}
 	}
 
 	wg.Wait()

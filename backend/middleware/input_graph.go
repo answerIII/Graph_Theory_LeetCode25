@@ -220,16 +220,16 @@ func ReadGraphMP(filename string) *structs.Graph {
 			// outputGraph.AdjList[u][0] = v
 		}
 
-		// if outputGraph.Directed {
-		// 	continue
-		// }
+		if outputGraph.Directed {
+			continue
+		}
 
-		// if adj, ok := outputGraph.AdjList[v]; ok {
-		// 	outputGraph.AdjList[v] = append(adj, u)
-		// } else {
-		// 	outputGraph.AdjList[v] = make([]int, 1)
-		// 	outputGraph.AdjList[v][0] = u
-		// }
+		if adj, ok := outputGraph.AdjList[v]; ok {
+			outputGraph.AdjList[v] = append(adj, u)
+		} else {
+			outputGraph.AdjList[v] = make([]int, 1)
+			outputGraph.AdjList[v][0] = u
+		}
 
 	}
 

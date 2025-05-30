@@ -220,7 +220,7 @@ func InvertGraph(graph *structs.Graph) *structs.Graph {
 	outputGraph := structs.Graph{
 		Directed:    graph.Directed,
 		VertexCount: graph.VertexCount,
-		EdgesCount:  graph.EdgesCount,
+		EdgesCount:  len(graph.Edges),
 		AdjList:     make(map[int][]int),
 		Edges:       make([]structs.Edge, 0),
 		// Edges:       make([]structs.Edge, len(graph.Edges)),
