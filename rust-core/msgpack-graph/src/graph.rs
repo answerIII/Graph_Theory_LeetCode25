@@ -9,8 +9,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 #[derive(Serialize, Deserialize)]
 pub struct Graph {
-    node_count: usize,
-    edge_count: usize,
     landmarks: Option<Vec<ShortestPathTree>>,
     adjacency_list: HashMap<usize, Vec<usize>>,
 }
@@ -25,16 +23,20 @@ impl RMPSupport for Graph {}
 
 impl From<RawGraph> for Graph {
     fn from(raw_graph: RawGraph) -> Self {
-        let mut adjacency_list: HashMap<usize, Vec<usize>> =
+        let mut adjacency_list: HashMap<usize, HashSet<usize>> =
             HashMap::with_capacity(raw_graph.node_count());
         for edge in raw_graph.edges() {
-            adjacency_list.entry(edge[0]).or_default().push(edge[1]);
+            if edge[0] != edge[1] {
+                adjacency_list.entry(edge[0]).or_default().insert(edge[1]);
+                adjacency_list.entry(edge[1]).or_default().insert(edge[0]);
+            }
         }
         Self {
-            node_count: raw_graph.node_count(),
-            edge_count: raw_graph.edge_count(),
             landmarks: None,
-            adjacency_list,
+            adjacency_list: adjacency_list
+                .into_iter()
+                .map(|(node, neighbours)| (node, neighbours.into_iter().collect::<Vec<usize>>()))
+                .collect::<HashMap<usize, Vec<usize>>>(),
         }
     }
 }
@@ -89,14 +91,6 @@ impl Graph {
         nodes.into_iter().collect()
     }
 
-    pub fn node_count(&self) -> usize {
-        self.node_count
-    }
-
-    pub fn edge_count(&self) -> usize {
-        self.edge_count
-    }
-
     pub fn landmarks_count(&self) -> usize {
         self.landmarks
             .as_ref()
@@ -118,8 +112,8 @@ impl Graph {
 impl Graph {
     /// Breadth-First Search: finds the shortest distance
     pub fn distance(&self, start: usize, end: usize) -> Option<usize> {
-        let mut distances = HashMap::with_capacity(self.node_count);
-        let mut queue = VecDeque::with_capacity(self.node_count);
+        let mut distances = HashMap::new();
+        let mut queue = VecDeque::new();
         distances.insert(start, 0);
         queue.push_back(start);
         while let Some(node) = queue.pop_front() {
@@ -181,8 +175,8 @@ impl Graph {
         if !subgraph.contains(&start) || !subgraph.contains(&start) {
             return None;
         }
-        let mut distances = HashMap::with_capacity(self.node_count);
-        let mut queue = VecDeque::with_capacity(self.node_count);
+        let mut distances = HashMap::new();
+        let mut queue = VecDeque::new();
         distances.insert(start, 0);
         queue.push_back(start);
         while let Some(node) = queue.pop_front() {
@@ -203,7 +197,7 @@ impl Graph {
 
     fn shortest_path(&self, start: usize, end: usize) -> Option<Vec<usize>> {
         let mut shortest_path_tree = ShortestPathTree::new();
-        let mut queue = VecDeque::with_capacity(self.node_count);
+        let mut queue = VecDeque::new();
         shortest_path_tree.insert(start, BFSNodeState::from(0, None));
         queue.push_back(start);
         while let Some(node) = queue.pop_front() {
@@ -226,7 +220,7 @@ impl Graph {
 
     fn shortest_path_tree(&self, start: usize) -> ShortestPathTree {
         let mut shortest_path_tree = ShortestPathTree::new();
-        let mut queue = VecDeque::with_capacity(self.node_count);
+        let mut queue = VecDeque::new();
         shortest_path_tree.insert(start, BFSNodeState::from(0, None));
         queue.push_back(start);
         while let Some(node) = queue.pop_front() {
