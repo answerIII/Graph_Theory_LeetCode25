@@ -3,7 +3,6 @@ package middleware
 import (
 	"encoding/csv"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -21,7 +20,7 @@ var (
 func ReadGraph(filename, datasetName string) *structs.Graph {
 
 	if savedDataset == datasetName {
-		fmt.Println("using saved graph : ", datasetName)
+		// fmt.Println("using saved graph : ", datasetName)
 		return savedGraph
 	}
 

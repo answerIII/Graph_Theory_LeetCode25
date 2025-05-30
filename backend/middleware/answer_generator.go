@@ -137,6 +137,7 @@ func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 	// targetPropWCC[0] = 1
 	goroutineCh := make(chan int)
 	answerCh := make(chan structs.AnswerB)
+	passCount, _ := strconv.Atoi(os.Getenv("PASSNUMBER"))
 
 	var wg sync.WaitGroup
 	goroutineCount, err := strconv.Atoi(os.Getenv("GOROUTINECOUNT"))
@@ -156,10 +157,14 @@ func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 				var excludeVertex map[int]struct{}
 				timeStart := time.Now()
 				ans := structs.AnswerB{Percentage: percent}
-
-				excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
-				graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
-				ans.RandomFraction = float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))
+				ans.RandomFraction = 0
+				var graphWCC *structs.Graph
+				for range passCount {
+					excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
+					graphWCC, _ = algo.FindMaxWCC(*graph, excludeVertex)
+					ans.RandomFraction += float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))
+				}
+				ans.RandomFraction /= float32(passCount)
 
 				excludeVertex = algo.GetMaxDegreeVertexSet(graph, float32(percent))
 				graphWCC, _ = algo.FindMaxWCC(*graph, excludeVertex)

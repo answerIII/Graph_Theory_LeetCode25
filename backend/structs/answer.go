@@ -52,7 +52,3 @@ type AnswerB struct {
 	TargetFraction float32 `json:"targetedFraction" msgpack:"targetedFraction"`
 	TimeMs         int     `json:"execution_time_ms" msgpack:"execution_time_ms"`
 }
-
-type AnswerBB struct {
-	Answer []AnswerB
-}
