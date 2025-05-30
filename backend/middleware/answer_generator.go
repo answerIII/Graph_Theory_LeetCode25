@@ -188,23 +188,25 @@ func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 		close(goroutineCh)
 	}(percentage, goroutineCh)
 
+	// answer := make([]structs.AnswerB, len(percentage))
 	answer := make([]structs.AnswerB, len(percentage))
-	go func(answerCh <-chan structs.AnswerB, answer []structs.AnswerB) {
+	signalCh := make(chan struct{})
+	go func(answerCh <-chan structs.AnswerB, signalCh chan struct{}, answer *[]structs.AnswerB) {
 		ind := 0
 		for {
 			t, ok := <-answerCh
 			if !ok {
 				break
 			}
-			// answer[t.Percentage] = t
 			if t.Percentage == 100 {
 				t.RandomFraction = 0
 				t.TargetFraction = 0
 			}
-			answer[ind] = t
+			(*answer)[ind] = t
 			ind++
 		}
-	}(answerCh, answer)
+		signalCh <- struct{}{}
+	}(answerCh, signalCh, &answer)
 
 	// for percent := 0; percent < 100; percent++ {
 	// 	graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
@@ -213,6 +215,7 @@ func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 
 	wg.Wait()
 	close(answerCh)
+	<-signalCh
 
 	// answer := structs.AnswerB{
 	// 	Percentage: percent,
