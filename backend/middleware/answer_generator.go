@@ -220,6 +220,9 @@ func GenerateRobustness(graph *structs.Graph, percentage []int) []byte {
 	// 	ProportionWCC: targetPropWCC,
 	// 	TimeMs:        int(time.Since(startTime).Milliseconds()),
 	// }
+	sort.Slice(answer, func(i, j int) bool {
+		return answer[i].Percentage < answer[j].Percentage
+	})
 	output, _ := json.Marshal(answer)
 
 	return output
