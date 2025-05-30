@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 
 from definitions import (
     PROJECT_ROOT_DIR,
-    IMAGES_VERTEX_MST_RATIO_RANDOM,
-    IMAGES_VERTEX_MST_RATIO_BY_DEGREE
+    IMAGES_VERTEX_LWC_RATIO_RANDOM,
+    IMAGES_VERTEX_LWC_RATIO_BY_DEGREE
 )
 
 if __name__ == "__main__":
@@ -22,14 +22,14 @@ if __name__ == "__main__":
             plt.plot(percentage, ratio)
             plt.title('Delete x% of random vertexes')
             plt.xlabel('x')
-            plt.ylabel('MST ratio')
-            plt.savefig(IMAGES_VERTEX_MST_RATIO_RANDOM + image_name)
+            plt.ylabel('LWC ratio')
+            plt.savefig(IMAGES_VERTEX_LWC_RATIO_RANDOM + image_name)
             plt.close()
             for i in range(RANGE_SIZE):
                 ratio[i + 1] = float(input_file.readline().split(': ')[1].strip())
             plt.plot(percentage, ratio)
             plt.title('Delete x% of vertexes sorted by degree')
             plt.xlabel('x')
-            plt.ylabel('MST ratio')
-            plt.savefig(IMAGES_VERTEX_MST_RATIO_BY_DEGREE + image_name)
+            plt.ylabel('LWC ratio')
+            plt.savefig(IMAGES_VERTEX_LWC_RATIO_BY_DEGREE + image_name)
             plt.close()
