@@ -13,6 +13,7 @@ def extract_subgraph(full_graph, vertices):
 def main():
     directed: bool =  True
     G, library_graph = load_graph_from_file("data/graph_0.txt", directed)#!!!используем это для обычных
+
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
 
