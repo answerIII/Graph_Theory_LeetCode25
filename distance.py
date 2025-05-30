@@ -50,7 +50,7 @@ def landmarks_basic(graph: dict, landmarks: list, u: int, v: int) -> int:
     return min_distance if min_distance != float('inf') else -1
 
 
-def print_distance(graph: dict, landmark_selection_option = 2):
+def print_distance(graph: dict, landmark_selection_option = 2, v1 = 0, v2 = 0):
     # Преобразуем граф в неориентированный, если он ориентированный
   
     working_graph = graph
@@ -70,12 +70,15 @@ def print_distance(graph: dict, landmark_selection_option = 2):
     print("Landmarks-Basic")
     print(f"Использовано {len(landmarks)} ориентиров\n")
     
+    if v1 == 0 and v2 == 0:
     # Выбираем случайные 5 пар вершин для демонстрации
-    nodes = list(working_graph.keys())
-    test_pairs = []
-    for _ in range(5):
-        u, v = random.sample(nodes, 2)
-        test_pairs.append((u, v))
+        nodes = list(working_graph.keys())
+        test_pairs = []
+        for _ in range(5):
+            u, v = random.sample(nodes, 2)
+            test_pairs.append((u, v))
+    else:
+        test_pairs = [(v1, v2)]
     
     # Вычисляем точные расстояния с помощью BFS
     exact_distances = {}

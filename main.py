@@ -30,9 +30,9 @@ def node_clustering(graph: dict, node: int) -> float:
 
 def main():
     directed: bool =  False
-    G, library_graph = load_graph_from_file("data/undirected/graph_1.txt", directed)#!!!используем это для обычных
-    directed: bool = False
-    G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
+    G, library_graph = load_graph_from_file("data/test/graph_1.txt", directed)#!!!используем это для обычных
+    # directed: bool = False
+    # G, library_graph = load_graph_from_file("data/undirected/CA-GrQc.txt", directed)#!!!используем это для обычных
 
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
@@ -40,8 +40,18 @@ def main():
     print("Section 1------\n")
     #G, library_graph = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
 
-    comp, G = print_analysis(G, directed, library_graph)
+    #comp, G = print_analysis(G, directed, library_graph)
+    
+    ####--------доп задание----------
     print(f"\nКластерный коэффициент для первой вершины: {node_clustering(G, 1)}")
+    v1 = 1 # номер команды
+    v2 = max(G) # максимальная вершина
+    print(v1, v2)
+    print_distance(G, 2, v1, v2)
+    ####------------------
+    
+    
+    return
     print("\nSection 1------\n\n")
     print("Section 2------\n")
     subgraph = {v: {n for n in G[v] if n in comp} for v in comp}
@@ -52,6 +62,8 @@ def main():
     
         print_distance(subgraph, int(user_input))
     print("\nSection 2------\n\n")
+
+
 
 if __name__ == "__main__":
     main()
