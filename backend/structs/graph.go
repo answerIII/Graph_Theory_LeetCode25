@@ -18,7 +18,7 @@ type GraphJSON struct {
 }
 
 type GraphMsg struct {
-	Directed    bool    `msgpack:"directed"`
+	Directed    bool    `msgpack:"is_directed"`
 	VertexCount int     `msgpack:"nodeCount"`
 	Edges       [][]int `msgpack:"edges"`
 }
