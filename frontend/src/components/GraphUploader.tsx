@@ -1,19 +1,17 @@
-import React, { useState, } from 'react';
+import React, { useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Button,
   TextField,
   Alert,
   Box,
-  CircularProgress,
   RadioGroup,
   FormControlLabel,
   Radio,
   FormControl,
   FormLabel,
-  Card,
-  CardContent,
+  Paper,
   Typography,
   Tooltip,
   Select,
@@ -24,10 +22,35 @@ import {
   List,
   ListItem,
   ListItemText,
+  Chip,
+  Fade,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { useGraphWorker } from '../hooks/useGraphWorker';
 import { downloadGraph } from '../utils/downloadGraph';
-import { datasets, testGraph1 } from '../constants/graph';
+import { datasetsDirected, datasetsUndirected, datasetsVeryLargeGraphs, testGraph1 } from '../constants/graph';
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.spacing(2),
+  background: 'linear-gradient(145deg, #ffffff, #f0f4f8)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+  maxWidth: 800,
+  margin: 'auto',
+  transition: 'transform 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+  },
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: theme.spacing(1),
+  padding: theme.spacing(1, 2),
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': {
+    transform: 'scale(1.05)',
+  },
+}));
 
 const GraphUploader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -76,10 +99,8 @@ const GraphUploader: React.FC = () => {
       setLocalError('Выберите тип графа');
       return;
     }
-
     setLocalError(null);
     setSuccessMessage(null);
-
     try {
       await processFile(file, directed, isVeryLargeGraph);
       setSuccessMessage('Граф успешно обработан!');
@@ -93,11 +114,9 @@ const GraphUploader: React.FC = () => {
       setLocalError('Сначала обработайте файл');
       return;
     }
-
     setBackendLoading(true);
     setLocalError(null);
     setSuccessMessage(null);
-
     try {
       const graphId = fileName.split('.')[0] || 'uploaded_graph';
       setSuccessMessage(`Граф ${graphId} отправлен на бэкенд!`);
@@ -113,7 +132,6 @@ const GraphUploader: React.FC = () => {
       setLocalError('Сначала обработайте файл');
       return;
     }
-
     try {
       await downloadGraph(graph, fileName || 'graph', downloadFormat);
       setSuccessMessage(`Граф скачан в формате ${downloadFormat.toUpperCase()}!`);
@@ -137,7 +155,6 @@ const GraphUploader: React.FC = () => {
     setBackendLoading(true);
     setLocalError(null);
     setSuccessMessage(null);
-
     try {
       setSuccessMessage(`Датасет ${datasetName} выбран!`);
       setFileName(datasetName);
@@ -160,57 +177,110 @@ const GraphUploader: React.FC = () => {
   };
 
   return (
-    <Card sx={{ maxWidth: 700, mx: 'auto', mt: 4, boxShadow: 3 }}>
-      <CardContent>
-        <Typography variant="h5" gutterBottom>
-          Загрузка графа
+    <Fade in timeout={500}>
+      <StyledPaper elevation={0}>
+        <Typography variant="h5" gutterBottom sx={{ color: 'primary.main', textAlign: 'center' }}>
+          Загрузка и анализ графа
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Выберите файл с данными графа или датасет, укажите тип графа и формат скачивания.
-          <br />
-          Поддерживаемые форматы: .csv, .txt, .mtx, .msgpack
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+          Загрузите граф, выберите датасет или используйте тестовый граф для анализа.
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <TextField
               type="file"
               inputProps={{ accept: '.csv,.txt,.mtx,.msgpack' }}
               onChange={handleFileChange}
               fullWidth
               variant="outlined"
-              label="Выберите файл"
+              label="Выберите файл графа"
               InputLabelProps={{ shrink: true }}
               disabled={loading || backendLoading}
+              sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
             />
-            <Button variant="outlined" onClick={handleUseTestGraph} disabled={loading || backendLoading}>
+            <StyledButton
+              variant="contained"
+              color="secondary"
+              onClick={handleUseTestGraph}
+              disabled={loading || backendLoading}
+            >
               Тестовый граф
-            </Button>
+            </StyledButton>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="h6">Доступные датасеты</Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {datasets.map((dataset) => (
-                <Button
-                  key={dataset}
-                  variant="outlined"
-                  onClick={() => handleDatasetSelect(dataset)}
-                  disabled={loading || backendLoading}
-                >
-                  {dataset}
-                </Button>
-              ))}
+          <Box sx={{ p: 2, bgcolor: 'grey.100', borderRadius: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'text.primary' }}>
+              Датасеты
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Ориентированные
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {datasetsDirected.map((dataset) => (
+                  <Chip
+                    key={dataset}
+                    label={dataset}
+                    onClick={() => handleDatasetSelect(dataset)}
+                    disabled={loading || backendLoading}
+                    clickable
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Неориентированные
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {datasetsUndirected.map((dataset) => (
+                  <Chip
+                    key={dataset}
+                    label={dataset}
+                    onClick={() => handleDatasetSelect(dataset)}
+                    disabled={loading || backendLoading}
+                    clickable
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Очень большие графы
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {datasetsVeryLargeGraphs.map((dataset) => (
+                  <Chip
+                    key={dataset}
+                    label={dataset}
+                    onClick={() => handleDatasetSelect(dataset)}
+                    disabled={loading || backendLoading}
+                    clickable
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
             </Box>
           </Box>
-          <FormControl component="fieldset" error={directed === '' && localError !== null}>
-            <FormLabel component="legend">
-              Тип графа{' '}
+          <FormControl component="fieldset">
+            <FormLabel component="legend" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              Тип графа
               <Tooltip title="Ориентированный граф имеет направленные рёбра (A→B ≠ B→A). Неориентированный — ненаправленные (A—B = B—A).">
-                <Typography component="span" color="primary" sx={{ cursor: 'help' }}>
+                <Typography variant="caption" color="primary" sx={{ cursor: 'pointer' }}>
                   (?)
                 </Typography>
               </Tooltip>
             </FormLabel>
-            <RadioGroup row value={directed} onChange={handleDirectedChange}>
+            <RadioGroup
+              row
+              value={directed}
+              onChange={handleDirectedChange}
+              sx={{ justifyContent: 'center' }}
+            >
               <FormControlLabel
                 value="true"
                 control={<Radio />}
@@ -225,80 +295,91 @@ const GraphUploader: React.FC = () => {
               />
             </RadioGroup>
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox checked={isVeryLargeGraph} onChange={handleVeryLargeGraphChange} />}
-            label="Режим very_large_graphs (добавляет обратные рёбра для неориентированных графов)"
-            disabled={(file === null && fileName === '') || loading || backendLoading}
-          />
-          <FormControl variant="outlined" sx={{ maxWidth: 200 }}>
-            <InputLabel>Формат скачивания</InputLabel>
-            <Select
-              value={downloadFormat}
-              onChange={handleFormatChange}
-              label="Формат скачивания"
-              disabled={loading || backendLoading}
-            >
-              <MenuItem value="json">JSON</MenuItem>
-              <MenuItem value="csv">CSV</MenuItem>
-              <MenuItem value="msgpack">MessagePack</MenuItem>
-            </Select>
-          </FormControl>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <FormControlLabel
+              control={<Checkbox checked={isVeryLargeGraph} onChange={handleVeryLargeGraphChange} />}
+              label="Режим больших графов"
+              disabled={(file === null && fileName === '') || loading || backendLoading}
+            />
+            <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Формат</InputLabel>
+              <Select
+                value={downloadFormat}
+                onChange={handleFormatChange}
+                label="Формат"
+                disabled={loading || backendLoading}
+              >
+                <MenuItem value="json">JSON</MenuItem>
+                <MenuItem value="csv">CSV</MenuItem>
+                <MenuItem value="msgpack">MessagePack</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+            <StyledButton
               variant="contained"
               onClick={handleProcess}
               disabled={!file || directed === '' || loading || backendLoading}
-              startIcon={(loading || backendLoading) ? <CircularProgress size={20} /> : null}
             >
               Обработать
-            </Button>
-            <Button
-              variant="outlined"
+            </StyledButton>
+            <StyledButton
+              variant="contained"
+              color="secondary"
               onClick={handleUpload}
               disabled={!graph || loading || backendLoading}
-              startIcon={(loading || backendLoading) ? <CircularProgress size={20} /> : null}
             >
               Отправить
-            </Button>
-            <Button
+            </StyledButton>
+            <StyledButton
               variant="outlined"
-              color="secondary"
               onClick={handleDownload}
               disabled={!graph || loading || backendLoading}
             >
               Скачать
-            </Button>
-            <Button
+            </StyledButton>
+            <StyledButton
               variant="contained"
               color="primary"
               onClick={handleAnalyze}
               disabled={(!graph && !fileName) || loading || backendLoading}
             >
-              Перейти к анализу
-            </Button>
+              Анализировать
+            </StyledButton>
+            <StyledButton
+              variant="outlined"
+              color="info"
+              component={Link}
+              to="/comparison"
+            >
+              Сравнить датасеты
+            </StyledButton>
           </Box>
           {(loading || backendLoading) && (
-            <Box sx={{ mt: 2 }}>
-              <Typography>Обработка: {progress}%</Typography>
-              <LinearProgress variant="determinate" value={progress} />
+            <Box sx={{ mt: 2, width: '100%' }}>
+              <Typography variant="body2" color="text.secondary">
+                Прогресс: {progress}%
+              </Typography>
+              <LinearProgress variant="determinate" value={progress} color="primary" />
             </Box>
           )}
           {graph && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography>
-                Вершин: {graph.numNodes}
-                <br />
-                Рёбер: {graph.edgeCount}
-                <br />
-                Максимальный ID вершины: {graph.maxVertexId}
-                <br />
-                Тип: {graph.is_directed ? 'Ориентированный' : 'Неориентированный'}
-              </Typography>
-            </Alert>
+            <Fade in timeout={500}>
+              <Alert severity="info" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  Вершин: {graph.numNodes}<br />
+                  Рёбер: {graph.edgeCount}<br />
+                  Макс. ID: {graph.maxVertexId}<br />
+                  Тип: {graph.is_directed ? 'Ориентированный' : 'Неориентированный'}
+                </Typography>
+              </Alert>
+            </Fade>
           )}
           {logs.length > 0 && (
-            <Box sx={{ mt: 2, maxHeight: 200, overflowY: 'auto' }}>
-              <Typography variant="h6">Логи обработки</Typography>
+            <Box sx={{ mt: 2, maxHeight: 150, overflowY: 'auto', bgcolor: 'grey.50', p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2" color="text.primary">
+                Логи
+              </Typography>
               <List dense>
                 {logs.map((log, index) => (
                   <ListItem key={index}>
@@ -308,12 +389,24 @@ const GraphUploader: React.FC = () => {
               </List>
             </Box>
           )}
-          {successMessage && <Alert severity="success" sx={{ mt: 2 }}>{successMessage}</Alert>}
-          {localError && <Alert severity="error" sx={{ mt: 2 }}>{localError}</Alert>}
-          {workerError && <Alert severity="error" sx={{ mt: 2 }}>{workerError}</Alert>}
+          {successMessage && (
+            <Fade in timeout={500}>
+              <Alert severity="success" sx={{ mt: 2 }}>{successMessage}</Alert>
+            </Fade>
+          )}
+          {localError && (
+            <Fade in timeout={500}>
+              <Alert severity="error" sx={{ mt: 2 }}>{localError}</Alert>
+            </Fade>
+          )}
+          {workerError && (
+            <Fade in timeout={500}>
+              <Alert severity="error" sx={{ mt: 2 }}>{workerError}</Alert>
+            </Fade>
+          )}
         </Box>
-      </CardContent>
-    </Card>
+      </StyledPaper>
+    </Fade>
   );
 };
 

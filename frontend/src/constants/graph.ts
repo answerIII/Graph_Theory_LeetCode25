@@ -23,10 +23,24 @@ export const testGraph1: Graph = {
 };
 
 // Список доступных датасетов
-export const datasets = [
+export const datasetsDirected = [
+    'soc-wiki-Vote',
+    'web-Google',
+    'web-NotreDame',
+    'web-Stanford',
+    'Wiki-Vote',
+];
+
+export const datasetsUndirected = [
     'CA-AstroPh',
     'ca-coauthors-dblp',
     'CA-GrQc',
     'Email-EuAll',
     'musae_git_edges',
+];
+
+export const datasetsVeryLargeGraphs = [
+    'com-orkut',
+    'com-youtube',
+    'vk',
 ];
