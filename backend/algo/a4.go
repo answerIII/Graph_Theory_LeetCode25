@@ -33,7 +33,7 @@ func AvgClusterCoef(graph *structs.Graph) float64 {
 				if !ok {
 					break
 				}
-				clusterCoef(graph, vertex, inputCh)
+				ClusterCoef(graph, vertex, inputCh)
 			}
 		}(graph, inputCh, &wg)
 	}
@@ -73,7 +73,7 @@ func AvgClusterCoef(graph *structs.Graph) float64 {
 	return answer
 }
 
-func clusterCoef(graph *structs.Graph, vertex int, inputCh chan<- float64) {
+func ClusterCoef(graph *structs.Graph, vertex int, inputCh chan<- float64) {
 	// func clusterCoef(graph *structs.Graph, vertex int, inputCh chan<- float64, wg *sync.WaitGroup) {
 
 	// defer wg.Done()
