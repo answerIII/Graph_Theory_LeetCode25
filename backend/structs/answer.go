@@ -15,6 +15,7 @@ type AnswerA1 struct {
 }
 
 type AnswerA2 struct {
+	Method       string  `json:"method" msgpack:"method"`
 	Diameter     int     `json:"diameter" msgpack:"diameter"`
 	Percentile90 int     `json:"percentile90" msgpack:"percentile90"`
 	MeanDistance float32 `json:"meanDistance" msgpack:"meanDistance"`

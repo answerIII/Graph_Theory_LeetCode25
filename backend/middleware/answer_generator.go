@@ -89,6 +89,7 @@ func GenerateDistances(graph *structs.Graph, method string, verticesCount int) [
 	}
 
 	answer := structs.AnswerA2{
+		Method:       method,
 		Percentile90: graphDistances[int(0.9*distanceCount)][0],
 		Diameter:     algo.FindDiameter(graph),
 		MeanDistance: meanDistance,
