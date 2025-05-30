@@ -33,6 +33,12 @@ For Windows use `$env:PYTHONPATH="src";` instead of `PYTHONPATH=src`
 ### Run task 1A5
 `PYTHONPATH=src pypy3 src/network_structure_analysis/A/five/main.py`
 
+### Run task 1B
+`PYTHONPATH=src pypy3 src/network_structure_analysis/B/main.py`
+
+### Build graphics for task 1B
+`PYTHONPATH=src pypy3 src/network_structure_analysis/B/graph.py`
+
 ### Run task 2 Landmarks-Basic
 `PYTHONPATH=src pypy3 src/dist_between_vertices/landmarks_basic.py`
 
