@@ -165,6 +165,16 @@ def dbl_swp_diam(graph):
     return max(ans.values())
 
 
+def radius_diameter(graph):
+    diameter = 0
+    radius = float('inf')
+    for node in graph:
+        _, dist = bfs_far(graph, node)
+        diameter = max(diameter, max(dist.values()))
+        radius = min(radius, max(dist.values()))
+    return radius, diameter
+
+
 def percentile90(graph, n=500):
 
     nodes = list(graph.keys()) if hasattr(graph, 'keys') else list(graph)
@@ -569,32 +579,32 @@ def get_landmarks(graph, n=16, mode='degree', num_workers=1):
         pairs = [sample(list(graph.keys()), 2) for _ in range(n * 50)]
 
         with Pool(num_workers) as pool:
-            results = list(tqdm.tqdm(pool.imap(process_pair, pairs), 
+            results = list(tqdm.tqdm(pool.imap(process_pair, pairs),
                           total=len(pairs),
                           desc="Processing path coverage"))
-        
+
         merged_coverage = {}
         for cov in results:
             for node in cov:
                 if node in merged_coverage:
                     merged_coverage[node] += cov[node]
                 else:
-                    merged_coverage[node] = cov[node]        
+                    merged_coverage[node] = cov[node]
         nodes = sorted(merged_coverage.items(), key=lambda x: x[1], reverse=True)
         landmarks = [node for node, _ in nodes[:n]]
-    
+
     with Pool(num_workers) as pool:
         spt_results = list(tqdm.tqdm(pool.imap(compute_spt, landmarks),
                               total=len(landmarks),
                               desc="Computing shortest path trees"))
-    
+
     shortest_path_trees = dict(spt_results)
 
     return shortest_path_trees
 
 
 def landmarks_basic(landmarks, start, goal):
-    return max(abs(landmarks[L][start] - landmarks[L][goal]) for L in landmarks)
+    return min(abs(landmarks[L][start] + landmarks[L][goal]) for L in landmarks)
 
 
 def landmarks_bfs(graph, landmarks, start, goal):
@@ -635,13 +645,13 @@ def process_pair_dist(pair):
     print(distance, basic_distance, bfs_distance)
     basic_correct = 1 if distance == basic_distance else 0
     bfs_correct = 1 if distance == bfs_distance else 0
-    
+
     return basic_correct, bfs_correct
 
 
 def evaluate_accuracy(graph, landmarks, n=10, num_workers=None):
     pairs = [sample(list(graph.keys()), 2) for _ in range(n)]
-    
+
     # Параллельная обработка пар
     with Pool(num_workers) as pool:
         results = list(tqdm.tqdm(
@@ -649,53 +659,112 @@ def evaluate_accuracy(graph, landmarks, n=10, num_workers=None):
             total=len(pairs),
             desc="Evaluating accuracy"
         ))
-    
+
     # Суммируем результаты
     basic_right = sum(res[0] for res in results)
     bfs_right = sum(res[1] for res in results)
-    
-    bfs_accuracy = bfs_right / n  
+
+    bfs_accuracy = bfs_right / n
     basic_accuracy = basic_right / n
-    
+
     return bfs_accuracy, basic_accuracy
 
+'''
+pathname = "/home/eldar/Загрузки/Graph_Theory_LeetCode25/tests/"
+filenames = ['graph_0.txt',
+             'graph_1.txt',
+             'graph_2.txt',
+             'graph_3.txt',
+             'graph_4.txt',
+             'graph_5.txt',
+             'graph_6.txt',
+             'graph_7.txt',
+             'graph_8.txt',
+             ]
 
-pathname = "/home/eldar/Рабочий стол/Graphs/"
-filenames = ['com-youtube-ungraph.txt']
-
-with open(pathname + 'output.txt', 'w') as output:
+with open('/home/eldar/Загрузки/Graph_Theory_LeetCode25/tests/output_new_files_more.txt', 'w') as output:
     for filename in filenames:
+        output.write(filename + '\n')
         print(filename)
 
-        lcc_filename = pathname + filename[:-4] + "-lcc.pkl"
-        if os.path.isfile(lcc_filename):
-            print('Loading graph')
-            with open(lcc_filename, 'rb') as lcc_file:
-                graph = pickle.load(lcc_file)
-        else:
-            print('Processing graph')
-            graph, edges, _ = make_graph(pathname + filename, type=filename.split('.')[-1])
-            
-            print('Processing components')
-            components = dfs_stack(graph)
-            
-            print('Processing largest component')
-            graph = subgraph(components, graph)
-            with open(lcc_filename, "wb") as lcc_file:
-                pickle.dump(graph, lcc_file)
+        graph, edges, _ = make_graph(pathname + filename, type=filename.split('.')[-1])
 
-        n = 32
-        mode = 'degree'
-        lm_filename = pathname + filename[:-4] + '-' + mode + '-' + str(n) + "-landmarks.pkl"
-        landmarks = dict()
-        
-        if os.path.isfile(lm_filename):
-            print('Loading landmarks')
-            with open(lm_filename, 'rb') as lm_file:
-                landmarks = pickle.load(lm_file)
-        else:
-            landmarks = get_landmarks(graph, n=n, mode=mode)
-            with open(lm_filename, "wb") as lm_file:
-                pickle.dump(landmarks, lm_file)
-        
-        print(evaluate_accuracy(graph, landmarks, 20))
+        num_vertex = len(graph)
+        max_num_vertex = num_vertex * (num_vertex - 1) // 2
+        density = edges / max_num_vertex if max_num_vertex > 0 else 0.0
+        output.write(f"Кол-во вершин: {num_vertex}, кол-во ребер: {edges}, плотность: {density}" + '\n')
+        print(f"Кол-во вершин: {num_vertex}, кол-во ребер: {edges}, плотность: {density}")
+
+        components = dfs_stack(graph)
+        large_comp = subgraph(components, graph)
+        output.write(f'Размер самой большой компоненты слабой связности равен {len(large_comp)}' + '\n')
+        print(f'Размер самой большой компоненты слабой связности равен {len(large_comp)}')
+
+        radius, diameter = radius_diameter(large_comp)
+        output.write(f'Диаметр сети, найденный с помощью перебора всех вершин, равен {diameter}' + '\n')
+        output.write(f'Радиус сети, найденный с помощью перебора всех вершин, равен {radius}' + '\n')
+        print(f'Диаметр сети, найденный с помощью перебора всех вершин, равен {diameter}')
+        print(f'Радиус сети, найденный с помощью перебора всех вершин, равен {radius}')
+
+        tri_number = triangles(graph)
+        output.write(f'Количество полных подграфов на 3 вершинах равно {tri_number}' + '\n')
+        print(f'Количество полных подграфов на 3 вершинах равно {tri_number}')
+
+        team_coef = node_clust(graph, 3)
+        output.write(f'Кластерный коэффициент вершины с номером 3: {team_coef}' + '\n')
+        print(f'Кластерный коэффициент вершины с номером 3: {team_coef}')
+
+        _, team_dist = bfs_far(graph, 3)
+        output.write(f'Расстояние от вершины с номером 3 до вершины с максимальным номером: {team_dist[max(team_dist.keys())]}' + '\n')
+        print(f'Расстояние от вершины с номером 3 до вершины с максимальным номером: {team_dist[max(team_dist.keys())]}')
+'''
+
+pathname = '/home/eldar/Загрузки/tests/'
+filenames = ['digraph_1.txt',
+             'digraph_2.txt',
+             'digraph_3.txt',
+             ]
+
+with open('/home/eldar/Загрузки/Graph_Theory_LeetCode25/output_directed.txt', 'w') as output:
+    for filename in filenames:
+        output.write(filename + '\n')
+        print(filename)
+
+        graph, _, edges = process_directed_graph_file(pathname + filename, type=filename.split('.')[-1])
+
+        num_vertex = len(graph)
+        max_num_vertex = num_vertex * (num_vertex - 1)
+        density = edges / max_num_vertex if max_num_vertex > 0 else 0.0
+        output.write(f"Кол-во вершин: {num_vertex}, кол-во ребер: {edges}, плотность: {density}" + '\n')
+        print(f"Кол-во вершин: {num_vertex}, кол-во ребер: {edges}, плотность: {density}")
+
+        components = dfs_stack(graph)
+        large_comp = subgraph(components, graph)
+        output.write(f'Размер самой большой компоненты слабой связности равен {len(large_comp)}' + '\n')
+        print(f'Размер самой большой компоненты слабой связности равен {len(large_comp)}')
+
+        radius, diameter = radius_diameter(large_comp)
+        output.write(f'Диаметр сети, найденный с помощью перебора всех вершин, равен {diameter}' + '\n')
+        output.write(f'Радиус сети, найденный с помощью перебора всех вершин, равен {radius}' + '\n')
+        print(f'Диаметр сети, найденный с помощью перебора всех вершин, равен {diameter}')
+        print(f'Радиус сети, найденный с помощью перебора всех вершин, равен {radius}')
+
+        tri_number = triangles(graph)
+        output.write(f'Количество полных подграфов на 3 вершинах равно {tri_number}' + '\n')
+        print(f'Количество полных подграфов на 3 вершинах равно {tri_number}')
+
+        team_coef = node_clust(graph, 3)
+        output.write(f'Кластерный коэффициент вершины с номером 3: {team_coef}' + '\n')
+        print(f'Кластерный коэффициент вершины с номером 3: {team_coef}')
+
+        _, team_dist = bfs_far(graph, 3)
+        output.write(f'Расстояние от вершины с номером 3 до вершины с максимальным номером: {team_dist[max(team_dist.keys())]}' + '\n')
+        print(f'Расстояние от вершины с номером 3 до вершины с максимальным номером: {team_dist[max(team_dist.keys())]}')
+
+        graph, _, _ = process_directed_graph_file(pathname + filename)
+
+        strongly_connected_components = count_scc(graph)
+        output.write(f'Число компонент сильной связности в графе равно {len(strongly_connected_components)}' + '\n')
+        print(f'Число компонент сильной связности в графе равно {len(strongly_connected_components)}')
+        output.write(f'Размер наибольшей компоненты сильной связности равен {max(len(i) for i in strongly_connected_components)}' + '\n')
+        print(f'Размер наибольшей компоненты сильной связности равен {max(len(i) for i in strongly_connected_components)}')
