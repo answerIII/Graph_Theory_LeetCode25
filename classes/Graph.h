@@ -5,7 +5,6 @@
 #include <string>
 #include <utility>
 
-#include "progress.hpp"
 #include "../libs.h"
 #include "Node.h"
 
@@ -806,9 +805,6 @@ void initTrianglesCount() {
         std::mutex printLock;
         std::atomic<size_t> completedLandmarks = 1;
 
-        ProgressBlock block;
-        ProgressStage& stage = block.create_stage(landmarksCount);
-
         auto printProgress = [&](size_t total) {
             size_t done = completedLandmarks.load();
             int percent = static_cast<int>((100.0 * done) / total);
@@ -830,7 +826,7 @@ void initTrianglesCount() {
                     int maxMin = INT_MIN;
                     for (Node& node : nodes) {
                         if (node.marked) continue;
-                        if (node.num == -1 ) continue;
+
                         int currentMin = INT_MAX;
                         for (const auto& map : landmarks) {
                             if (map.contains(node.num)) {
@@ -868,9 +864,8 @@ void initTrianglesCount() {
                     landmarks.emplace_back(std::move(localMap));
                 }
 
-                stage.arrive();
-                // completedLandmarks.fetch_add(1);
-                // printProgress(landmarksCount);
+                completedLandmarks.fetch_add(1);
+                printProgress(landmarksCount);
             }
         };
 
