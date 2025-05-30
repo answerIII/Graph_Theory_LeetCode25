@@ -65,6 +65,7 @@ def processFile(file_path: str) -> None:
     lwc_nodes = len(lwc_undir_adj_list)
     total_landmarks_lst = [5, 10, 20]
     for landmarks_num in total_landmarks_lst:
+        total_start_time = time()
         rand_lm_dist_matrix: Tuple[List[int], ...] = tuple(
             list(INF for _ in range(lwc_nodes)) for _ in range(landmarks_num)
         )
@@ -143,6 +144,7 @@ def processFile(file_path: str) -> None:
             "best coverage nodes: "
             f"{bc_lm_basic_time} sec"
         )
+        print(f"\t\tTotal: {time() - total_start_time} sec")
         print("\tAccuracy")
         print(
             "\t\tLandmarks-Basic random landmarks: "
