@@ -1,112 +1,112 @@
-ACTUAL DISTANCE: 6 (took 54 ms)
+ACTUAL DISTANCE: 7 (took 75 ms)
 graph_theory/graph/landmarkAlgo.SelectRandomNodes
 landmarks: 4
-precomputing time: 287 ms
-Avg estimated dist: 6.00
+precomputing time: 296 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 0.11 ms
+Avg time algorithm: 0.13 ms
 file size: 4.97 MB
 landmarks: 8
-precomputing time: 414 ms
-Avg estimated dist: 6.00
+precomputing time: 433 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 0.22 ms
+Avg time algorithm: 0.26 ms
 file size: 9.94 MB
 landmarks: 16
-precomputing time: 766 ms
-Avg estimated dist: 6.00
+precomputing time: 783 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 0.57 ms
+file size: 19.88 MB
+landmarks: 32
+precomputing time: 1419 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 1.53 ms
+file size: 39.76 MB
+landmarks: 64
+precomputing time: 2935 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 4.84 ms
+file size: 79.52 MB
+landmarks: 128
+precomputing time: 5960 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 18.98 ms
+file size: 159.05 MB
+graph_theory/graph/landmarkAlgo.SelectHighestDegree
+landmarks: 4
+precomputing time: 447 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 0.10 ms
+file size: 4.97 MB
+landmarks: 8
+precomputing time: 480 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 0.21 ms
+file size: 9.94 MB
+landmarks: 16
+precomputing time: 869 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
 Avg time algorithm: 0.54 ms
 file size: 19.88 MB
 landmarks: 32
-precomputing time: 1377 ms
-Avg estimated dist: 6.00
+precomputing time: 1878 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 1.37 ms
+Avg time algorithm: 1.58 ms
 file size: 39.76 MB
 landmarks: 64
-precomputing time: 2691 ms
-Avg estimated dist: 6.00
+precomputing time: 2941 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 4.05 ms
+Avg time algorithm: 4.35 ms
 file size: 79.52 MB
 landmarks: 128
-precomputing time: 5155 ms
-Avg estimated dist: 6.00
+precomputing time: 6032 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 13.32 ms
-file size: 159.05 MB
-graph_theory/graph/landmarkAlgo.SelectHighestDegree
-landmarks: 4
-precomputing time: 360 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.09 ms
-file size: 4.97 MB
-landmarks: 8
-precomputing time: 491 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.20 ms
-file size: 9.94 MB
-landmarks: 16
-precomputing time: 845 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 0.50 ms
-file size: 19.88 MB
-landmarks: 32
-precomputing time: 1471 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 1.23 ms
-file size: 39.76 MB
-landmarks: 64
-precomputing time: 2785 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 3.71 ms
-file size: 79.52 MB
-landmarks: 128
-precomputing time: 5345 ms
-Avg estimated dist: 6.00
-Avg relative error: 0.0000
-Avg time algorithm: 12.24 ms
+Avg time algorithm: 14.54 ms
 file size: 159.05 MB
 graph_theory/graph/landmarkAlgo.SelectBestCoverage
 landmarks: 4
-precomputing time: 10546 ms
-Avg estimated dist: -1.00
-Avg relative error: 1537228672808730368.0000
-Avg time algorithm: 0.57 ms
+precomputing time: 11034 ms
+Avg estimated dist: 7.00
+Avg relative error: 0.0000
+Avg time algorithm: 0.66 ms
 file size: 4.97 MB
 landmarks: 8
-precomputing time: 10655 ms
-Avg estimated dist: 6.00
+precomputing time: 11088 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 1.18 ms
+Avg time algorithm: 1.34 ms
 file size: 9.94 MB
 landmarks: 16
-precomputing time: 11347 ms
-Avg estimated dist: 6.00
+precomputing time: 11985 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 2.44 ms
+Avg time algorithm: 2.79 ms
 file size: 19.88 MB
 landmarks: 32
-precomputing time: 11935 ms
-Avg estimated dist: 6.00
+precomputing time: 11917 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 5.11 ms
+Avg time algorithm: 6.19 ms
 file size: 39.76 MB
 landmarks: 64
-precomputing time: 23033 ms
-Avg estimated dist: 6.00
+precomputing time: 24656 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 19.55 ms
+Avg time algorithm: 23.40 ms
 file size: 79.52 MB
 landmarks: 128
-precomputing time: 46787 ms
-Avg estimated dist: 6.00
+precomputing time: 47151 ms
+Avg estimated dist: 7.00
 Avg relative error: 0.0000
-Avg time algorithm: 80.39 ms
+Avg time algorithm: 88.58 ms
 file size: 159.05 MB
