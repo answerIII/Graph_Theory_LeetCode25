@@ -26,7 +26,11 @@ def load_graph_from_file(filename: str, directed: bool = True):
             else:
                 G.add_node(u)
     #return G возвращаем обьект бибилиотеки для того чтобы проверить какой результат правильный
-    return nx.to_dict_of_lists(G), G
+    dict_of_lists = nx.to_dict_of_lists(G)
+    dict_of_sets = dict()
+    for node, neighbors in dict_of_lists.items():
+        dict_of_sets[node] = set(neighbors)
+    return dict_of_sets, G
 
 def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
     """ граф ( словарь словарей ) будет храниться следующим образом:
@@ -52,11 +56,16 @@ def load_large_graph_from_file(filename: str, max_vertices: int = 100000):
             if len(selected_vertices) < max_vertices:
                 selected_vertices.add(u)
                 selected_vertices.add(v)
+            else:
+                break
 
-            # добавляем ребро, только если обе вершины уже выбраны
-            if u in selected_vertices and v in selected_vertices:
-                G.add_edge(u, v)
-    return nx.to_dict_of_lists(G)
+            G.add_edge(u, v)
+
+    dict_of_lists = nx.to_dict_of_lists(G)
+    dict_of_sets = dict()
+    for node, neighbors in dict_of_lists.items():
+        dict_of_sets[node] = set(neighbors)
+    return dict_of_sets
 
 def dfs(graph: dict, visited: set, start):
     """простой обход"""
@@ -101,7 +110,7 @@ def dfs_iterative_with_time_out(graph: dict, visited: set, start, posled: list):
                 
 def to_undirected(graph: dict) -> dict[int, list[int]]:
     """орграф -> неорграф"""
-    undirected_graph = {}
+    undirected_graph = dict()
     for u in graph:
         if u not in undirected_graph:
             undirected_graph[u] = []
