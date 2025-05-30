@@ -40,6 +40,7 @@ func GetMaxDegreeVertexSet(graph *structs.Graph, setPercentage float32) map[int]
 
 	setPercentage /= 100
 	vertexCount := graph.VertexCount
+	// vertexCount := len(graph.AdjList)
 	vertexList := make([][]int, vertexCount)
 	setSize := int(float32(vertexCount) * setPercentage)
 
@@ -48,7 +49,7 @@ func GetMaxDegreeVertexSet(graph *structs.Graph, setPercentage float32) map[int]
 		vertexList[ind] = []int{vertex, len(adj)}
 		ind++
 	}
-
+	// fmt.Println(vertexList)
 	sort.Slice(vertexList, func(i, j int) bool {
 		return vertexList[i][1] >= vertexList[j][1]
 	})

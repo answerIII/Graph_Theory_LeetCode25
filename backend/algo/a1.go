@@ -17,12 +17,13 @@ var (
 )
 
 func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.Graph, int) {
-	if SavedWCC != nil {
+	if SavedWCC != nil && len(excludeVertex) == 0 {
 		fmt.Println("using saved WCC")
 		return SavedWCC, SavedWCCCount
 	}
 	graphWCC := structs.Graph{Directed: false}
 	newAdjList := make(map[int][]int)
+	graph.EdgesCount = 0
 	for vertex, adj := range graph.AdjList {
 		if _, ok := excludeVertex[vertex]; ok {
 			continue
@@ -31,9 +32,10 @@ func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.G
 		for _, j := range adj {
 			if _, ok := excludeVertex[j]; !ok {
 				newSlice = append(newSlice, j)
-			} else {
-				graph.EdgesCount--
-			}
+				graph.EdgesCount++
+			} //else {
+			// 	graph.EdgesCount--
+			// }
 		}
 		// copy(newSlice, adj)
 		newAdjList[vertex] = newSlice
@@ -41,13 +43,13 @@ func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.G
 	graph.AdjList = newAdjList
 	graph.VertexCount -= len(excludeVertex)
 
-	if graph.Directed {
-		for vertex, adj := range graph.AdjList {
-			for _, j := range adj {
-				graph.AdjList[j] = append(graph.AdjList[j], vertex)
-			}
-		}
-	}
+	// if graph.Directed {
+	// 	for vertex, adj := range graph.AdjList {
+	// 		for _, j := range adj {
+	// 			graph.AdjList[j] = append(graph.AdjList[j], vertex)
+	// 		}
+	// 	}
+	// }
 	// fmt.Println("WCC GRAPH : ", graph)
 
 	visited := make(map[int]struct{})
@@ -95,6 +97,7 @@ func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.G
 		}
 	}
 	graphWCC.EdgesCount /= 2
+	graphWCC.VertexCount = len(graphWCC.AdjList)
 
 	if len(excludeVertex) == 0 {
 		SavedWCC = &graphWCC

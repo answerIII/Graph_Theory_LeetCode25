@@ -42,6 +42,7 @@ func ReadGraph(filename, datasetName string) *structs.Graph {
 		// return ReadGraphMP(filename)
 	}
 	savedDataset = datasetName
+	// fmt.Println(savedGraph.VertexCount, len(savedGraph.AdjList))
 	return savedGraph
 }
 
@@ -113,10 +114,10 @@ func ReadGraphCSV(filename string) *structs.Graph {
 			// outputGraph.AdjList[u][0] = v
 		}
 
-		if outputGraph.Directed {
-			outputGraph.Edges = append(outputGraph.Edges, structs.Edge{From: u, To: v})
-			// continue
-		}
+		// if outputGraph.Directed {
+		// 	outputGraph.Edges = append(outputGraph.Edges, structs.Edge{From: u, To: v})
+		// 	// continue
+		// }
 
 		// if adj, ok := outputGraph.AdjList[v]; ok {
 		// 	outputGraph.AdjList[v] = append(adj, u)
@@ -220,9 +221,9 @@ func ReadGraphMP(filename string) *structs.Graph {
 			// outputGraph.AdjList[u][0] = v
 		}
 
-		if outputGraph.Directed {
-			continue
-		}
+		// if outputGraph.Directed {
+		// 	continue
+		// }
 
 		if adj, ok := outputGraph.AdjList[v]; ok {
 			outputGraph.AdjList[v] = append(adj, u)

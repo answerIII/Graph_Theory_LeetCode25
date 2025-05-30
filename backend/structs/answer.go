@@ -39,9 +39,20 @@ type AnswerA5 struct {
 	TimeMs            int             `json:"execution_time_ms" msgpack:"execution_time_ms"`
 }
 
+// type AnswerB struct {
+// 	Percentage    int             `json:"xPercent"`
+// 	Method        string          `json:"removalMethod"`
+// 	ProportionWCC map[int]float32 `json:"largestComponentFraction"`
+// 	TimeMs        int             `json:"execution_time_ms" msgpack:"execution_time_ms"`
+// }
+
 type AnswerB struct {
-	Percentage    int     `json:"xPercent"`
-	Method        string  `json:"removalMethod"`
-	ProportionWCC float32 `json:"largestComponentFraction"`
-	TimeMs        int     `json:"execution_time_ms" msgpack:"execution_time_ms"`
+	Percentage     int     `json:"xPercent" msgpack:"xPercent"`
+	RandomFraction float32 `json:"randomFraction" msgpack:"randomFraction"`
+	TargetFraction float32 `json:"targetedFraction" msgpack:"targetedFraction"`
+	TimeMs         int     `json:"execution_time_ms" msgpack:"execution_time_ms"`
+}
+
+type AnswerBB struct {
+	Answer []AnswerB
 }
