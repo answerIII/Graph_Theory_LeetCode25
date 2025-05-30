@@ -3,7 +3,7 @@ import glob
 import os
 import matplotlib.pyplot as plt
 
-def plot_sc_step_times_at_k(csv_folder="results/landmarks_selection_and_k", k=100):
+def plot_sc_step_times_at_k(csv_folder="/Users/damikh13/Documents/University/year3/sem2/graph_theory/group_project/Graph_Theory_LeetCode25/results/landmarks_selection_and_k", k=100):
     pattern = os.path.join(csv_folder, "perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_*.csv")
     frames = []
     for fpath in glob.glob(pattern):

@@ -276,10 +276,20 @@ def main():
     # graph_path = "datasets/directed/Wiki-Vote.txt"
     # graph_path = "datasets/undirected/Email-EuAll.txt"
 
-    graph_path = "datasets/undirected/CA-AstroPh.txt"
+    # graph_path = "datasets/undirected/CA-AstroPh.txt"
     # graph_path = "datasets/undirected/CA-GrQc.txt"
     # graph_path = "datasets/directed/Wiki-Vote.txt"
     # graph_path = "datasets/undirected/Email-EuAll.txt"
+
+    # graph_path = "datasets/tests/graph_0.txt"
+    # graph_path = "datasets/tests/graph_1.txt"
+    # graph_path = "datasets/tests/graph_2.txt"
+    # graph_path = "datasets/tests/graph_3.txt"
+    # graph_path = "datasets/tests/graph_4.txt"
+    # graph_path = "datasets/tests/graph_5.txt"
+    # graph_path = "datasets/tests/graph_6.txt"
+    # graph_path = "datasets/tests/graph_7.txt"
+    graph_path = "datasets/tests/graph_8.txt"
 
     edges, nodes, adjacency = load_graph(graph_path, directed=False)
     print(f"loaded graph with {len(nodes):,} nodes and {len(edges):,} edges")
@@ -294,15 +304,16 @@ def main():
     }
     k_values = [5, 10, 20, 50, 100, 200]
 
-    landmark_methods = {
-        'degree': select_landmarks_by_highest_degree,
-    }
+    # landmark_methods = {
+    #     'degree': select_landmarks_by_highest_degree,
+    # }
     num_pairs = 100
     pairs = [tuple(random.sample(list(nodes), 2)) for _ in range(num_pairs)]
     k_values = [100]
+    k_values = [5, 10, 20, 50]
 
-    estimator = landmarks_basic
-    # estimator = landmarks_sc
+    # estimator = landmarks_basic
+    estimator = landmarks_sc
 
     df = evaluate(graph_path, estimator, landmark_methods, k_values, pairs)
     print("\nperformance and accuracy VS select_landmarks_alg(), k")
@@ -310,6 +321,7 @@ def main():
     results_folder = "results/landmarks_selection_and_k"
     results_folder = "results/accuracy/SC"
     results_folder = "results/accuracy/BASIC"
+    results_folder = "results/accuracy/tests"
     # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_1.csv", index=False)
     # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_2.csv", index=False)
     # df.to_csv(f"{results_folder}/perfomance_and_accuracy_VS_select_landmarks_alg_and_k_BASIC_3.csv", index=False)
@@ -323,7 +335,24 @@ def main():
     # df.to_csv(f"{results_folder}/Wiki-Vote_SC_k100.csv", index=False)
     # df.to_csv(f"{results_folder}/Email-EuAll_SC_k100.csv", index=False)
 
-    df.to_csv(f"{results_folder}/CA-AstroPh_BASIC_k100.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_0_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_0_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_1_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_1_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_2_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_2_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_3_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_3_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_4_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_4_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_5_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_5_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_6_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_6_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_7_BASIC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_7_SC.csv", index=False)
+    # df.to_csv(f"{results_folder}/graph_8_BASIC.csv", index=False)
+    df.to_csv(f"{results_folder}/graph_8_SC.csv", index=False)
 
     print("saved results saved to .csv")
 
