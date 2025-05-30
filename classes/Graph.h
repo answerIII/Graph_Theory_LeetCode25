@@ -14,7 +14,7 @@ class Graph {
 protected:
     std::vector<std::vector<int>> paths;
     std::vector<Node> nodes;
-    std::vector<std::vector<int>> originalPaths ;
+    std::vector<std::vector<int>> originalPaths;
     std::vector<Node> originalNodes;
     int vertexCount = 0;
     int edgesCount = 0;
@@ -52,6 +52,7 @@ class DirectedGraph : public Graph {
     std::vector<std::vector<Node*>>  strongComponents;
     std::vector<std::vector<Node*>>  weekComponents;
     std::vector<std::unordered_map<int, int>> landmarks;
+    std::vector<std::vector<std::unordered_map<int, int>>> weekTrees;
 
     double density = 0;
     int approximateDiameter = 0;
@@ -955,6 +956,209 @@ void initTrianglesCount() {
     }
 }
 
+    void initLandmarksForTreesGenerously() {
+    if (weekComponents.empty()) initWeekComponents();
+
+    weekTrees.clear();
+    int completed = 0;
+    size_t totalComponents = weekComponents.size();
+    size_t total = 0;
+
+    for (auto& component : weekComponents) {
+
+        size_t sizeOfTree = component.size();
+        size_t landmarksCount = 0;
+        std::vector<std::unordered_map<int, int>> landmarks;
+        if (sizeOfTree > 100000) {
+            landmarksCount = 100;
+        } else if (sizeOfTree > 10000){
+            landmarksCount = 25;
+        } else if (sizeOfTree > 1000){
+            landmarksCount = 10;
+        } else if (sizeOfTree > 100){
+            landmarksCount = 5;
+        } else {
+            landmarksCount = 1;
+        }
+        total += landmarksCount;
+
+        // Mark nodes inside component
+        for (Node* node : component) {
+            node->marked = true;
+        }
+
+        std::sort(component.begin(), component.end(),
+    [&](Node* a, Node* b) {
+        return undirectedPaths[a->num].size() > undirectedPaths[b->num].size();
+    });
+
+        std::mutex lock;
+        std::mutex printLock;
+        std::atomic<int> index = 0;
+
+        auto printProgress = [&]() {
+            int percent = static_cast<int>((100.0 * completed) / totalComponents);
+            static std::atomic<int> lastPrinted{-1};
+            if (percent != lastPrinted.load()) {
+                std::lock_guard<std::mutex> block(printLock);
+                std::cout << "\rProgress: " << std::setw(3) << percent << "% completed ("
+                         << completed << "/" << totalComponents << " components)" << std::flush;
+                lastPrinted = percent;
+            }
+        };
+
+        auto worker = [&](size_t times) {
+            while (times-- != 0) {
+                Node* landmarkNode = component[index];
+                index.fetch_add(1);
+                std::unordered_map<int, int> localMap;
+                std::queue<Node*> queue;
+                queue.push(landmarkNode);
+                localMap[landmarkNode->num] = 0;
+
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
+                    for (int neighbor : undirectedPaths[currentNode->num]) {
+                        if (!localMap.contains(neighbor)) {
+                            localMap[neighbor] = localMap[currentNode->num] + 1;
+                            queue.push(&nodes[neighbor]);
+                        }
+                    }
+                }
+
+                {
+                    std::lock_guard<std::mutex> block(lock);
+                    landmarks.emplace_back(std::move(localMap));
+                }
+            }
+        };
+        std::vector<std::thread> workers;
+        size_t remaining = landmarksCount - 1;
+        for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
+            size_t tasks = remaining / (NUM_OF_THREADS - i);
+            remaining -= tasks;
+            if (tasks > 0) {
+                workers.emplace_back(worker, tasks);
+            }
+        }
+
+        for (auto& thread : workers) thread.join();
+
+        ++completed;
+        printProgress();
+
+        // Unmark the component
+        for (Node* node : component) {
+            node->marked = false;
+        }
+        weekTrees.push_back(landmarks);
+    }
+
+    std::cout << "\ntotal landmarks used:" << total << std::endl;
+}
+
+    void initLandmarksForTreesGreedy() {
+    if (weekComponents.empty()) initWeekComponents();
+
+    weekTrees.clear();
+    int completed = 0;
+    size_t totalComponents = weekComponents.size();
+    size_t total = 0;
+
+    for (auto& component : weekComponents) {
+
+        size_t sizeOfTree = component.size();
+        size_t landmarksCount = 0;
+        std::vector<std::unordered_map<int, int>> landmarks;
+        if (sizeOfTree > 1000000) {
+            landmarksCount = 100;
+        } else if (sizeOfTree > 500000) {
+            landmarksCount = 50;
+        } else if (sizeOfTree > 100000){
+            landmarksCount = 15;
+        } else if (sizeOfTree > 10000){
+            landmarksCount = 10;
+        } else if (sizeOfTree > 100){
+            landmarksCount = 3;
+        } else {
+            landmarksCount = 1;
+        }
+        total += landmarksCount;
+
+        // Mark nodes inside component
+        for (Node* node : component) {
+            node->marked = true;
+        }
+
+        std::sort(component.begin(), component.end(),
+    [&](Node* a, Node* b) {
+        return undirectedPaths[a->num].size() > undirectedPaths[b->num].size();
+    });
+
+        std::mutex lock;
+        std::mutex printLock;
+        std::atomic<int> index = 0;
+
+        auto printProgress = [&]() {
+            int percent = static_cast<int>((100.0 * completed) / totalComponents);
+            static std::atomic<int> lastPrinted{-1};
+            if (percent != lastPrinted.load()) {
+                std::lock_guard<std::mutex> block(printLock);
+                std::cout << "\rProgress: " << std::setw(3) << percent << "% completed ("
+                         << completed << "/" << totalComponents << " components)" << std::flush;
+                lastPrinted = percent;
+            }
+        };
+
+        auto worker = [&](size_t times) {
+            while (times-- != 0) {
+                Node* landmarkNode = component[index];
+                index.fetch_add(1);
+                std::unordered_map<int, int> localMap;
+                std::queue<Node*> queue;
+                queue.push(landmarkNode);
+                localMap[landmarkNode->num] = 0;
+
+                while (!queue.empty()) {
+                    Node* currentNode = queue.front(); queue.pop();
+                    for (int neighbor : undirectedPaths[currentNode->num]) {
+                        if (!localMap.contains(neighbor)) {
+                            localMap[neighbor] = localMap[currentNode->num] + 1;
+                            queue.push(&nodes[neighbor]);
+                        }
+                    }
+                }
+
+                {
+                    std::lock_guard<std::mutex> block(lock);
+                    landmarks.emplace_back(std::move(localMap));
+                }
+            }
+        };
+        std::vector<std::thread> workers;
+        size_t remaining = landmarksCount - 1;
+        for (size_t i = 0; i < NUM_OF_THREADS; ++i) {
+            size_t tasks = remaining / (NUM_OF_THREADS - i);
+            remaining -= tasks;
+            if (tasks > 0) {
+                workers.emplace_back(worker, tasks);
+            }
+        }
+
+        for (auto& thread : workers) thread.join();
+
+        ++completed;
+        printProgress();
+
+        // Unmark the component
+        for (Node* node : component) {
+            node->marked = false;
+        }
+        weekTrees.push_back(landmarks);
+    }
+
+    std::cout << "\ntotal landmarks used:" << total << std::endl;
+}
 public:
 
     size_t getWeekComponentCount() {
@@ -1229,190 +1433,45 @@ public:
     return count > 0 ? total / count : 0.0;
 }
 
-};
+    int getDistanceBetweenNodesLTC(int num_u, int num_v) {
+        if (weekTrees.empty()) initLandmarksForTreesGenerously();
+        if (num_u >= nodes.size() || num_v >= nodes.size() || num_v * num_u < 0) {
+            std::cout << "One of these nodes is absent in graph" << std::endl;
+            return 0;
+        }
 
-class UndirectedGraph : public Graph {
-//     std::vector<std::vector<Node*>>  strongComponents;
-//     std::unordered_map<int, std::vector<int>> undirectedPaths;
-//     std::vector<std::vector<Node*>>  weekComponents;
-//
-//     double density = 0;
-//
-//     void initDensity() {
-//         double maxEdges = vertexCount * (vertexCount - 1) / 2.0;
-//         density = edgesCount / maxEdges;
-//     }
-//     //
-//     // void initComponents() {
-//     //     for (auto& [num,node] : nodes) {
-//     //         if (!node.marked) {
-//     //             std::vector <Node*> component;
-//     //             std::stack <Node*> stack;
-//     //             stack.push(&node);
-//     //             while (!stack.empty()) {
-//     //                 Node* currentNode = stack.top(); stack.pop();
-//     //                 component.push_back(currentNode);
-//     //                 currentNode->marked = true;
-//     //                 for (int neighborhood : paths[currentNode->num]) {
-//     //                     if (nodes[neighborhood].marked != true) {
-//     //                         stack.push(&nodes[neighborhood]);
-//     //                     }
-//     //                 }
-//     //             }
-//     //             strongComponents.push_back(component);
-//     //         }
-//     //     }
-//     //     removeMarks();
-//     //     std::ranges::sort(strongComponents, std::greater<>{});
-//     // }
-//
-// public:
-//     UndirectedGraph(Graph& graph): Graph(graph) {}
-//
-//     int getComponentsCount() {
-//         if (strongComponents.empty()) initComponents();
-//         return strongComponents.size();
-//     }
-//
-//     double getDensity() {
-//         if (density == 0) initDensity();
-//         return density;
-//     }
-//
-//     int getShareVertexInBeggestComponent() {
-//         getComponentsCount();
-//         return strongComponents[0].size() / vertexCount;
-//     }
-//
-// // double getAverageClusteringCoefficient() {
-// //     if (weekComponents.empty()) initWeekComponents(); // находим слабые компоненты
-//
-// //     const std::vector<Node*>& largestWCC = weekComponents[0];
-//
-// //     if (largestWCC.empty()) return 0.0;
-//
-// //     double totalClustering = 0.0;
-//
-// //     // Проходим по каждому узлу в компоненте
-// //     for (Node* node : largestWCC) {
-// //         int u = node->num;
-// //         const std::vector<int>& neighbors = undirectedPaths[u];
-//
-// //         if (neighbors.size() < 2) {
-// //             // Кластерный коэффициент равен 0, если у узла менее двух соседей
-// //             continue;
-// //         }
-//
-// //         int links = 0; // количество связей между соседями узла
-// //         // Проверяем, есть ли ребро между каждой парой соседей
-// //         for (size_t i = 0; i < neighbors.size(); ++i) {
-// //             int vi = neighbors[i];
-// //             for (size_t j = i + 1; j < neighbors.size(); ++j) {
-// //                 int vj = neighbors[j];
-//
-// //                 // Проверяем, соединены ли vi и vj
-// //                 const auto& vi_neighbors = undirectedPaths[vi];
-// //                 if (std::find(vi_neighbors.begin(), vi_neighbors.end(), vj) != vi_neighbors.end()) {
-// //                     ++links;
-// //                 }
-// //             }
-// //         }
-//
-// //         // Возможное количество связей между соседями: C(k,2) = k*(k-1)/2
-// //         int k = neighbors.size();
-// //         double clusteringCoefficient = (2.0 * links) / (k * (k - 1));
-// //         totalClustering += clusteringCoefficient;
-// //     }
-//
-// //     return totalClustering / largestWCC.size();
-// // }
-//
-//     // void initUndirectedPaths() {
-//     //     undirectedPaths.reserve(paths.size());
-//     //     for (auto& [u, neigh] : paths) {
-//     //         for (int v : neigh) {
-//     //             undirectedPaths[u].push_back(v);
-//     //             undirectedPaths[v].push_back(u);
-//     //         }
-//     //     }
-//     // }
-//     //
-//     //
-//     // void initWeekComponents() {
-//     //
-//     //     if (undirectedPaths.empty()) { initUndirectedPaths(); }
-//     //
-//     //     for (auto& [num,node] : nodes) {
-//     //         if (!node.marked) {
-//     //             std::vector<Node*> component;
-//     //             std::queue<Node*> queue;
-//     //             queue.push(&node);
-//     //             node.marked = true;
-//     //             int nodeCount = 0;
-//     //             while (!queue.empty()) {
-//     //                 Node* currentNode = queue.front(); queue.pop();
-//     //                 component.push_back(currentNode);
-//     //                 ++nodeCount;
-//     //                 for (int neighborhood : undirectedPaths[currentNode->num]) {
-//     //                     if (nodes[neighborhood].marked != true) {
-//     //                         nodes[neighborhood].marked = true;
-//     //                         queue.push(&nodes[neighborhood]);
-//     //                     }
-//     //                 }
-//     //             }
-//     //             weekComponents.push_back(component);
-//     //         }
-//     //     }
-//     //     std::sort(weekComponents.begin(), weekComponents.end(),
-//     // [this](const std::vector<Node*>& a, const std::vector<Node*>& b) {
-//     //     return a.size() > b.size();}
-//     //     );
-//     //
-//     //     removeMarks();
-//     // }
-//
-//
-//  double getAverageClusteringCoefficient() {
-//     std::atomic<double> totalCoefficient = 0.0;
-//
-//     // Инициализация наибольшей компоненты связности (для неориентированного графа — просто компонент связности)
-//     initWeekComponents();
-//
-//     int countedVertices = weekComponents[0].size();
-//
-//     std::for_each(std::execution::par, weekComponents[0].begin(), weekComponents[0].end(), [&](Node* node) {
-//         int u = node->num;
-//
-//         // Все соседи вершины u
-//         const std::vector<int>& neighbors = paths[u];
-//         int k = neighbors.size();
-//
-//         int linkCount = 0;
-//
-//         // Проверяем количество связей между соседями
-//         for (int i = 0; i < k; ++i) {
-//             for (int j = i + 1; j < k; ++j) {
-//                 int ni = neighbors[i];
-//                 int nj = neighbors[j];
-//
-//                 // Проверяем, связаны ли ni и nj
-//                 linkCount += (stdr::contains(paths[ni], nj)) || (stdr::contains(paths[nj], ni));
-//
-//             }
-//         }
-//         if (k < 2) return;
-//         // Кластерный коэффициент вершины
-//         double Clu = (2.0 * linkCount) / (k * (k - 1));
-//         totalCoefficient += Clu;
-//     });
-//
-//     std::cout << "Total vertices in largest CC: " << countedVertices << std::endl;
-//     std::cout << "Total clustering sum: " << totalCoefficient << std::endl;
-//     std::cout<< "Average clustering coefficient: " << (countedVertices > 0 ? totalCoefficient / countedVertices : 0.0 ) << std::endl;
-//     return countedVertices > 0 ? totalCoefficient / countedVertices : 0.0;
-// }
+        int minDistance = INT_MAX;
+        bool pathNotFound = true;
+
+        int processed = 0;
+
+
+        for (const auto&  landmarksVec : weekTrees) {
+            for (const auto& map : landmarksVec) {
+                if (!(map.contains(num_u) && map.contains(num_v))) {
+                    continue;
+                }
+
+                int dist = map.at(num_u) + map.at(num_v);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    pathNotFound = false;
+                }
+            }
+            ++processed;
+        }
+
+
+        if (pathNotFound) {
+            std::cout << "Path not found" << std::endl;
+            return -1;
+        }
+
+        return minDistance;
+    }
 
 };
+
 
 
 #endif //GRAPH_H
