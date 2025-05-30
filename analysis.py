@@ -116,21 +116,35 @@ def print_analysis(graph: dict, directed: bool):
     print("(A5)----------")
     start = perf_counter()
     min_deg, max_deg, avg_deg,degree_prob = degree_stats_and_distribution(graph)
-
     end = perf_counter()
 
     print(f"Минимальная степень: {min_deg}")
     print(f"Максимальная степень: {max_deg}")
     print(f"Средняя степень: {avg_deg:.4f}")
 
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1, 2, 1)
+    # 95-й персентиль
+    degrees = np.array(list(degree_prob.keys()))
+    p95 = np.percentile(degrees, 95)
+    filtered_degree_prob = dict()
+    for k, v in degree_prob.items():
+        if k <= p95:
+            filtered_degree_prob[k] = v
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 3, 1)
+    plt.bar(filtered_degree_prob.keys(), filtered_degree_prob.values(), width=0.80, color='b')
+    plt.title("Распределение степеней (95-й персентиль)")
+    plt.xlabel("Степень")
+    plt.ylabel("Вероятность")
+
+    # оригинальные данные
+    plt.subplot(1, 3, 2)
     plt.bar(degree_prob.keys(), degree_prob.values(), width=0.80, color='b')
     plt.title("Распределение степеней (обычная шкала)")
     plt.xlabel("Степень")
     plt.ylabel("Вероятность")
 
-    plt.subplot(1, 2, 2)
+    # log шкала
+    plt.subplot(1, 3, 3)
     x_log = []
     y_log = []
     for k, v in degree_prob.items():
