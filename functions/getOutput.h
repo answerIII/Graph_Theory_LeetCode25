@@ -43,10 +43,21 @@ void get_results(const char* file_path, const std::string& category, int algo) {
         std::cout << "Введите количество ориентиров: ";
         std::cin >> landmarksCount;
         std::cout << std::endl;
+
+        g.getDistanceBetweenNodes(v1,v2, landmarksCount);
+        auto start_time = std::chrono::steady_clock::now();
         int result = g.getDistanceBetweenNodes(v1,v2, landmarksCount);
+        auto end_time = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
         std::cout << line;
-        std::cout <<"\nРасстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<result<<"\n";
-        std::cout <<"Минимальное расстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<g.getMinDistanceBetweenNodes(v1,v2)<<"\n";
+        std::cout <<"\n LANDMARKS:\nРасстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<result<<"\nАлгоритм сработал за: "<<elapsed<<"мс\n\n";
+
+        auto start_time2 = std::chrono::steady_clock::now();
+        std::cout <<"BFS:\nМинимальное расстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<g.getMinDistanceBetweenNodes(v1,v2)<<"\n";
+        auto end_time2 = std::chrono::steady_clock::now();
+        auto elapsed2 = std::chrono::duration_cast<std::chrono::milliseconds>(end_time2 - start_time2).count();
+        std::cout <<"\nАлгоритм сработал за: "<<elapsed2<<"мс\n";;
+
         std::cout << line;
     }
 
