@@ -39,6 +39,7 @@ struct Response {
 
 fn main() -> rust_core::Result<()> {
     let args: Args = argh::from_env();
+    let _ = std::fs::create_dir(".cache");
     let cache_path = format!(".cache/{}.msgpack", args.file_name);
     let storage_path = format!("../.storage/{}.msgpack", args.file_name);
     let mut graph = match Graph::from_msgpack(&cache_path) {
