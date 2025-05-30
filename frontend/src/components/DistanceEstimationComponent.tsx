@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -24,87 +24,91 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import type { DistanceResultEstimation, MethodParams, DistanceEstimationComponentProps} from '../types/graphTypes';
+import { graphApi } from '../api/graphApi';
+import type { DistanceResultEstimation, MethodParams, DistanceEstimationComponentProps } from '../types/graphTypes';
 
 // Регистрация компонентов Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-
-
 const mockDistanceResults: DistanceResultEstimation[] = [
   {
-    id: 'double_sweep-1',
-    method: 'double_sweep',
-    diameter: 10,
-    percentile90: 8,
-    meanDistance: 6.5,
-  },
-  {
-    id: 'random_sample-1',
     method: 'random_sample',
     diameter: 12,
     percentile90: 9,
     meanDistance: 7.2,
+    execution_time_ms: 1200,
   },
   {
-    id: 'snowball-1',
     method: 'snowball',
     diameter: 11,
     percentile90: 7,
     meanDistance: 5.8,
+    execution_time_ms: 1500,
+  },
+  {
+    method: 'random_sample_snowball',
+    diameter: 11,
+    percentile90: 8,
+    meanDistance: 6.5,
+    execution_time_ms: 1800,
   },
 ];
 
 const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = ({ datasetname }) => {
   const [data, setData] = useState<DistanceResultEstimation[]>(mockDistanceResults);
+  const [diameter, setDiameter] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [params, setParams] = useState<{
     [key: string]: MethodParams;
   }>({
     random_sample: { sampleSize: '1000' },
-    snowball: { sampleSize: '1000', initialNodes: '2' },
+    snowball: { sampleSize: '1000' },
+    random_sample_snowball: { sampleSize: '1000' },
   });
+
+  useEffect(() => {
+    if (!datasetname) return;
+    const fetchDiameter = async () => {
+      try {
+        const response = await graphApi.getDiameter(datasetname);
+        if (typeof response.diameter !== 'number') {
+          throw new Error('Некорректный формат ответа от API');
+        }
+        setDiameter(response.diameter);
+      } catch (err) {
+        setError(`Ошибка получения диаметра: ${(err as Error).message}`);
+      }
+    };
+    fetchDiameter();
+  }, [datasetname]);
 
   const handleSetSampleSize = (method: string, size: number) => {
     setParams((prev) => ({
       ...prev,
-      [method]: { ...prev[method], sampleSize: size.toString() },
+      [method]: { sampleSize: size.toString() },
     }));
     setError(null);
   };
 
-  const handleCalculate = (method: 'double_sweep' | 'random_sample' | 'snowball') => {
+  const handleCalculate = async (method: 'random_sample' | 'snowball' | 'random_sample_snowball') => {
     setError(null);
-    let sampleSize = 1000; // Значение по умолчанию
-    let initialNodes = 2; // Значение по умолчанию для snowball
-
-    // Валидация для random_sample и snowball
-    if (method !== 'double_sweep') {
-      if (!(method in params)) {
-        setError(`Некорректный метод: ${method}`);
-        return;
-      }
-      sampleSize = parseInt(params[method].sampleSize) || 1000;
-      if (sampleSize < 500 || sampleSize > 1000) {
-        setError('Размер выборки должен быть от 500 до 1000');
-        return;
-      }
-      if (method === 'snowball') {
-        initialNodes = parseInt(params[method].initialNodes || '2');
-        if (![2, 3].includes(initialNodes)) {
-          setError('Начальное количество вершин должно быть 2 или 3');
-          return;
-        }
-      }
+    if (!(method in params)) {
+      setError(`Некорректный метод: ${method}`);
+      return;
+    }
+    const sampleSize = parseInt(params[method].sampleSize) || 1000;
+    if (sampleSize < 500 || sampleSize > 1000) {
+      setError('Размер выборки должен быть от 500 до 1000');
+      return;
     }
 
     // Имитация вычисления
     const newResult: DistanceResultEstimation = {
-      id: `${method}-${Date.now()}`,
       method,
       diameter: Math.floor(Math.random() * 5) + 8, // 8–12
       percentile90: Math.floor(Math.random() * 4) + 6, // 6–9
       meanDistance: Math.random() * 3 + 5, // 5–8
+      execution_time_ms: Math.floor(Math.random() * 1000) + 1000, // 1000–2000
     };
 
     setData((prev) =>
@@ -112,35 +116,25 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     );
     setError(`Вычислено для ${method} (статические данные)`);
 
-    // Закомментированный код для бэкенда
+    // Реальный запрос
     /*
     try {
-      const response = await fetch(`/api/graphs/${datasetname}/distances`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method,
-          sampleSize: method !== 'double_sweep' ? sampleSize : undefined,
-          initialNodes: method === 'snowball' ? initialNodes : undefined,
-        }),
-      });
-      if (!response.ok) throw new Error('Ошибка сервера');
-      const data: DistanceResultEstimation = await response.json();
-      if (!data.diameter || !data.percentile90 || !data.meanDistance) {
+      const response = await graphApi.getDistances(datasetname, method, sampleSize);
+      if (!response.diameter || !response.percentile90 || !response.meanDistance || !response.execution_time_ms) {
         throw new Error('Некорректный формат ответа от API');
       }
       setData((prev) =>
-        prev.map((r) => (r.method === data.method ? data : r))
+        prev.map((r) => (r.method === response.method ? response : r))
       );
-      setError(`Вычислено для ${data.method}`);
+      setError(`Вычислено для ${response.method}`);
     } catch (err) {
-      setError(`Ошибка вычисления (${method}): ${err.message}`);
+      setError(`Ошибка вычисления (${method}): ${(err as Error).message}`);
     }
     */
   };
 
-  const chartData = {
-    labels: ['Double Sweep', 'Random Sample', 'Snowball'],
+  const metricsChartData = {
+    labels: ['Random Sample', 'Snowball', 'Random Sample & Snowball'],
     datasets: [
       {
         label: 'Диаметр',
@@ -166,6 +160,19 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     ],
   };
 
+  const timeChartData = {
+    labels: ['Random Sample', 'Snowball', 'Random Sample & Snowball'],
+    datasets: [
+      {
+        label: 'Время выполнения (мс)',
+        data: data.map((r) => r.execution_time_ms),
+        backgroundColor: '#f57c00',
+        borderColor: '#ef6c00',
+        borderWidth: 1,
+      },
+    ],
+  };
+
   const chartOptions = {
     scales: {
       y: { beginAtZero: true, title: { display: true, text: 'Значение' } },
@@ -176,201 +183,186 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     },
   };
 
+  const timeChartOptions = {
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Время (мс)' } },
+      x: { title: { display: true, text: 'Метод' } },
+    },
+    plugins: {
+      legend: { display: false },
+    },
+  };
+
   if (!datasetname) {
     return <Alert severity="error">Dataset name is not provided</Alert>;
   }
 
   return (
-  <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-    <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-      Оценка расстояний
-    </Typography>
-    {error && (
-      <Alert
-        severity={error.includes('Вычислено') ? 'info' : 'error'}
-        sx={{ width: '100%', maxWidth: 800, mb: 2 }}
-      >
-        {error}
-      </Alert>
-    )}
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 3,
-        mt: 2,
-        overflowX: 'auto',
-        pb: 2,
-        justifyContent: 'center',
-        width: '100%',
-      }}
-    >
-      {['double_sweep', 'random_sample', 'snowball'].map((method) => (
-        <Card
-          key={method}
-          sx={{
-            boxShadow: 3,
-            minWidth: 300,
-            maxWidth: 350,
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            marginTop: '5px',
-          }}
+    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1">
+          Диаметр: {diameter !== null ? diameter : 'Загрузка...'}
+        </Typography>
+      </Box>
+      <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
+        Оценка расстояний
+      </Typography>
+      {error && (
+        <Alert
+          severity={error.includes('Вычислено') ? 'info' : 'error'}
+          sx={{ width: '100%', maxWidth: 800, mb: 2 }}
         >
-          <CardContent
+          {error}
+        </Alert>
+      )}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 3,
+          mt: 2,
+          overflowX: 'auto',
+          pb: 2,
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
+        {['random_sample', 'snowball', 'random_sample_snowball'].map((method) => (
+          <Card
+            key={method}
             sx={{
-              flexGrow: 1,
+              boxShadow: 3,
+              minWidth: 300,
+              maxWidth: 350,
+              flexShrink: 0,
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
+              marginTop: '5px',
             }}
           >
-            <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>
-              {method === 'double_sweep'
-                ? 'Double Sweep'
-                : method === 'random_sample'
-                ? 'Random Sample'
-                : 'Snowball'}
-            </Typography>
-            <Box
+            <CardContent
               sx={{
+                flexGrow: 1,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
                 alignItems: 'center',
-                width: '100%',
-                flexGrow: 1,
+                gap: 2,
               }}
             >
-              {method !== 'double_sweep' && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <TextField
-                      label="Размер выборки"
-                      value={params[method]?.sampleSize ?? '1000'}
-                      onChange={(e) =>
-                        setParams((prev) => ({
-                          ...prev,
-                          [method]: { ...prev[method], sampleSize: e.target.value },
-                        }))
-                      }
-                      type="number"
-                      size="small"
-                      sx={{ width: 120 }}
-                      helperText="500–1000"
-                    />
-                    <ButtonGroup size="small" variant="outlined">
-                      <Button onClick={() => handleSetSampleSize(method, 500)}>500</Button>
-                      <Button onClick={() => handleSetSampleSize(method, 1000)}>1000</Button>
-                    </ButtonGroup>
-                  </Box>
-                  {method === 'snowball' && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Typography variant="caption" sx={{ mb: 0.5 }}>
-                        Начальные вершины
-                      </Typography>
-                      <ButtonGroup size="small" variant="outlined">
-                        <Button
-                          onClick={() =>
-                            setParams((prev) => ({
-                              ...prev,
-                              [method]: { ...prev[method], initialNodes: '2' },
-                            }))
-                          }
-                          sx={{
-                            bgcolor: params[method]?.initialNodes === '2' ? 'action.selected' : 'inherit',
-                          }}
-                        >
-                          2
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            setParams((prev) => ({
-                              ...prev,
-                              [method]: { ...prev[method], initialNodes: '3' },
-                            }))
-                          }
-                          sx={{
-                            bgcolor: params[method]?.initialNodes === '3' ? 'action.selected' : 'inherit',
-                          }}
-                        >
-                          3
-                        </Button>
-                      </ButtonGroup>
-                    </Box>
-                  )}
-                </Box>
-              )}
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() =>
-                  handleCalculate(method as 'double_sweep' | 'random_sample' | 'snowball')
-                }
-                sx={{ mt: 'auto', width: '100%' }}
-              >
-                Вычислить
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      ))}
-    </Box>
-    {data.length > 0 ? (
-      <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Метод</TableCell>
-            <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Диаметр</TableCell>
-            <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>90-й процентиль</TableCell>
-            <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>
-              Среднее расстояние
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((result) => (
-            <TableRow key={result.id}>
-              <TableCell sx={{ textAlign: 'center' }}>
-                {result.method === 'double_sweep'
-                  ? 'Double Sweep'
-                  : result.method === 'random_sample'
+              <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>
+                {method === 'random_sample'
                   ? 'Random Sample'
-                  : 'Snowball'}
-              </TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{result.diameter}</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{result.percentile90.toFixed(2)}</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{result.meanDistance.toFixed(2)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    ) : (
-      <Alert severity="warning" sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
-        Нет данных для отображения
-      </Alert>
-    )}
-    {/* <Button variant="outlined" disabled sx={{ mt: 2 }}>
-      Скачать CSV
-    </Button> */}
-    <Box sx={{ mt: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
-      <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
-        Сравнение результатов
-      </Typography>
-    </Box>
-    {data.length > 0 ? (
-      <Box sx={{ minWidth: 600, height: 300, margin: '0 auto' }}>
-        <Bar data={chartData} options={chartOptions} />
+                  : method === 'snowball'
+                  ? 'Snowball'
+                  : 'Random Sample & Snowball'}
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  alignItems: 'center',
+                  width: '100%',
+                  flexGrow: 1,
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <TextField
+                    label="Размер выборки"
+                    value={params[method]?.sampleSize ?? '1000'}
+                    onChange={(e) =>
+                      setParams((prev) => ({
+                        ...prev,
+                        [method]: { sampleSize: e.target.value },
+                      }))
+                    }
+                    type="number"
+                    size="small"
+                    sx={{ width: 120 }}
+                    helperText="500–1000"
+                  />
+                  <ButtonGroup size="small" variant="outlined">
+                    <Button onClick={() => handleSetSampleSize(method, 500)}>500</Button>
+                    <Button onClick={() => handleSetSampleSize(method, 1000)}>1000</Button>
+                  </ButtonGroup>
+                </Box>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() =>
+                    handleCalculate(method as 'random_sample' | 'snowball' | 'random_sample_snowball')
+                  }
+                  sx={{ mt: 'auto', width: '100%' }}
+                >
+                  Вычислить
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        ))}
       </Box>
-    ) : (
-      <Alert severity="warning" sx={{ minWidth: 800, width: '100%' }}>
-        Нет данных для гистограммы
-      </Alert>
-    )}
-  </Box>
-);
+      {data.length > 0 ? (
+        <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Метод</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Диаметр</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>90-й процентиль</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Среднее расстояние</TableCell>
+              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Время (мс)</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((result) => (
+              <TableRow key={result.method}>
+                <TableCell sx={{ textAlign: 'center' }}>
+                  {result.method === 'random_sample'
+                    ? 'Random Sample'
+                    : result.method === 'snowball'
+                    ? 'Snowball'
+                    : 'Random Sample & Snowball'}
+                </TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.diameter}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.percentile90.toFixed(2)}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.meanDistance.toFixed(2)}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{result.execution_time_ms}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <Alert severity="warning" sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
+          Нет данных для отображения
+        </Alert>
+      )}
+      <Box sx={{ mt: 3, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
+          Сравнение метрик
+        </Typography>
+        {data.length > 0 ? (
+          <Box sx={{ minWidth: 600, height: 300, margin: '0 auto', mb: 4 }}>
+            <Bar data={metricsChartData} options={chartOptions} />
+          </Box>
+        ) : (
+          <Alert severity="warning" sx={{ minWidth: 800, width: '100%', mb: 4 }}>
+            Нет данных для гистограммы метрик
+          </Alert>
+        )}
+        <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
+          Сравнение времени выполнения
+        </Typography>
+        {data.length > 0 ? (
+          <Box sx={{ minWidth: 600, height: 300, margin: '0 auto' }}>
+            <Bar data={timeChartData} options={timeChartOptions} />
+          </Box>
+        ) : (
+          <Alert severity="warning" sx={{ minWidth: 800, width: '100%' }}>
+            Нет данных для гистограммы времени
+          </Alert>
+        )}
+      </Box>
+    </Box>
+  );
 };
 
 export default DistanceEstimationComponent;

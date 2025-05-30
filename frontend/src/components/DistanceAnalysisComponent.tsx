@@ -24,16 +24,14 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-
+// import { graphApi } from '../api/graphApi';
 import type { DistanceResultAnalysis, AlgorithmParams } from '../types/graphTypes';
 
-// Регистрация компонентов Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const mockDistanceResults: DistanceResultAnalysis[] = [
   {
-    id: 'bfs-1',
-    algorithm: 'BFS',
+    algorithm: 'bfs',
     distance: 5,
     execution_time_ms: 1185,
     landmarks: [],
@@ -41,19 +39,17 @@ const mockDistanceResults: DistanceResultAnalysis[] = [
     end_node: 200,
   },
   {
-    id: 'landmarks-basic-1',
-    algorithm: 'Landmarks-Basic',
+    algorithm: 'landmarks-basic',
     distance: 6,
-    execution_time_ms: 0,
+    execution_time_ms: 900,
     landmarks: [123, 456, 789],
     start_node: 100,
     end_node: 200,
   },
   {
-    id: 'landmarks-bfs-1',
-    algorithm: 'Landmarks-BFS',
+    algorithm: 'landmarks-bfs',
     distance: 6,
-    execution_time_ms: 9,
+    execution_time_ms: 950,
     landmarks: [123, 456, 789],
     start_node: 100,
     end_node: 200,
@@ -66,7 +62,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
   const [params, setParams] = useState<{
     [key: string]: AlgorithmParams;
   }>({
-    bfs: { start_node: '', end_node: '', landmarks_count: '10', landmarks_selection: 'random' },
+    bfs: { start_node: '', end_node: '' },
     'landmarks-basic': { start_node: '', end_node: '', landmarks_count: '10', landmarks_selection: 'random' },
     'landmarks-bfs': { start_node: '', end_node: '', landmarks_count: '10', landmarks_selection: 'random' },
   });
@@ -83,7 +79,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     setError(null);
   };
 
-  const handleCalculate = (algorithm: string) => {
+  const handleCalculate = async (algorithm: 'bfs' | 'landmarks-basic' | 'landmarks-bfs') => {
     setError(null);
     if (!(algorithm in params)) {
       setError(`Некорректный алгоритм: ${algorithm}`);
@@ -92,28 +88,25 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     const algoParams = params[algorithm];
     const startNode = parseInt(algoParams.start_node) || -1;
     const endNode = parseInt(algoParams.end_node) || -1;
-    const landmarksCount = parseInt(algoParams.landmarks_count) || 10;
+    let landmarksCount = algorithm !== 'bfs' ? parseInt(algoParams.landmarks_count) || 10 : undefined;
 
-    // Валидация
     if (startNode !== -1 && startNode < 0) {
-      setError('Начальная вершина должна быть неотрицательной');
+      setError('Начальная вершина должна быть неотрицательной или -1');
       return;
     }
     if (endNode !== -1 && endNode < 0) {
-      setError('Конечная вершина должна быть неотрицательной');
+      setError('Конечная вершина должна быть неотрицательной или -1');
       return;
     }
-    if (algorithm !== 'bfs' && landmarksCount <= 0) {
-      setError('Количество ориентиров должно быть больше 0');
+    if (algorithm !== 'bfs' && (landmarksCount <= 0 || !Number.isInteger(landmarksCount))) {
+      setError('Количество ориентиров должно быть целым числом больше 0');
       return;
     }
 
-    // Имитация вычисления
     const newResult: DistanceResultAnalysis = {
-      id: `${algorithm}-${Date.now()}`,
-      algorithm: algorithm === 'bfs' ? 'BFS' : algorithm === 'landmarks-basic' ? 'Landmarks-Basic' : 'Landmarks-BFS',
+      algorithm,
       distance: Math.floor(Math.random() * 10),
-      execution_time_ms: Math.floor(Math.random() * 2000),
+      execution_time_ms: Math.floor(Math.random() * 1000) + 500,
       landmarks: algorithm === 'bfs' ? [] : Array.from({ length: landmarksCount }, () => Math.floor(Math.random() * 1000)),
       start_node: startNode,
       end_node: endNode,
@@ -122,21 +115,23 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     setData((prev) =>
       prev.map((r) => (r.algorithm === newResult.algorithm ? newResult : r))
     );
-    setError(`Вычислено для ${newResult.algorithm} (статические данные)`);
+    setError(`Вычислено для ${algorithm} (статические данные)`);
 
-    // Закомментированный код для бэкенда
     /*
     try {
-      const response = await graphApi.calculateDistance(datasetname, {
+      const payload: any = {
         start_node: startNode,
         end_node: endNode,
         algorithm,
-        landmarks: {
+      };
+      if (algorithm !== 'bfs') {
+        payload.landmarks = {
           count: landmarksCount,
           selection: algoParams.landmarks_selection,
-        },
-      });
-      if (!response || !response.algorithm || !('distance' in response)) {
+        };
+      }
+      const response = await graphApi.calculateDistance(datasetname, payload);
+      if (!response.algorithm || !('distance' in response) || !Array.isArray(response.landmarks)) {
         throw new Error('Некорректный формат ответа от API');
       }
       setData((prev) =>
@@ -144,25 +139,46 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
       );
       setError(`Вычислено для ${response.algorithm}`);
     } catch (err) {
-      setError(`Ошибка вычисления (${algorithm}): ` + (err as Error).message);
+      setError(`Ошибка вычисления (${algorithm}): ${(err as Error).message}`);
     }
     */
   };
 
-  const chartData = {
-    labels: ['BFS', 'Landmarks-Basic', 'Landmarks-BFS'],
+  const distanceChartData = {
+    labels: ['bfs', 'landmarks-basic', 'landmarks-bfs'],
     datasets: [
       {
-        label: 'Время выполнения (мс)',
-        data: data.map((r) => r.execution_time_ms),
-        backgroundColor: ['#1976d2', '#d32f2f', '#388e3c'],
-        borderColor: ['#1565c0', '#b71c1c', '#2e7d32'],
+        label: 'Расстояние',
+        data: data.map((r) => r.distance ?? 0),
+        backgroundColor: '#1976d2',
+        borderColor: '#1565c0',
         borderWidth: 1,
       },
     ],
   };
 
-  const chartOptions = {
+  const timeChartData = {
+    labels: ['bfs', 'landmarks-basic', 'landmarks-bfs'],
+    datasets: [
+      {
+        label: 'Время выполнения (мс)',
+        data: data.map((r) => r.execution_time_ms),
+        backgroundColor: '#f57c00',
+        borderColor: '#ef6c00',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const distanceChartOptions = {
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Расстояние' } },
+      x: { title: { display: true, text: 'Алгоритм' } },
+    },
+    plugins: { legend: { display: false } },
+  };
+
+  const timeChartOptions = {
     scales: {
       y: { beginAtZero: true, title: { display: true, text: 'Время (мс)' } },
       x: { title: { display: true, text: 'Алгоритм' } },
@@ -222,7 +238,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
               }}
             >
               <Typography variant="subtitle1" sx={{ textAlign: 'center' }}>
-                {algorithm === 'bfs' ? 'BFS' : algorithm === 'landmarks-basic' ? 'Landmarks-Basic' : 'Landmarks-BFS'}
+                {algorithm}
               </Typography>
               <Box
                 sx={{
@@ -247,6 +263,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                     type="number"
                     size="small"
                     sx={{ width: 125 }}
+                    helperText="-1 для случайной"
                   />
                   <TextField
                     label="Конечная вершина"
@@ -260,6 +277,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                     type="number"
                     size="small"
                     sx={{ width: 124 }}
+                    helperText="-1 для случайной"
                   />
                   <Button
                     variant="outlined"
@@ -283,6 +301,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                       type="number"
                       size="small"
                       sx={{ width: '100%' }}
+                      helperText="Целое число > 0"
                     />
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <Typography variant="caption" sx={{ mb: 0.5 }}>
@@ -298,7 +317,6 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                           }
                           sx={{
                             bgcolor: params[algorithm]?.landmarks_selection === 'random' ? 'action.selected' : 'inherit',
-                            fontSize: '10px'
                           }}
                         >
                           Случайные
@@ -312,7 +330,6 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                           }
                           sx={{
                             bgcolor: params[algorithm]?.landmarks_selection === 'highest_degree' ? 'action.selected' : 'inherit',
-                            fontSize: '10px'
                           }}
                         >
                           Наиб. степени
@@ -326,7 +343,6 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                           }
                           sx={{
                             bgcolor: params[algorithm]?.landmarks_selection === 'max_coverage' ? 'action.selected' : 'inherit',
-                            fontSize: '10px'
                           }}
                         >
                           Макс. покрытие
@@ -339,7 +355,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
                   variant="contained"
                   size="small"
                   onClick={() => handleCalculate(algorithm)}
-                  sx={{ mt: 'auto', width: '100%'}}
+                  sx={{ mt: 'auto', width: '100%' }}
                 >
                   Вычислить
                 </Button>
@@ -362,7 +378,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
           </TableHead>
           <TableBody>
             {data.map((result) => (
-              <TableRow key={result.id}>
+              <TableRow key={result.algorithm}>
                 <TableCell sx={{ textAlign: 'center' }}>{result.algorithm}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>{result.distance ?? 'N/A'}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>{result.execution_time_ms}</TableCell>
@@ -378,23 +394,32 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
           Нет данных для отображения
         </Alert>
       )}
-      {/* <Button variant="outlined" disabled sx={{ mt: 2 }}>
-        Скачать CSV
-      </Button> */}
-      <Box sx={{ mt: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ mt: 3, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
+          Сравнение расстояний
+        </Typography>
+        {data.length > 0 ? (
+          <Box sx={{ minWidth: 600, height: 300, margin: '0 auto', mb: 4 }}>
+            <Bar data={distanceChartData} options={distanceChartOptions} />
+          </Box>
+        ) : (
+          <Alert severity="warning" sx={{ minWidth: 800, width: '100%', mb: 4 }}>
+            Нет данных для гистограммы расстояний
+          </Alert>
+        )}
         <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
           Сравнение времени выполнения
         </Typography>
+        {data.length > 0 ? (
+          <Box sx={{ minWidth: 600, height: 300, margin: '0 auto' }}>
+            <Bar data={timeChartData} options={timeChartOptions} />
+          </Box>
+        ) : (
+          <Alert severity="warning" sx={{ minWidth: 800, width: '100%' }}>
+            Нет данных для гистограммы времени
+          </Alert>
+        )}
       </Box>
-      {data.length > 0 ? (
-        <Box sx={{ minWidth: 600, height: 300, margin: '0 auto' }}>
-          <Bar data={chartData} options={chartOptions} />
-        </Box>
-      ) : (
-        <Alert severity="warning" sx={{ minWidth: 800, width: '100%' }}>
-          Нет данных для гистограммы
-        </Alert>
-      )}
     </Box>
   );
 };
