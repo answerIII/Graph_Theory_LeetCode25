@@ -91,15 +91,27 @@ def kosaraju(graph, n):
 def analyze_network(file_path, directed=False):
     graph, n, m = read_graph(file_path, directed)
     density = calculate_density(n, m, directed)
-    weak_comp = weak_components(graph, n)
+
+    if directed:
+        undirected_graph = {i: set() for i in range(n)}
+        for u in range(n):
+            for v in graph.get(u, set()):
+                undirected_graph[u].add(v)
+                undirected_graph[v].add(u)
+        weak_comp = weak_components(undirected_graph, n)
+    else:
+        weak_comp = weak_components(graph, n)
+
     max_weak = max(len(c) for c in weak_comp) if weak_comp else 0
     weak_ratio = max_weak / n if n > 0 else 0
+
     strong_comp = []
     strong_ratio = 0
     if directed:
         strong_comp = kosaraju(graph, n)
         max_strong = max(len(c) for c in strong_comp) if strong_comp else 0
         strong_ratio = max_strong / n if n > 0 else 0
+
     return {
         'vertices': n,
         'edges': m,
