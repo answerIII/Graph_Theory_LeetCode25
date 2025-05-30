@@ -45,7 +45,7 @@ void get_results(const char* file_path, const std::string& category, int algo) {
         std::cout << std::endl;
         int result = g.getDistanceBetweenNodes(v1,v2, landmarksCount);
         std::cout << line;
-        std::cout <<"Расстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<result<<"\n";
+        std::cout <<"\nРасстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<result<<"\n";
         std::cout <<"Минимальное расстояние между вершинами " <<v1 << " и " << v2 << " равно:\t" <<g.getMinDistanceBetweenNodes(v1,v2)<<"\n";
         std::cout << line;
     }
