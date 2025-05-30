@@ -11,19 +11,19 @@ import (
 func GetClusteringInfo(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	filename := vars["datasetname"] + ".msgpack"
+	filename := vars["datasetname"]
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateClustering(middleware.ReadGraph(storageRoot + filename)))
+	w.Write(middleware.GenerateClustering(middleware.ReadGraph(storageRoot+filename+".msgpack", filename)))
 
 }
 
 func GetDegreeDistribution(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	filename := vars["datasetname"] + ".msgpack"
+	filename := vars["datasetname"]
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateDegrees(middleware.ReadGraph(storageRoot + filename)))
+	w.Write(middleware.GenerateDegrees(middleware.ReadGraph(storageRoot+filename+".msgpack", filename)))
 }
 
 func GetDistanceEstimation(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ func GetDistanceEstimation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	filename := vars["datasetname"] + ".msgpack"
+	filename := vars["datasetname"]
 
 	var req GetDistance
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -44,23 +44,23 @@ func GetDistanceEstimation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateDistances(middleware.ReadGraph(storageRoot+filename), req.Method, req.SampleSize))
+	w.Write(middleware.GenerateDistances(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Method, req.SampleSize))
 
 }
 
 func GetGeneralProperties(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	filename := vars["datasetname"] + ".msgpack"
+	filename := vars["datasetname"]
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateProperties(middleware.ReadGraph(storageRoot + filename)))
+	w.Write(middleware.GenerateProperties(middleware.ReadGraph(storageRoot+filename+".msgpack", filename)))
 }
 
 func GetRobustnessComponent(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
-	filename := vars["datasetname"] + ".msgpack"
+	filename := vars["datasetname"]
 
 	type GetRobustness struct {
 		Percentage int    `json:"xPercent" msgpack:"xPercent"`
@@ -75,6 +75,6 @@ func GetRobustnessComponent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(middleware.GenerateRobustness(middleware.ReadGraph(storageRoot+filename), req.Method, req.Percentage))
+	w.Write(middleware.GenerateRobustness(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Method, req.Percentage))
 
 }

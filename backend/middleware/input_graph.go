@@ -3,24 +3,46 @@ package middleware
 import (
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
 
+	"github.com/HikkMind/graph/algo"
 	"github.com/HikkMind/graph/structs"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func ReadGraph(filename string) *structs.Graph {
+var (
+	savedGraph   *structs.Graph = nil
+	savedDataset string         = ""
+)
+
+func ReadGraph(filename, datasetName string) *structs.Graph {
+
+	if savedDataset == datasetName {
+		fmt.Println("using saved graph : ", datasetName)
+		return savedGraph
+	}
+
+	savedDataset = datasetName
+	savedGraph = nil
+	algo.SavedWCC = nil
+	algo.SavedWCCCount = 0
+
 	length := len(filename)
 	if length > 4 && filename[length-5:] == ".json" {
-		return ReadGraphJSON(filename)
+		savedGraph = ReadGraphJSON(filename)
+		// return ReadGraphJSON(filename)
 	} else if length > 3 && filename[length-4:] == ".csv" {
-		return ReadGraphCSV(filename)
+		savedGraph = ReadGraphCSV(filename)
+		// return ReadGraphCSV(filename)
 	} else if length > 7 && filename[length-8:] == ".msgpack" {
-		return ReadGraphMP(filename)
+		savedGraph = ReadGraphMP(filename)
+		// return ReadGraphMP(filename)
 	}
-	return nil
+	savedDataset = datasetName
+	return savedGraph
 }
 
 func ReadGraphCSV(filename string) *structs.Graph {

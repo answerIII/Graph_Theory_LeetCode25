@@ -1,6 +1,7 @@
 package algo
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -46,6 +47,7 @@ func FindDiameter(graph *structs.Graph) int {
 	for len(bfsQueueDist) > 0 {
 		vertex = bfsQueueDist[0][0]
 		vertexDist = bfsQueueDist[0][1]
+		fmt.Println(bfsQueueDist)
 		for _, next := range graph.AdjList[vertex] {
 			if _, ok := visited[next]; !ok {
 				visited[next] = struct{}{}

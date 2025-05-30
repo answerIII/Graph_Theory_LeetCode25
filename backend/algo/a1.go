@@ -3,6 +3,7 @@ package algo
 import (
 	//"fmt"
 
+	"fmt"
 	"log"
 	"sort"
 
@@ -10,7 +11,16 @@ import (
 	//"google.golang.org/appengine/log"
 )
 
+var (
+	SavedWCC      *structs.Graph = nil
+	SavedWCCCount int            = 0
+)
+
 func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.Graph, int) {
+	if SavedWCC != nil {
+		fmt.Println("using saved WCC")
+		return SavedWCC, SavedWCCCount
+	}
 	graphWCC := structs.Graph{Directed: false}
 	newAdjList := make(map[int][]int)
 	for vertex, adj := range graph.AdjList {
@@ -85,6 +95,9 @@ func FindMaxWCC(graph structs.Graph, excludeVertex map[int]struct{}) (*structs.G
 		}
 	}
 	graphWCC.EdgesCount /= 2
+
+	SavedWCC = &graphWCC
+	SavedWCCCount = countWCC
 
 	return &graphWCC, countWCC
 }

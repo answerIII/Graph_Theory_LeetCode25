@@ -6,6 +6,8 @@ type Graph struct {
 	EdgesCount  int           `deafult:"0"`
 	AdjList     map[int][]int `default:"nil"`
 	Edges       []Edge        `default:"nil"`
+	// WCC         map[int][]int `default:"nil"`
+	// WCCCount    int           `default:"0"`
 }
 
 type GraphJSON struct {
