@@ -25,7 +25,7 @@ func getAccurateDistance(ugraph *graph.Graph, s, t int32) (int, error) {
 	)
 
 	if accurateDistance == -1 {
-		return 0, fmt.Errorf("can't find path between %d and %d\n", s, t)
+		return -1, fmt.Errorf("can't find path between %d and %d\n", s, t)
 	}
 
 	return accurateDistance, nil
