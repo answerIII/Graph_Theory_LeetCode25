@@ -281,17 +281,25 @@ inline void robustness(const std::string& graph_id, const std::string& is_direct
         return;
     }
 
-    file << "graph_id,directed,removal_method,x_percent,run_id,"
-         << "remaining_nodes,largest_comp_frac\n";
+    file << "graph_id,directed,x_percent,random_remaining_nodes,random_weak_comp_count,random_largest_comp_frac"
+         << "most_degree_remaining_nodes,most_degree_weak_comp_count,most_degree_largest_comp_frac\n";
 
+    std::cout << "Введите процент вершин, который вы хотите удалить:\t";
+    int x;
+    std::cin >> x;
     // Data rows
     auto start = std::chrono::steady_clock::now();
-
+    DirectedGraph g2(g);
+    g.removeRandomNodes(x,graph_id);
     file << graph_id << ","
-         << is_directed << ",";
-         //<< g.removeRandomNodes() << ","
-         //<< g.removeMostDegreesNodes() << ",";
+         << is_directed << ","
+         << x << ","
+         << g.getVertexCount() << ","
+         << g.getWeekComponentCount() << ","
+         << g.getCountNodesInLargestWCC()<< ",";
 
+    g2.removeMostDegreesNodes(x,graph_id);
+    file << g2.getVertexCount() << "," << g2.getWeekComponentCount()<<","<< g2.getCountNodesInLargestWCC() << "\n";
     log_runtime_memory(base_name, is_directed, "degree_distribution", "", 0, start);
 
     file.close();

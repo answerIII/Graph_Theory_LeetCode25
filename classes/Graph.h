@@ -85,6 +85,7 @@ class DirectedGraph : public Graph {
         if (undirectedPaths.empty()) { initUndirectedPaths(); }
 
         for (Node& node : nodes) {
+            if (node.num == -1){continue;}
             if (!node.marked) {
                 std::vector<Node*> component;
                 std::queue<Node*> queue;
@@ -115,11 +116,13 @@ class DirectedGraph : public Graph {
 
     void initUndirectedPaths() {
         undirectedPaths.resize(paths.size());
+        std::vector<std::unordered_set<int>> uniqueNeighbours;
+        uniqueNeighbours.resize(paths.size());
         for (int u = 0; u < paths.size(); ++u) {
             undirectedPaths[u].reserve(paths[u].size());
             for (int v : paths[u]) {
-                undirectedPaths[u].push_back(v);
-                undirectedPaths[v].push_back(u);
+                if (!uniqueNeighbours[u].contains(v)) { undirectedPaths[u].push_back(v); uniqueNeighbours[u].insert(v); }
+                if (!uniqueNeighbours[v].contains(u)) { undirectedPaths[v].push_back(u); uniqueNeighbours[v].insert(u); }
             }
         }
     }
@@ -134,7 +137,7 @@ class DirectedGraph : public Graph {
     }
 
     void initDensity() {
-        double maxEdges = vertexCount * (vertexCount - 1); // overflow!!!
+        long double maxEdges = vertexCount * (vertexCount - 1); // overflow???
         density = edgesCount / maxEdges;
     }
 
@@ -143,6 +146,7 @@ class DirectedGraph : public Graph {
         std::vector<Node*> outVertexes;
         std::unordered_set<int> visited;
         for (Node& node : nodes) {
+            if (node.num == -1) continue;
             if (!node.marked) {
                 std::stack<Node*> attended;
                 attended.push(&node);
@@ -207,6 +211,7 @@ class DirectedGraph : public Graph {
         std::uniform_int_distribution<> distrib(0, weekComponents[0].size() - 1);
 
         int randomIndex = distrib(gen);
+        while (weekComponents[0][randomIndex]->num == -1) {randomIndex = distrib(gen);}
         Node* r = weekComponents[0][randomIndex];
         std::pair<int, Node*> a = getFarthestVertexInsideWWC(r);
         std::pair<int, Node*> b = getFarthestVertexInsideWWC(a.second);
@@ -234,7 +239,7 @@ class DirectedGraph : public Graph {
 
         //mark week component, work only with theLargestWCC nodes
         for (Node* node : weekComponents[0]) {
-            node->marked = true;
+            if (node->num != -1) node->marked = true;
         }
 
         //make calculation parralel i have 12 logic threads
@@ -313,6 +318,7 @@ class DirectedGraph : public Graph {
     void init90PercentileC() {
 
         if (weekComponents.empty()) initWeekComponents();
+        removeMarks();
 
         //create a snowball
         int snowballSize = 500;
@@ -469,10 +475,10 @@ class DirectedGraph : public Graph {
                     int w = neighborsSorted[k];
                     if (w <= v) continue;
                     if (adj.at(v).count(w)) {
-                        localTriangles++;
-                        localMap[u]++;
-                        localMap[v]++;
-                        localMap[w]++;
+                        ++localTriangles;
+                        ++localMap[u];
+                        ++localMap[v];
+                        ++localMap[w];
                     }
                 }
             }
@@ -686,12 +692,14 @@ class DirectedGraph : public Graph {
         }
 
         for (Node& node : nodes) {
+            if (node.num == -1 ) continue;
             if (!out_degrees.count(node.num)) out_degrees[node.num] = 0;
             if (!in_degrees.count(node.num)) in_degrees[node.num] = 0;
         }
 
         std::unordered_map<int, long> total_degrees;
         for (Node& node : nodes) {
+            if (node.num == -1 ) continue;
             total_degrees[node.num] = in_degrees[node.num] + out_degrees[node.num];
         }
 
@@ -803,7 +811,7 @@ class DirectedGraph : public Graph {
                     int maxMin = INT_MIN;
                     for (Node& node : nodes) {
                         if (node.marked) continue;
-
+                        if (node.num == -1 ) continue;
                         int currentMin = INT_MAX;
                         for (const auto& map : landmarks) {
                             if (map.contains(node.num)) {
@@ -1018,14 +1026,16 @@ public:
         return trianglesCount;
     }
 
-    void removeRandomNodes(int count, const std::string& file) {
+    void removeRandomNodes(int percent, const std::string& file) {
+        int count = percent*vertexCount / 100;
         this->backupOriginalGraph();
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
         removeNodes(count, true, file);
     }
 
-    void removeMostDegreesNodes(int count, const std::string& file) {
+    void removeMostDegreesNodes(int percent, const std::string& file) {
+        int count = percent*vertexCount / 100;
         if (count > vertexCount) std::cout << vertexCount << " vertices are less than " << count << std::endl;
 
         removeNodes(count, false, file);

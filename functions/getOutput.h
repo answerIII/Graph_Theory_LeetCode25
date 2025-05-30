@@ -28,7 +28,7 @@ void get_results(const char* file_path, const std::string& category) {
     clustering_overview(file_path, is_directed,g);
     local_clustering(file_path, is_directed,g);
     degree_distribution(file_path, is_directed,g);
-    //robustness(file_path, is_directed,g);
+    robustness(file_path, is_directed,g);
     delete graph;
 }
 
