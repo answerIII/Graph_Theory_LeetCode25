@@ -78,3 +78,12 @@ func GetRobustnessComponent(w http.ResponseWriter, r *http.Request) {
 	w.Write(middleware.GenerateRobustness(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Method, req.Percentage))
 
 }
+
+func GetRandomNodes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	filename := vars["datasetname"]
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(middleware.GenerateRandomNodes(middleware.ReadGraph(storageRoot+filename+".msgpack", filename)))
+
+}

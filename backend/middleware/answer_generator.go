@@ -4,8 +4,14 @@ import (
 	// "encoding/json"
 
 	"encoding/json"
+	"fmt"
+	"os"
 	"sort"
+	"strconv"
+	"sync"
 	"time"
+
+	"math/rand"
 
 	"github.com/HikkMind/graph/algo"
 	"github.com/HikkMind/graph/structs"
@@ -112,19 +118,103 @@ func GenerateRobustness(graph *structs.Graph, method string, percent int) []byte
 
 	var excludeVertex map[int]struct{}
 	startTime := time.Now()
-	if method == "random" {
-		excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
-	} else if method == "targeted" {
-		excludeVertex = algo.GetMaxDegreeVertexSet(graph, float32(percent))
+	// if method == "random" {
+	// 	excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
+	// } else if method == "targeted" {
+	// 	excludeVertex = algo.GetMaxDegreeVertexSet(graph, float32(percent))
+	// }
+
+	percentPropWCC := make(map[int]float32)
+	goroutineCh := make(chan int)
+	var wg sync.WaitGroup
+	goroutineCount, err := strconv.Atoi(os.Getenv("GOROUTINECOUNT"))
+	if err != nil || goroutineCount < 0 {
+		goroutineCount = len(graph.AdjList)
+		fmt.Println("use max goroutine count : ", goroutineCount)
+	}
+	for range goroutineCount {
+		wg.Add(1)
+		go func(graph *structs.Graph, percentPropWCC map[int]float32, goroutineCh <-chan int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			for {
+				percent, ok := <-goroutineCh
+				if !ok {
+					break
+				}
+				if method == "random" {
+					excludeVertex = algo.GetRandomVertexSet(graph, float32(percent))
+				} else if method == "targeted" {
+					excludeVertex = algo.GetMaxDegreeVertexSet(graph, float32(percent))
+				}
+				graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
+				percentPropWCC[percent] = float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))
+
+			}
+		}(graph, percentPropWCC, goroutineCh, &wg)
 	}
 
-	graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
+	go func(goroutineCh chan<- int) {
+		for percent := 0; percent < 100; percent++ {
+			goroutineCh <- percent
+			fmt.Println(percent)
+		}
+		close(goroutineCh)
+	}(goroutineCh)
+
+	// for percent := 0; percent < 100; percent++ {
+	// 	graphWCC, _ := algo.FindMaxWCC(*graph, excludeVertex)
+	// 	percentPropWCC[percent] = float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex)))
+	// }
+
+	wg.Wait()
 
 	answer := structs.AnswerB{
-		Percentage:    percent,
-		Method:        method,
-		ProportionWCC: float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex))),
+		Percentage: percent,
+		Method:     method,
+		// ProportionWCC: float32(graphWCC.VertexCount) / (float32(graph.VertexCount - len(excludeVertex))),
+		ProportionWCC: percentPropWCC,
 		TimeMs:        int(time.Since(startTime).Milliseconds()),
+	}
+
+	output, _ := json.Marshal(answer)
+
+	return output
+
+}
+
+func GenerateRandomNodes(graph *structs.Graph) []byte {
+	type Nodes struct {
+		Node1 int `json:"node1"`
+		Node2 int `json:"node2"`
+	}
+
+	graphWCC, _ := algo.FindMaxWCC(*graph, make(map[int]struct{}))
+
+	vertexList := make([]int, graphWCC.VertexCount)
+	ind := 0
+	for vertex := range graphWCC.VertexCount {
+		vertexList[ind] = vertex
+		ind++
+	}
+	randLocal := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randLocal.Shuffle(len(vertexList), func(i, j int) {
+		vertexList[i], vertexList[j] = vertexList[j], vertexList[i]
+	})
+
+	// fmt.Println(vertexList)
+	// fmt.Println(graphWCC.VertexCount, len(graphWCC.AdjList))
+
+	var answer Nodes
+	if len(vertexList) < 2 {
+		answer = Nodes{
+			Node1: -1,
+			Node2: -1,
+		}
+	} else {
+		answer = Nodes{
+			Node1: vertexList[0],
+			Node2: vertexList[1],
+		}
 	}
 
 	output, _ := json.Marshal(answer)
