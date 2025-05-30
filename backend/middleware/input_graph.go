@@ -196,7 +196,7 @@ func ReadGraphMP(filename string) *structs.Graph {
 	outputGraph := structs.Graph{
 		Directed:    graphMsg.Directed,
 		VertexCount: graphMsg.VertexCount,
-		EdgesCount:  len(graphMsg.Edges),
+		EdgesCount:  graphMsg.EdgesCount,
 		AdjList:     make(map[int][]int),
 	}
 	// if outputGraph.Directed {
@@ -224,12 +224,12 @@ func ReadGraphMP(filename string) *structs.Graph {
 		// 	continue
 		// }
 
-		if adj, ok := outputGraph.AdjList[v]; ok {
-			outputGraph.AdjList[v] = append(adj, u)
-		} else {
-			outputGraph.AdjList[v] = make([]int, 1)
-			outputGraph.AdjList[v][0] = u
-		}
+		// if adj, ok := outputGraph.AdjList[v]; ok {
+		// 	outputGraph.AdjList[v] = append(adj, u)
+		// } else {
+		// 	outputGraph.AdjList[v] = make([]int, 1)
+		// 	outputGraph.AdjList[v][0] = u
+		// }
 
 	}
 

@@ -1,7 +1,7 @@
 package algo
 
 import (
-	"log"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -141,9 +141,9 @@ func FindDistanceDFS(graph *structs.Graph, source, target, diameter int) int {
 
 func RandomDistances(graph *structs.Graph, pairCount int) [][]int {
 
-	if pairCount/2 > graph.VertexCount {
-		log.Fatal("randomdistance : too many pair count")
-		return nil
+	if pairCount > graph.VertexCount/2 {
+		pairCount = graph.VertexCount / 2
+		fmt.Println("randomdistance : too many pair count, change to : ", pairCount)
 	}
 
 	result := make([][]int, pairCount)

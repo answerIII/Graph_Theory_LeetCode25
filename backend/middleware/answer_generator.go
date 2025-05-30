@@ -54,7 +54,7 @@ func GenerateDistances(graph *structs.Graph, method string, verticesCount int) [
 
 	var algoTime int
 
-	var graphDistances [][]int
+	var graphDistances [][]int = make([][]int, 0)
 
 	passCount, _ := strconv.Atoi(os.Getenv("PASSNUMBER"))
 
