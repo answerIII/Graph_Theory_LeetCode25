@@ -10,9 +10,27 @@ def extract_subgraph(full_graph, vertices):
             for v, neighbors in full_graph.items()
             if v in vertices}
 
+def node_clustering(graph: dict, node: int) -> float:
+    if node not in graph:
+        return 0.0
+        
+    neighbors = list(graph.get(node, set()))
+    degree = len(neighbors)
+    if degree < 2:
+        return 0.0
+    
+    possible_edges = degree * (degree - 1) / 2
+    actual_edges = 0
+    
+    for i, j in itertools.combinations(neighbors, 2):
+        if j in graph.get(i, set()):
+            actual_edges += 1
+    
+    return actual_edges / possible_edges if possible_edges > 0 else 0.0
+
 def main():
-    directed: bool =  True
-    G, library_graph = load_graph_from_file("data/graph_0.txt", directed)#!!!используем это для обычных
+    directed: bool =  False
+    G, library_graph = load_graph_from_file("data/undirected/graph_1.txt", directed)#!!!используем это для обычных
 
     #для больших графов
     #G = load_large_graph_from_file("data/very_large_graphs/") старая версия
@@ -21,6 +39,7 @@ def main():
     #G, library_graph = load_graph("data/undirected/Email-EuAll.txt")   #!!!!!используем это для больших
 
     comp, G = print_analysis(G, directed, library_graph)
+    print(f"\nКластерный коэффициент для первой вершины: {node_clustering(G, 1)}")
     print("\nSection 1------\n\n")
     print("Section 2------\n")
     subgraph = {v: {n for n in G[v] if n in comp} for v in comp}
