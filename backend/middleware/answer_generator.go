@@ -55,16 +55,26 @@ func GenerateDistances(graph *structs.Graph, method string, verticesCount int) [
 	var algoTime int
 
 	var graphDistances [][]int
-	if method == "random_sample" {
-		startTime := time.Now()
-		graphDistances = algo.RandomDistances(graph, verticesCount/2)
-		algoTime = int(time.Since(startTime).Milliseconds())
-	} else if method == "snowball" {
-		startTime := time.Now()
-		graphDistances = algo.RandomDistances(algo.SnowBall(graph, verticesCount), verticesCount/2)
-		algoTime = int(time.Since(startTime).Milliseconds())
-	} else {
-		panic("distance : unknown method")
+
+	passCount, _ := strconv.Atoi(os.Getenv("PASSNUMBER"))
+
+	for range passCount {
+		if method == "random_sample" {
+			startTime := time.Now()
+			graphDistances = append(graphDistances, algo.RandomDistances(graph, verticesCount/2)...)
+			algoTime = int(time.Since(startTime).Milliseconds())
+		} else if method == "snowball" {
+			startTime := time.Now()
+			graphDistances = append(graphDistances, algo.RandomDistances(algo.SnowBall(graph, verticesCount), verticesCount/2)...)
+			algoTime = int(time.Since(startTime).Milliseconds())
+		} else if method == "random_sample_snowball" {
+			startTime := time.Now()
+			graphDistances = append(graphDistances, algo.RandomDistances(graph, verticesCount/2)...)
+			graphDistances = append(graphDistances, algo.RandomDistances(algo.SnowBall(graph, verticesCount), verticesCount/2)...)
+			algoTime = int(time.Since(startTime).Milliseconds())
+		} else {
+			panic("distance : unknown method")
+		}
 	}
 
 	sort.Slice(graphDistances, func(i, j int) bool {
