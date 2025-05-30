@@ -15,8 +15,18 @@ pub struct Graph {
 
 pub enum Selection {
     Random,
-    Degree,
+    HighDegree,
     BestCoverage,
+}
+
+impl std::fmt::Display for Selection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Selection::Random => write!(f, "Random"),
+            Selection::HighDegree => write!(f, "HighDegree"),
+            Selection::BestCoverage => write!(f, "BestCoverage"),
+        }
+    }
 }
 
 impl RMPSupport for Graph {}
@@ -46,7 +56,7 @@ impl Graph {
         self.landmarks = Some(
             match selection {
                 Selection::Random => self.select_random_nodes(n),
-                Selection::Degree => self.select_high_degree_nodes(n),
+                Selection::HighDegree => self.select_high_degree_nodes(n),
                 Selection::BestCoverage => self.select_best_coverage_nodes(n),
             }
             .into_par_iter()
