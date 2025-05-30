@@ -283,7 +283,11 @@ class DirectedGraph : public Graph {
             worker(u, v);
 
             int completed = ++progressCounter;
-            if (completed % (samples / 100) == 0 || completed == samples) {
+            int denominator =samples/100;
+            if (denominator<=0) {
+                denominator = 1;
+            }
+            if (completed % (denominator) == 0 || completed == samples) {
                 std::cout << "\r90PercentileB: " << (completed * 100 / samples)
                           << "% (" << completed << "/" << samples << ")" << std::flush;
             }
@@ -386,8 +390,13 @@ class DirectedGraph : public Graph {
             Node* v = snowball[dis(gen)];
             worker(u, v);
 
+            int denominator =snowballSize/100;
+            if (denominator<=0) {
+                denominator = 1;
+            }
+
             int completed = ++progressCounter;
-            if (completed % (snowballSize / 100) == 0 || completed == snowballSize) {
+            if (completed % (denominator) == 0 || completed == snowballSize) {
                 std::cout << "\r90PercentileC: " << (completed * 100 / snowballSize)
                           << "% (" << completed << "/" << snowballSize << ")" << std::flush;
             }

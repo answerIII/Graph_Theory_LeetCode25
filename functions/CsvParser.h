@@ -291,7 +291,7 @@ inline void robustness(const std::string& graph_id, const std::string& is_direct
     auto start = std::chrono::steady_clock::now();
     DirectedGraph g2(g);
     g.removeRandomNodes(x,graph_id);
-    file << graph_id << ","
+    file << base_name << ","
          << is_directed << ","
          << x << ","
          << g.getVertexCount() << ","

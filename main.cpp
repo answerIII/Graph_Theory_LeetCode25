@@ -21,7 +21,7 @@ int chooseAlgo() {
 }
 int main(const int argc, const char *argv[]) {
     validateArgs(argc, argv);
-        std::string dataset_root = "datasets";
+        std::string dataset_root = "tests";
     std::vector<GraphFile> graph_files;
 
     for (const auto& dir_entry : fs::recursive_directory_iterator(dataset_root)) {
