@@ -43,14 +43,22 @@ public:
         //     std::cout<<"dist "<< i << ":"<<" "<<distance[i]<<"\n";
         // }
 
-        for(int i = 0;i<sz;++i){
+        for(int i = 1;i<sz;++i){
             int path_time = distance[i]*2;
             int last_message_sent = (path_time/patience[i])*patience[i];
             if(path_time%patience[i] == 0){
                 last_message_sent -= patience[i];
             }
+            //std::cout<<last_message_sent<<"\n";
             time_active[i] = last_message_sent + path_time;
         }
-        return max(time_active);
+
+        int max = 0;
+        for(int i = 0;i<sz;++i){
+            if(max<time_active[i]){
+                max = time_active[i];
+            }
+        }
+        return max+1;
     }
 };
