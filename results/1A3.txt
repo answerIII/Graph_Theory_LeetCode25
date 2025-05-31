@@ -11,25 +11,25 @@ Number of triangles: 13391903
 Average clustering coefficient: 0.5142961475353862
 Global clustering coefficient: 0.0552306264884374
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
-Number of triangles: 9207192
+Number of triangles: 8910005
 Average clustering coefficient: 0.2417871186789608
-Global clustering coefficient: 0.09033367870421802
+Global clustering coefficient: 0.08741791513883669
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
 Number of triangles: 11329473
 Average clustering coefficient: 0.5976304608026036
 Global clustering coefficient: 0.008617602328600992
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
-Number of triangles: 1352469
+Number of triangles: 1351441
 Average clustering coefficient: 0.6307828710129707
-Global clustering coefficient: 0.3181666196953593
+Global clustering coefficient: 0.3179246272838524
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
-Number of triangles: 48283
+Number of triangles: 48260
 Average clustering coefficient: 0.5301852394299642
-Global clustering coefficient: 0.6299535522928119
+Global clustering coefficient: 0.6296534687913159
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
-Number of triangles: 362721
+Number of triangles: 267313
 Average clustering coefficient: 0.06724249991544598
-Global clustering coefficient: 0.005563933055725287
+Global clustering coefficient: 0.004100421269545778
 Processing: D:\github\Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
 Number of triangles: 444095058
 Average clustering coefficient: 0.8018773521295511

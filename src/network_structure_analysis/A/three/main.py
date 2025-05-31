@@ -12,53 +12,56 @@ from definitions import (
 )
 
 
-def localClustering(
-    undir_adj_list: Tuple[Set[int], ...], u: int
-) -> Tuple[int, float]:
+def countTriangles(undir_adj_list: Tuple[Set[int], ...]) -> int:
+    triangle_count = 0
+    for u in range(len(undir_adj_list)):
+        neighbors_u = undir_adj_list[u]
+        for v in neighbors_u:
+            if v > u:  # Чтобы избежать двойного подсчёта
+                for w in neighbors_u:
+                    if w > v and w in undir_adj_list[v]:
+                        triangle_count += 1
+    return triangle_count
+
+
+def localClustering(undir_adj_list: Tuple[Set[int], ...], u: int) -> float:
     neighbors = undir_adj_list[u]
     k_u = len(neighbors)
     if k_u < 2:
-        return 0, 0.0
+        return 0.0
     triangles_u = 0
     for v in neighbors:
         for w in neighbors:
-            if w > v and w in undir_adj_list[v]:
+            if v < w and w in undir_adj_list[v]:  # Учитываем каждое ребро 1 раз
                 triangles_u += 1
     max_possible = k_u * (k_u - 1) / 2
-    return triangles_u, max_possible
+    return triangles_u / max_possible
 
 
-def averageClustering(
-    undir_adj_list: Tuple[Set[int], ...],
-) -> Tuple[int, float]:
+def averageClustering(undir_adj_list: Tuple[Set[int], ...]) -> float:
     total = 0.0
-    triangles = 0
     n = len(undir_adj_list)
     for u in range(n):
-        triangles_u, max_possible = localClustering(undir_adj_list, u)
-        total += triangles_u / max_possible if max_possible > 0 else 0
-        triangles += triangles_u
-    return triangles, total / n
+        total += localClustering(undir_adj_list, u)
+    return total / n if n > 0 else 0.0
 
 
 def globalClustering(
-    undir_adj_list: Tuple[Set[int], ...], sum_of_triangles: int
+    undir_adj_list: Tuple[Set[int], ...], triangles: int
 ) -> float:
     triples = 0
     for u in range(len(undir_adj_list)):
         k_u = len(undir_adj_list[u])
         triples += k_u * (k_u - 1) // 2
-    return sum_of_triangles / triples if triples > 0 else 0.0
+    return (3 * triangles) / triples if triples > 0 else 0.0
 
 
 def processFile(file_path: str) -> None:
     print(f"Processing: {file_path}")
     undir_adj_list = createUndirAdjList(file_path)
-    sum_of_triangles, average_clustering_coef = averageClustering(
-        undir_adj_list
-    )
-    global_clustering_coef = globalClustering(undir_adj_list, sum_of_triangles)
-    triangles = sum_of_triangles // 3
+    triangles = countTriangles(undir_adj_list)
+    average_clustering_coef = averageClustering(undir_adj_list)
+    global_clustering_coef = globalClustering(undir_adj_list, triangles)
     print(f"Number of triangles: {triangles}")
     print(f"Average clustering coefficient: {average_clustering_coef}")
     print(f"Global clustering coefficient: {global_clustering_coef}")
