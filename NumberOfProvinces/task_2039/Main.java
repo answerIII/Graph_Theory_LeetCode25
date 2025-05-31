@@ -7,9 +7,10 @@ class Solution {
         List<List<Integer>> graph = new ArrayList<>();
         List<Integer> lengths = new ArrayList<>(patience.length);
         for (int i = 0; i < patience.length; ++i) {
-            lengths.add(0);
+            lengths.add(-1);
             graph.add(new ArrayList<>());
         }
+        lengths.set(0,0);
         for (int[] edge : edges) {
             graph.get(edge[0]).add(edge[1]);
             graph.get(edge[1]).add(edge[0]);
@@ -20,8 +21,9 @@ class Solution {
         while (!queue.isEmpty()) {
             int node = queue.poll();
             for (int neighbor : graph.get(node)) {
-                if (lengths.get(node) == 0){
+                if (lengths.get(neighbor) == -1){
                     lengths.set(neighbor,lengths.get(node)+1);
+                    queue.add(neighbor);
                 }
             }
         }
@@ -32,7 +34,7 @@ class Solution {
             if (curr - patience[i] > 0) {curr+=curr - patience[i];}
             maxTime = Math.max(maxTime,curr);
         }
-        return maxTime;
+        return maxTime + 1;
     }
 }
 
