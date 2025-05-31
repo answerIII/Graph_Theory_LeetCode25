@@ -39,7 +39,7 @@ func GetRandomVertexSet(graph *structs.Graph, setPercentage float32) map[int]str
 func GetMaxDegreeVertexSet(graph *structs.Graph, setPercentage float32) map[int]struct{} {
 
 	setPercentage /= 100
-	vertexCount := graph.VertexCount
+	vertexCount := len(graph.AdjList)
 	// vertexCount := len(graph.AdjList)
 	vertexList := make([][]int, vertexCount)
 	setSize := int(float32(vertexCount) * setPercentage)
