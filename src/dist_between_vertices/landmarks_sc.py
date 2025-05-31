@@ -1,28 +1,6 @@
 from typing import List, Dict, Tuple, Set
 
-from random import sample
-
-from definitions import (
-    INF,
-    DIRECTED_FILE_NAMES,
-    UNDIRECTED_FILE_NAMES,
-    LARGE_UNDIRECTED_FILE_NAMES,
-    REF_DATASETS_DIRECTED_DIR,
-    REF_DATASETS_UNDIRECTED_DIR,
-    REF_DATASETS_LARGE_DIR,
-)
-
-from dist_between_vertices.landmark_selection import (
-    chooseRandomNodes,
-    chooseBestCoverageNodes,
-    chooseHighestDegreeNodes,
-)
-
-from bfs import getDistNodesPair
-
-from create_adj_list import createLWCUndirAdjList
-
-from dist_between_vertices.create_spt import createSPTList
+from definitions import INF
 
 
 def getDistSC(
@@ -83,49 +61,3 @@ def landmarksSC(
             ),
         )
     return est_dist
-
-
-def processFile(file_path: str) -> None:
-    print(f"Processing: {file_path}")
-    TOTAL_LANDMARKS = 20
-    lwc_undir_adj_list = createLWCUndirAdjList(file_path)
-    lwc_nodes = len(lwc_undir_adj_list)
-    # Landmarks chosen randomly
-    # TODO add new approaches for landmarks selection
-    # landmarks_lst = chooseRandomNodes(lwc_undir_adj_list, TOTAL_LANDMARKS)
-    # landmarks_lst = chooseHighestDegreeNodes(
-    #     lwc_undir_adj_list, TOTAL_LANDMARKS
-    # )
-    landmarks_lst = chooseBestCoverageNodes(lwc_undir_adj_list, TOTAL_LANDMARKS)
-    spt_lst = createSPTList(lwc_undir_adj_list, landmarks_lst)
-    # TODO The code below is only for demonstration of the algorithm's work
-    # Delete it later
-    TOTAL_DIST_COMPUTES = 100
-    dist_sum = 0
-    dist_sum_real = 0
-    for _ in range(TOTAL_DIST_COMPUTES):
-        node1_ind, node2_ind = sample(range(lwc_nodes), 2)
-        dist_sum += landmarksSC(
-            lwc_undir_adj_list,
-            spt_lst,
-            landmarks_lst,
-            TOTAL_LANDMARKS,
-            node1_ind,
-            node2_ind,
-        )
-        dist_sum_real += getDistNodesPair(
-            lwc_undir_adj_list, node1_ind, node2_ind
-        )
-    print(
-        f"Avg estimated dist with Landmark-SC: {dist_sum / TOTAL_DIST_COMPUTES}"
-    )
-    print(f"Avg real dist with BFS: {dist_sum_real / TOTAL_DIST_COMPUTES}")
-
-
-if __name__ == "__main__":
-    for directed_file_name in DIRECTED_FILE_NAMES:
-        processFile(REF_DATASETS_DIRECTED_DIR + directed_file_name)
-    for undirected_file_name in UNDIRECTED_FILE_NAMES:
-        processFile(REF_DATASETS_UNDIRECTED_DIR + undirected_file_name)
-    # for large_undirected_file_name in LARGE_UNDIRECTED_FILE_NAMES:
-    #     processFile(REF_DATASETS_LARGE_DIR + large_undirected_file_name)

@@ -1,0 +1,430 @@
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/Wiki-Vote.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 0.00016951560974121094 sec
+		Choose highest degree nodes: 0.019760608673095703 sec
+		Choose best coverage nodes: 0.5945618152618408 sec
+		Precompute SPT list: 0.02596259117126465 sec
+		Calculation of 100 distances for rand nodes: 0.014635801315307617 sec
+		Calculation of 100 distances for highest degree nodes: 0.01151132583618164 sec
+		Calculation of 100 distances for best coverage nodes: 0.012529611587524414 sec
+		Total: 1.12149362564086914 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9970149253731343
+		Landmarks-SC highest degree landmarks: 0.9881305637982196
+		Landmarks-SC best coverage landmarks: 0.9876923076923076
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 3.790855407714844e-05 sec
+		Choose highest degree nodes: 0.01785111427307129 sec
+		Choose best coverage nodes: 1.2140324115753174 sec
+		Precompute SPT list: 0.03683018684387207 sec
+		Calculation of 100 distances for rand nodes: 0.01528620719909668 sec
+		Calculation of 100 distances for highest degree nodes: 0.013983488082885742 sec
+		Calculation of 100 distances for best coverage nodes: 0.015040159225463867 sec
+		Total: 2.0937913417816162 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9877300613496932
+		Landmarks-SC highest degree landmarks: 1.0
+		Landmarks-SC best coverage landmarks: 0.9969604863221885
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 5.173683166503906e-05 sec
+		Choose highest degree nodes: 0.017550945281982422 sec
+		Choose best coverage nodes: 2.441099166870117 sec
+		Precompute SPT list: 0.08196473121643066 sec
+		Calculation of 100 distances for rand nodes: 0.015070438385009766 sec
+		Calculation of 100 distances for highest degree nodes: 0.016443729400634766 sec
+		Calculation of 100 distances for best coverage nodes: 0.017681121826171875 sec
+		Total: 3.2539359664916992 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.996875
+		Landmarks-SC best coverage landmarks: 0.9970588235294118
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/soc-wiki-Vote.mtx
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 3.1948089599609375e-05 sec
+		Choose highest degree nodes: 0.005093574523925781 sec
+		Choose best coverage nodes: 0.021909713745117188 sec
+		Precompute SPT list: 0.0007863044738769531 sec
+		Calculation of 100 distances for rand nodes: 0.0031375885009765625 sec
+		Calculation of 100 distances for highest degree nodes: 0.0028429031372070312 sec
+		Calculation of 100 distances for best coverage nodes: 0.0025615692138671875 sec
+		Total: 0.063639688491821289 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9879227053140096
+		Landmarks-SC highest degree landmarks: 0.9825870646766169
+		Landmarks-SC best coverage landmarks: 0.9833729216152018
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 3.24249267578125e-05 sec
+		Choose highest degree nodes: 0.004253387451171875 sec
+		Choose best coverage nodes: 0.03365516662597656 sec
+		Precompute SPT list: 0.001611948013305664 sec
+		Calculation of 100 distances for rand nodes: 0.004979372024536133 sec
+		Calculation of 100 distances for highest degree nodes: 0.004183053970336914 sec
+		Calculation of 100 distances for best coverage nodes: 0.004340648651123047 sec
+		Total: 0.07497314453125 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9976689976689976
+		Landmarks-SC highest degree landmarks: 0.9810874704491725
+		Landmarks-SC best coverage landmarks: 0.9974747474747475
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 4.1961669921875e-05 sec
+		Choose highest degree nodes: 0.004354000091552734 sec
+		Choose best coverage nodes: 0.0699317455291748 sec
+		Precompute SPT list: 0.0031523704528808594 sec
+		Calculation of 100 distances for rand nodes: 0.0066068172454833984 sec
+		Calculation of 100 distances for highest degree nodes: 0.006466865539550781 sec
+		Calculation of 100 distances for best coverage nodes: 0.00643610954284668 sec
+		Total: 0.127388458251953 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 1.0
+		Landmarks-SC best coverage landmarks: 1.0
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Google.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 8.726119995117188e-05 sec
+		Choose highest degree nodes: 1.9618120193481445 sec
+		Choose best coverage nodes: 72.47920775413513 sec
+		Precompute SPT list: 3.655407667160034 sec
+		Calculation of 100 distances for rand nodes: 0.23151159286499023 sec
+		Calculation of 100 distances for highest degree nodes: 0.2290339469909668 sec
+		Calculation of 100 distances for best coverage nodes: 0.17602896690368652 sec
+		Total: 165.88923692703247 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9859375
+		Landmarks-SC highest degree landmarks: 0.9795597484276729
+		Landmarks-SC best coverage landmarks: 0.9785276073619632
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 0.00011277198791503906 sec
+		Choose highest degree nodes: 1.991581678390503 sec
+		Choose best coverage nodes: 135.1187994480133 sec
+		Precompute SPT list: 6.801994800567627 sec
+		Calculation of 100 distances for rand nodes: 0.3520848751068115 sec
+		Calculation of 100 distances for highest degree nodes: 0.37575674057006836 sec
+		Calculation of 100 distances for best coverage nodes: 0.32862043380737305 sec
+		Total: 242.588560342788696 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9922360248447205
+		Landmarks-SC highest degree landmarks: 0.9967689822294022
+		Landmarks-SC best coverage landmarks: 0.985981308411215
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.0001266002655029297 sec
+		Choose highest degree nodes: 2.12922739982605 sec
+		Choose best coverage nodes: 267.1662836074829 sec
+		Precompute SPT list: 13.805137395858765 sec
+		Calculation of 100 distances for rand nodes: 0.531813383102417 sec
+		Calculation of 100 distances for highest degree nodes: 0.5830874443054199 sec
+		Calculation of 100 distances for best coverage nodes: 0.5579142570495605 sec
+		Total: 398.1889443397522 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9953703703703703
+		Landmarks-SC highest degree landmarks: 0.9927953890489913
+		Landmarks-SC best coverage landmarks: 0.9920508744038156
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-NotreDame.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 9.059906005859375e-05 sec
+		Choose highest degree nodes: 0.45917534828186035 sec
+		Choose best coverage nodes: 8.709211349487305 sec
+		Precompute SPT list: 0.5088982582092285 sec
+		Calculation of 100 distances for rand nodes: 0.1656322479248047 sec
+		Calculation of 100 distances for highest degree nodes: 0.19342350959777832 sec
+		Calculation of 100 distances for best coverage nodes: 0.13678574562072754 sec
+		Total: 22.861255884170532 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9943181818181818
+		Landmarks-SC highest degree landmarks: 0.9916550764951322
+		Landmarks-SC best coverage landmarks: 0.9946879150066401
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 0.00011014938354492188 sec
+		Choose highest degree nodes: 0.526832103729248 sec
+		Choose best coverage nodes: 18.84689450263977 sec
+		Precompute SPT list: 0.8741827011108398 sec
+		Calculation of 100 distances for rand nodes: 0.26346778869628906 sec
+		Calculation of 100 distances for highest degree nodes: 0.4571213722229004 sec
+		Calculation of 100 distances for best coverage nodes: 0.2427830696105957 sec
+		Total: 34.117929697036743 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9940387481371088
+		Landmarks-SC highest degree landmarks: 0.9917582417582418
+		Landmarks-SC best coverage landmarks: 0.9932157394843962
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.0001285076141357422 sec
+		Choose highest degree nodes: 0.4662046432495117 sec
+		Choose best coverage nodes: 38.50794792175293 sec
+		Precompute SPT list: 1.9062590599060059 sec
+		Calculation of 100 distances for rand nodes: 0.6259129047393799 sec
+		Calculation of 100 distances for highest degree nodes: 0.6376819610595703 sec
+		Calculation of 100 distances for best coverage nodes: 0.6188325881958008 sec
+		Total: 56.497351408004761 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9985974754558204
+		Landmarks-SC highest degree landmarks: 0.9957805907172996
+		Landmarks-SC best coverage landmarks: 0.9985734664764622
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/directed/web-Stanford.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 7.462501525878906e-05 sec
+		Choose highest degree nodes: 0.6306240558624268 sec
+		Choose best coverage nodes: 18.473385334014893 sec
+		Precompute SPT list: 0.9233062267303467 sec
+		Calculation of 100 distances for rand nodes: 0.9048938751220703 sec
+		Calculation of 100 distances for highest degree nodes: 0.7023494243621826 sec
+		Calculation of 100 distances for best coverage nodes: 0.575171947479248 sec
+		Total: 44.109624147415161 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.997080291970803
+		Landmarks-SC highest degree landmarks: 0.9972565157750343
+		Landmarks-SC best coverage landmarks: 0.9986754966887417
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 8.797645568847656e-05 sec
+		Choose highest degree nodes: 0.6298327445983887 sec
+		Choose best coverage nodes: 35.08555841445923 sec
+		Precompute SPT list: 1.6394007205963135 sec
+		Calculation of 100 distances for rand nodes: 1.6677658557891846 sec
+		Calculation of 100 distances for highest degree nodes: 1.676757574081421 sec
+		Calculation of 100 distances for best coverage nodes: 1.5314242839813232 sec
+		Total: 65.651723146438599 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9937205651491365
+		Landmarks-SC highest degree landmarks: 0.9939024390243902
+		Landmarks-SC best coverage landmarks: 1.0
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.00010132789611816406 sec
+		Choose highest degree nodes: 0.6455106735229492 sec
+		Choose best coverage nodes: 76.58669209480286 sec
+		Precompute SPT list: 3.4628641605377197 sec
+		Calculation of 100 distances for rand nodes: 2.8959383964538574 sec
+		Calculation of 100 distances for highest degree nodes: 2.533323049545288 sec
+		Calculation of 100 distances for best coverage nodes: 2.389059543609619 sec
+		Total: 114.013511896133423 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.9971428571428571
+		Landmarks-SC best coverage landmarks: 0.998422712933754
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-AstroPh.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 8.416175842285156e-05 sec
+		Choose highest degree nodes: 0.04931831359863281 sec
+		Choose best coverage nodes: 1.3626554012298584 sec
+		Precompute SPT list: 0.04765057563781738 sec
+		Calculation of 100 distances for rand nodes: 0.010224580764770508 sec
+		Calculation of 100 distances for highest degree nodes: 0.006871461868286133 sec
+		Calculation of 100 distances for best coverage nodes: 0.007562398910522461 sec
+		Total: 3.06381028175354 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.958904109589041
+		Landmarks-SC highest degree landmarks: 0.9367945823927766
+		Landmarks-SC best coverage landmarks: 0.9457013574660633
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 9.274482727050781e-05 sec
+		Choose highest degree nodes: 0.050449371337890625 sec
+		Choose best coverage nodes: 2.7736775875091553 sec
+		Precompute SPT list: 0.10839962959289551 sec
+		Calculation of 100 distances for rand nodes: 0.014485836029052734 sec
+		Calculation of 100 distances for highest degree nodes: 0.01282501220703125 sec
+		Calculation of 100 distances for best coverage nodes: 0.013655424118041992 sec
+		Total: 4.4790306568145752 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9806763285024155
+		Landmarks-SC highest degree landmarks: 0.9641148325358851
+		Landmarks-SC best coverage landmarks: 0.9605568445475638
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.00010228157043457031 sec
+		Choose highest degree nodes: 0.0515139102935791 sec
+		Choose best coverage nodes: 5.401125907897949 sec
+		Precompute SPT list: 0.2004992961883545 sec
+		Calculation of 100 distances for rand nodes: 0.02891707420349121 sec
+		Calculation of 100 distances for highest degree nodes: 0.022979736328125 sec
+		Calculation of 100 distances for best coverage nodes: 0.02669382095336914 sec
+		Total: 6.4774608135223389 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.9837587006960556
+		Landmarks-SC best coverage landmarks: 0.9953596287703016
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/CA-GrQc.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 6.794929504394531e-05 sec
+		Choose highest degree nodes: 0.011774063110351562 sec
+		Choose best coverage nodes: 0.09284138679504395 sec
+		Precompute SPT list: 0.003935098648071289 sec
+		Calculation of 100 distances for rand nodes: 0.003565073013305664 sec
+		Calculation of 100 distances for highest degree nodes: 0.0031714439392089844 sec
+		Calculation of 100 distances for best coverage nodes: 0.0033359527587890625 sec
+		Total: 0.2245406436920166 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9450381679389313
+		Landmarks-SC highest degree landmarks: 0.8952654232424677
+		Landmarks-SC best coverage landmarks: 0.9789983844911146
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 4.863739013671875e-05 sec
+		Choose highest degree nodes: 0.01215505599975586 sec
+		Choose best coverage nodes: 0.16595888137817383 sec
+		Precompute SPT list: 0.007656574249267578 sec
+		Calculation of 100 distances for rand nodes: 0.0062787532806396484 sec
+		Calculation of 100 distances for highest degree nodes: 0.005288839340209961 sec
+		Calculation of 100 distances for best coverage nodes: 0.005644083023071289 sec
+		Total: 0.3219998550415039 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9787928221859706
+		Landmarks-SC highest degree landmarks: 0.9074074074074074
+		Landmarks-SC best coverage landmarks: 0.9868421052631579
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.0013005733489990234 sec
+		Choose highest degree nodes: 0.01234126091003418 sec
+		Choose best coverage nodes: 0.3310863971710205 sec
+		Precompute SPT list: 0.015408039093017578 sec
+		Calculation of 100 distances for rand nodes: 0.012725591659545898 sec
+		Calculation of 100 distances for highest degree nodes: 0.010100364685058594 sec
+		Calculation of 100 distances for best coverage nodes: 0.010782957077026367 sec
+		Total: 0.5106325912475586 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9887640449438202
+		Landmarks-SC highest degree landmarks: 0.9335394126738794
+		Landmarks-SC best coverage landmarks: 0.9952076677316294
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/Email-EuAll.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 6.532669067382812e-05 sec
+		Choose highest degree nodes: 0.37543416023254395 sec
+		Choose best coverage nodes: 8.97684907913208 sec
+		Precompute SPT list: 0.42826104164123535 sec
+		Calculation of 100 distances for rand nodes: 0.06627964973449707 sec
+		Calculation of 100 distances for highest degree nodes: 0.06850528717041016 sec
+		Calculation of 100 distances for best coverage nodes: 0.05486178398132324 sec
+		Total: 21.426141929626465 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.9952941176470588
+		Landmarks-SC best coverage landmarks: 0.9975903614457832
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 8.296966552734375e-05 sec
+		Choose highest degree nodes: 0.3747892379760742 sec
+		Choose best coverage nodes: 16.959543466567993 sec
+		Precompute SPT list: 0.8792824745178223 sec
+		Calculation of 100 distances for rand nodes: 0.11249995231628418 sec
+		Calculation of 100 distances for highest degree nodes: 0.1332259178161621 sec
+		Calculation of 100 distances for best coverage nodes: 0.12836194038391113 sec
+		Total: 31.53614706993103 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9975550122249389
+		Landmarks-SC highest degree landmarks: 0.9976359338061466
+		Landmarks-SC best coverage landmarks: 0.9975369458128078
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 8.273124694824219e-05 sec
+		Choose highest degree nodes: 0.38057827949523926 sec
+		Choose best coverage nodes: 34.18388104438782 sec
+		Precompute SPT list: 1.6872377395629883 sec
+		Calculation of 100 distances for rand nodes: 0.27783966064453125 sec
+		Calculation of 100 distances for highest degree nodes: 0.23560476303100586 sec
+		Calculation of 100 distances for best coverage nodes: 0.15746355056762695 sec
+		Total: 11.578984975814819 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.9975903614457832
+		Landmarks-SC best coverage landmarks: 1.0
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/ca-coauthors-dblp.txt
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 7.486343383789062e-05 sec
+		Choose highest degree nodes: 2.1082215309143066 sec
+		Choose best coverage nodes: 88.98589062690735 sec
+		Precompute SPT list: 3.243195056915283 sec
+		Calculation of 100 distances for rand nodes: 0.033896684646606445 sec
+		Calculation of 100 distances for highest degree nodes: 0.05997419357299805 sec
+		Calculation of 100 distances for best coverage nodes: 0.03522515296936035 sec
+		Total: 188.781516790390015 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.7994579945799458
+		Landmarks-SC highest degree landmarks: 0.8601190476190477
+		Landmarks-SC best coverage landmarks: 0.8328402366863905
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 7.915496826171875e-05 sec
+		Choose highest degree nodes: 1.6773674488067627 sec
+		Choose best coverage nodes: 171.58669996261597 sec
+		Precompute SPT list: 6.46738076210022 sec
+		Calculation of 100 distances for rand nodes: 0.07018375396728516 sec
+		Calculation of 100 distances for highest degree nodes: 0.0982656478881836 sec
+		Calculation of 100 distances for best coverage nodes: 0.07186627388000488 sec
+		Total: 280.96723031997681 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.8594436310395315
+		Landmarks-SC highest degree landmarks: 0.8967136150234741
+		Landmarks-SC best coverage landmarks: 0.9101123595505618
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.00011277198791503906 sec
+		Choose highest degree nodes: 1.6960225105285645 sec
+		Choose best coverage nodes: 346.38086104393005 sec
+		Precompute SPT list: 13.013871431350708 sec
+		Calculation of 100 distances for rand nodes: 0.14047741889953613 sec
+		Calculation of 100 distances for highest degree nodes: 0.18732738494873047 sec
+		Calculation of 100 distances for best coverage nodes: 0.13485169410705566 sec
+		Total: 471.83304500579834 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.923728813559322
+		Landmarks-SC highest degree landmarks: 0.9224683544303798
+		Landmarks-SC best coverage landmarks: 0.9258064516129032
+Processing: /home/artem/Dev/Python/Graph_Theory_LeetCode25/reformatted_datasets/undirected/musae_git_edges.csv
+Landmarks amount: 5
+	Time
+		Choose rand nodes: 7.843971252441406e-05 sec
+		Choose highest degree nodes: 0.11071944236755371 sec
+		Choose best coverage nodes: 2.546881675720215 sec
+		Precompute SPT list: 0.09407734870910645 sec
+		Calculation of 100 distances for rand nodes: 0.028361082077026367 sec
+		Calculation of 100 distances for highest degree nodes: 0.015125274658203125 sec
+		Calculation of 100 distances for best coverage nodes: 0.022076845169067383 sec
+		Total: 5.8295583248138428 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9936305732484076
+		Landmarks-SC highest degree landmarks: 0.9909365558912386
+		Landmarks-SC best coverage landmarks: 1.0
+Landmarks amount: 10
+	Time
+		Choose rand nodes: 6.699562072753906e-05 sec
+		Choose highest degree nodes: 0.11312270164489746 sec
+		Choose best coverage nodes: 5.314753532409668 sec
+		Precompute SPT list: 0.188309907913208 sec
+		Calculation of 100 distances for rand nodes: 0.08399605751037598 sec
+		Calculation of 100 distances for highest degree nodes: 0.04465675354003906 sec
+		Calculation of 100 distances for best coverage nodes: 0.036087989807128906 sec
+		Total: 9.0103963375091553 sec
+	Accuracy
+		Landmarks-SC random landmarks: 1.0
+		Landmarks-SC highest degree landmarks: 0.9938080495356038
+		Landmarks-SC best coverage landmarks: 1.0
+Landmarks amount: 20
+	Time
+		Choose rand nodes: 0.00010132789611816406 sec
+		Choose highest degree nodes: 0.11442780494689941 sec
+		Choose best coverage nodes: 10.582859516143799 sec
+		Precompute SPT list: 0.37946081161499023 sec
+		Calculation of 100 distances for rand nodes: 0.09940409660339355 sec
+		Calculation of 100 distances for highest degree nodes: 0.11705350875854492 sec
+		Calculation of 100 distances for best coverage nodes: 0.10500574111938477 sec
+		Total: 3.385606575012207 sec
+	Accuracy
+		Landmarks-SC random landmarks: 0.9969040247678018
+		Landmarks-SC highest degree landmarks: 1.0
+		Landmarks-SC best coverage landmarks: 0.9938080495356038
