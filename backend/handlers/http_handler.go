@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"io"
 	"fmt"
+	"bytes"
+	"os/exec"
 
 	"github.com/HikkMind/graph/middleware"
 	"github.com/gorilla/mux"
@@ -111,8 +113,8 @@ func GetClusteringVertex(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDistanceAnalysis(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
-	// filename := vars["datasetname"]
+	vars := mux.Vars(r)
+	filename := vars["datasetname"]
 
 	req, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -121,6 +123,30 @@ func GetDistanceAnalysis(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	fmt.Println(string(req))
-	
+	var compactBuf bytes.Buffer
+	err = json.Compact(&compactBuf, req)
+	if err != nil {
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// preCmd := exec.Command("chmod", "+x", "main")
+	// fmt.Println(preCmd.Output())	
+	// preCmd.Output()
+	cmd := exec.Command("./main", "--file-name", filename, "--json", compactBuf.String())
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Println("Ошибка:", err)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			fmt.Println(string(exitErr.Stderr))
+		}
+		return
+	}
+
+	// Вывод результата
+	// fmt.Println("Вывод из Rust:", string(output))
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(output)
+
 }
