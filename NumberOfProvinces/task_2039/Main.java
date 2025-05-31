@@ -31,8 +31,8 @@ class Solution {
         int maxTime = 0;
         for (int i = 0; i < patience.length; ++i) {
             int curr = 2 * lengths.get(i);
-            if (curr - patience[i] > 0) {curr+=curr - patience[i];}
-            maxTime = Math.max(maxTime,curr);
+            int lastSent = patience[i] * ((curr -1)/patience[i]);
+            maxTime = Math.max(maxTime,curr+lastSent);
         }
         return maxTime + 1;
     }
