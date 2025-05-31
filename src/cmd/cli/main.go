@@ -225,7 +225,27 @@ func main() {
 			} else {
 				fmt.Printf("Global clustering coefficient: %.4f\n", val)
 			}
-		case "12": // degrees
+		case "12": // local clustering coefficient
+			if len(args) < 2 {
+				fmt.Println("Usage: 12 <node_id>")
+				continue
+			}
+			if ug == nil {
+				fmt.Println("Load a graph first.")
+				continue
+			}
+			node, err := strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+			res, err := ug.GetLocalClusteringCoefficient(graph.Node(node))
+			if err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
+			fmt.Printf("Local clustering coefficient for node %d: %.4f\n", node, res)
+		case "13": // degrees
 			if ug == nil {
 				fmt.Println("Load a graph first.")
 				continue
@@ -236,9 +256,9 @@ func main() {
 			} else {
 				fmt.Printf("Degree stats - Min: %d, Avg: %.2f, Max: %d\n", minD, avgD, maxD)
 			}
-		case "13": // largest WCC size ration after node removals
+		case "14": // largest WCC size ration after node removals
 			if len(args) < 2 {
-				fmt.Println("Usage: 13 <percent to remove>")
+				fmt.Println("Usage: 14 <percent to remove>")
 				continue
 			}
 			if ug == nil {
@@ -257,9 +277,9 @@ func main() {
 				fmt.Printf("Largest WCC size ratio after random removals: %.4f\n", randRatio)
 				fmt.Printf("Largest WCC size ratio after max-degree removals: %.4f\n", maxDegRatio)
 			}
-		case "14":
+		case "15":
 			if len(args) < 3 {
-				fmt.Println("Usage: 14 <node_id> <node_id>")
+				fmt.Println("Usage: 15 <node_id> <node_id>")
 			}
 			if ug == nil {
 				fmt.Println("Load a graph first.")
@@ -401,9 +421,10 @@ func printHelp() {
 	fmt.Println(" 9                           - average clustering coefficient")
 	fmt.Println("10                           - average clustering coefficient (largest WCC)")
 	fmt.Println("11                           - global clustering coefficient")
-	fmt.Println("12                           - degree distribution")
-	fmt.Println("13 <percent>                 - WCC ratio after x% node removals")
-	fmt.Println("14 <node_id> <node_id>       - approx distance between two nodes")
+	fmt.Println("12 <node_id>                 - local clustering coefficient for node <node_id>")
+	fmt.Println("13                           - degree distribution")
+	fmt.Println("14 <percent>                 - WCC ratio after x% node removals")
+	fmt.Println("15 <node_id> <node_id>       - approx distance between two nodes")
 	fmt.Println("99                           - exit")
 }
 
