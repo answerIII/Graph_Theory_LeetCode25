@@ -89,8 +89,35 @@ Processing ref_tests/graph_8.txt
 	Node 9 cluster coefficient: 0.0975031605562579
 	Distance between 9 and 999: 2
 Processing ref_tests/digraph_1.txt
-Number of strongly connected components: 17
+	Nodes: 1000
+	Edges: 5062
+	Diameter: 10
+	Radius: 0
+	Density: 0.005067
+	Largest weak component size: 1000
+	triangles: 56
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 999: 4
+	Number of strongly connected components: 17
 Processing ref_tests/digraph_2.txt
-Number of strongly connected components: 45
+	Nodes: 1000
+	Edges: 4053
+	Diameter: 11
+	Radius: 0
+	Density: 0.004057
+	Largest weak component size: 1000
+	triangles: 28
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 999: 4
+	Number of strongly connected components: 45
 Processing ref_tests/digraph_3.txt
-Number of strongly connected components: 106
+	Nodes: 1000
+	Edges: 2947
+	Diameter: 16
+	Radius: 0
+	Density: 0.00295
+	Largest weak component size: 1000
+	triangles: 11
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 999: 4
+	Number of strongly connected components: 106

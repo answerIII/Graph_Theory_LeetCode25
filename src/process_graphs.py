@@ -2,6 +2,8 @@ from typing import Tuple, Set
 
 from create_adj_list import (
     createUndirAdjListNewSamples,
+    createDirAdjList,
+    createUndirAdjList,
 )
 
 from bfs import getFurthestNodeBFS, getDistNodesPair
@@ -62,7 +64,6 @@ def processUndirGraph(file_path: str) -> None:
         "\tLargest weak component size: "
         f"{len(getLargestWeakComponent(undir_adj_list))}"
     )
-    # triangles, _ = averageClustering(undir_adj_list)
     triangles = countTriangles(undir_adj_list)
     print(f"\ttriangles: {triangles // 3}")
     node_cluster_coeff = getNodeClusterCoeff(undir_adj_list, TEAM_NUMBER)
@@ -74,10 +75,34 @@ def processUndirGraph(file_path: str) -> None:
 
 
 def processDirGraph(file_path: str) -> None:
+    TEAM_NUMBER = 9
     print(f"Processing {file_path}")
     result = analyze_network(file_path, True)
+    dir_adj_list = createDirAdjList(file_path)
+    undir_adj_list = createUndirAdjList(file_path)
+    nodes = result["vertices"]
+    print(f"\tNodes: {result['vertices']}")
+    print(f"\tEdges: {result['edges']}")
+    diameter, radius = getGraphDiamAndRadius(dir_adj_list)
+    print(f"\tDiameter: {diameter}")
+    print(f"\tRadius: {radius}")
+    print(f"\tDensity: {result['density']}")
     print(
-        f"Number of strongly connected components: {result['strong_components']}"
+        "\tLargest weak component size: "
+        f"{len(getLargestWeakComponent(undir_adj_list))}"
+    )
+    triangles = countTriangles(undir_adj_list)
+    print(f"\ttriangles: {triangles // 3}")
+
+    node_cluster_coeff = getNodeClusterCoeff(dir_adj_list, TEAM_NUMBER)
+    print(f"\tNode {TEAM_NUMBER} cluster coefficient: {node_cluster_coeff}")
+    dist1 = getDistNodesPair(undir_adj_list, TEAM_NUMBER, nodes - 1)
+    dist = dist1
+    if dist1 == -1:
+        dist = getDistNodesPair(undir_adj_list, nodes - 1, TEAM_NUMBER)
+    print(f"\tDistance between {TEAM_NUMBER} and {nodes - 1}: {dist}")
+    print(
+        f"\tNumber of strongly connected components: {result['strong_components']}"
     )
 
 
