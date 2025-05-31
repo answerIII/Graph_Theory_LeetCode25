@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-	"io"
-	"fmt"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"os/exec"
 
 	"github.com/HikkMind/graph/middleware"
@@ -107,7 +107,6 @@ func GetClusteringVertex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	w.WriteHeader(http.StatusOK)
 	w.Write(middleware.GenerateClusteringVertex(middleware.ReadGraph(storageRoot+filename+".msgpack", filename), req.Vertex))
 }
@@ -131,7 +130,7 @@ func GetDistanceAnalysis(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// preCmd := exec.Command("chmod", "+x", "main")
-	// fmt.Println(preCmd.Output())	
+	// fmt.Println(preCmd.Output())
 	// preCmd.Output()
 	cmd := exec.Command("./main", "--file-name", filename, "--json", compactBuf.String())
 	output, err := cmd.Output()
