@@ -5,8 +5,9 @@ import java.util.*;
 class Solution {
     public int networkBecomesIdle(int[][] edges, int[] patience) {
         List<List<Integer>> graph = new ArrayList<>();
-        List<Integer> lengths = new ArrayList<>();
+        List<Integer> lengths = new ArrayList<>(patience.length);
         for (int i = 0; i < patience.length; ++i) {
+            lengths.add(0);
             graph.add(new ArrayList<>());
         }
         for (int[] edge : edges) {
@@ -16,11 +17,10 @@ class Solution {
 
         Queue<Integer> queue = new LinkedList<>();
         queue.add(0);
-        lengths.set(0,0);
         while (!queue.isEmpty()) {
             int node = queue.poll();
             for (int neighbor : graph.get(node)) {
-                if (lengths.get(node)== 0){
+                if (lengths.get(node) == 0){
                     lengths.set(neighbor,lengths.get(node)+1);
                 }
             }
