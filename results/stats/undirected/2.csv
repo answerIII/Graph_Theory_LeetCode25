@@ -1,0 +1,6 @@
+Dataset,LWC Size,2 BFS,Random,90th Random,Snowball,90th Snowball
+CA-AstroPh.txt,17903,14,11,6,5,4
+CA-GrQc.txt,4158,17,16,8,9,6
+Email-EuAll.txt,224832,14,9,5,4,2
+ca-coauthors-dblp.txt,540486,23,14,7,4,4
+musae_git_edges.csv,37700,11,7,4,3,2

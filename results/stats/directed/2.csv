@@ -1,0 +1,6 @@
+Dataset,LWC Size,2 BFS,Random,90th Random,Snowball,90th Snowball
+Wiki-Vote.txt,7066,7,7,4,4,3
+soc-wiki-Vote.mtx,889,13,11,6,13,6
+web-Google.txt,855802,24,17,8,4,4
+web-NotreDame.txt,325729,46,44,10,2,2
+web-Stanford.txt,255265,164,111,10,5,4

@@ -1,0 +1,6 @@
+Dataset,Vertices,Edges,Density,WC count,MWCR,SC count,MSCR
+Wiki-Vote.txt,7115,103689,0.002049,24,0.9931,5816,0.1827
+soc-wiki-Vote.mtx,889,2914,0.003691,1,1.0,889,0.0011
+web-Google.txt,875713,5105039,7e-06,2746,0.9773,371764,0.4965
+web-NotreDame.txt,325729,1497134,1.4e-05,1,1.0,203609,0.1657
+web-Stanford.txt,281903,2312497,2.9e-05,365,0.9055,29914,0.534

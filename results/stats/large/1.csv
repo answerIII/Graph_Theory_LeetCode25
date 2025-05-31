@@ -1,0 +1,4 @@
+Dataset,Vertices,Edges,Density,WC count,MWCR
+com-youtube.ungraph.txt,1134890,2987624,5e-06,1,1.0
+vk.csv,3215720,17414510,3e-06,24337,0.9834
+com-orkut.ungraph.txt,3072441,117185083,2.5e-05,1,1.0

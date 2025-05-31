@@ -1,0 +1,4 @@
+Dataset,LWC Size,2 BFS,Random,90th Random,Snowball,90th Snowball
+com-youtube.ungraph.txt,1134890,24,12,7,4,3
+vk.csv,3162217,19,11,7,5,3
+com-orkut.ungraph.txt,3072441,9,7,5,5,4

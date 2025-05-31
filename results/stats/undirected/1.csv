@@ -1,0 +1,6 @@
+Dataset,Vertices,Edges,Density,WC count,MWCR
+CA-AstroPh.txt,18772,396160,0.002249,290,0.9537
+CA-GrQc.txt,5242,28980,0.00211,355,0.7932
+Email-EuAll.txt,265214,420045,1.2e-05,15836,0.8477
+ca-coauthors-dblp.txt,540486,15245729,0.000104,1,1.0
+musae_git_edges.csv,37700,289003,0.000407,1,1.0
