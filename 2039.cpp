@@ -19,6 +19,7 @@ public:
 
         vector<bool> visited(sz);
         vector<int> distance (sz);
+        vector<int> time_active (sz);
         queue<int> q;
         
         for(int i = 0;i<sz;++i){
@@ -38,9 +39,18 @@ public:
             q.pop();
         }
 
+        // for(int i = 0;i<sz;++i){
+        //     std::cout<<"dist "<< i << ":"<<" "<<distance[i]<<"\n";
+        // }
+
         for(int i = 0;i<sz;++i){
-            std::cout<<"dist "<< i << ":"<<" "<<distance[i]<<"\n";
+            int path_time = distance[i]*2;
+            int last_message_sent = (path_time/patience[i])*patience[i];
+            if(path_time%patience[i] == 0){
+                last_message_sent -= patience[i];
+            }
+            time_active[i] = last_message_sent + path_time;
         }
-        return 0;
+        return max(time_active);
     }
 };
