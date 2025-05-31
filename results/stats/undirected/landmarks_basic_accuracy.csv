@@ -1,0 +1,16 @@
+Dataset,Landmarks,Rand,High Degree,Coverage
+CA-AstroPh.txt,5,0.628655,0.815939,0.800745
+CA-AstroPh.txt,10,0.683230,0.842912,0.852713
+CA-AstroPh.txt,20,0.684466,0.842629,0.859756
+CA-GrQc.txt,5,0.587588,0.745870,0.833807
+CA-GrQc.txt,10,0.675000,0.749054,0.891892
+CA-GrQc.txt,20,0.694575,0.784288,0.930490
+Email-EuAll.txt,5,0.562249,0.769231,0.845070
+Email-EuAll.txt,10,0.638498,0.825911,0.925170
+Email-EuAll.txt,20,0.595588,0.888158,0.935335
+ca-coauthors-dblp.txt,5,0.576396,0.773692,0.776989
+ca-coauthors-dblp.txt,10,0.635762,0.835994,0.824034
+ca-coauthors-dblp.txt,20,0.654788,0.855895,0.854651
+musae_git_edges.csv,5,0.607735,0.964912,0.964912
+musae_git_edges.csv,10,0.652174,0.973451,0.976331
+musae_git_edges.csv,20,0.631068,0.990854,0.990854

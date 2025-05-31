@@ -1,0 +1,16 @@
+Dataset,Landmarks,Rand,High Degree,Coverage
+Wiki-Vote.txt,5,0.658487,0.877384,0.858667
+Wiki-Vote.txt,10,0.664016,0.925208,0.927778
+Wiki-Vote.txt,20,0.663202,0.916667,0.911429
+soc-wiki-Vote.mtx,5,0.615493,0.920000,0.927813
+soc-wiki-Vote.mtx,10,0.753982,0.914163,0.932166
+soc-wiki-Vote.mtx,20,0.766607,0.951002,0.959551
+web-Google.txt,5,0.613124,0.790404,0.937126
+web-Google.txt,10,0.630285,0.842313,0.951039
+web-Google.txt,20,0.713964,0.876902,0.978395
+web-NotreDame.txt,5,0.749501,0.928307,0.981699
+web-NotreDame.txt,10,0.696345,0.948914,0.989348
+web-NotreDame.txt,20,0.765385,0.981504,0.986369
+web-Stanford.txt,5,0.734300,0.974359,0.985413
+web-Stanford.txt,10,0.781582,0.960813,0.993994
+web-Stanford.txt,20,0.775388,0.989329,0.996928
