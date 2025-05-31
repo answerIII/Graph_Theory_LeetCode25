@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1140</width>
+    <height>594</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="gbLandmarksBasic">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>311</width>
+      <height>135</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Landmarks Basic</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="txtBasicK"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="txtBasicM"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="btnCreateBasic">
+       <property name="text">
+        <string>Создать</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QComboBox" name="cmbBasicMethod">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>highest-degree</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>best-coverage</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>random</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="gbLandmarksBFS">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>311</width>
+      <height>135</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Landmarks BFS</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0" colspan="2">
+      <widget class="QComboBox" name="cmbBFSMethod">
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>highest-degree</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>best-coverage</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>random</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="txtBFSK"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="txtBFSM"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="btnCreateBFS">
+       <property name="text">
+        <string>Создать</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="gbCalculations">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>300</y>
+      <width>311</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Вычисления</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLineEdit" name="txtS">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="txtT">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QCheckBox" name="chkInternalRepr">
+       <property name="text">
+        <string>Исп-ть внут-нее пред-ние</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="btnExact">
+       <property name="text">
+        <string>Точный алгоритм</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" rowspan="3">
+      <widget class="QTextEdit" name="txtResults">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="btnApproxBFS">
+       <property name="text">
+        <string>Landmarks BFS</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QPushButton" name="btnApproxBasic">
+       <property name="text">
+        <string>Landmarks Basic</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QTextEdit" name="textEditStats">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>50</y>
+      <width>381</width>
+      <height>311</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="placeholderText">
+     <string>Статистика графа</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="textEditDegrees">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>50</y>
+      <width>311</width>
+      <height>461</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="placeholderText">
+     <string>Статистика степеней вершин</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBoxCut">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>390</y>
+      <width>191</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Удаление вершин</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_4">
+     <item row="0" column="0" colspan="2">
+      <widget class="QComboBox" name="comboCutMethod">
+       <item>
+        <property name="text">
+         <string>Random_cut</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Max_cut</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QSpinBox" name="spinCutPercent">
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPushButton" name="btnCutRun">
+       <property name="text">
+        <string>PushButton</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="groupBoxCreateGraph">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>410</y>
+      <width>182</width>
+      <height>101</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Создать граф</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="1" column="0">
+      <widget class="QPushButton" name="createGraphButton">
+       <property name="text">
+        <string>Создать граф</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="chkIsDirected">
+       <property name="text">
+        <string>Ориентированный</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1140</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
