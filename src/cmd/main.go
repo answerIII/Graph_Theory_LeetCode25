@@ -131,6 +131,11 @@ func main() {
 	percents := []float64{0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9}
 	wccRatioRandomNodes, wccRatioMaxDegree := computeWCCRatiosAfterRemovals(ugraph, percents, getWCC, 1)
 
+	radius, diameter := ugraph.GetPreciseRadiusAndDiameter()
+
+	teamNode, _ := graph.GetMappedNode(tools.GetFileDestination(filePath)+"mapper/"+graphName+"-mapper.txt", 5)
+	teamNodeClustering, _ := ugraph.GetLocalClusteringCoefficient(teamNode)
+
 	// Output summary
 	log.Println("Запись сводной информации о графе в файл")
 	writef("Сводная информация о графе %s:\n\n", graphName)
@@ -141,6 +146,8 @@ func main() {
 	writef("Доля вершин в наибольшей WCC: %.6f\n", float64(len(wcc[0]))/float64(ugraph.NumberOfNodes()))
 	writef("Количество SCC: %d\n", sccCount)
 	writef("Доля вершин в наибольшей SCC: %.6f\n", float64(maxSccSize)/float64(ugraph.NumberOfNodes()))
+	writef("Точный диаметр графа: %d\n", diameter)
+	writef("Точный радиус графа: %d\n", radius)
 	writef("Диаметр наибольшей WCC (The Double Sweep): %.2f\n", float64(maxWCCDiameterTDS)/float64(EstimateTestCount))
 	for i, PercentileSampleSize := range PercentileSampleSizes {
 		writef("%d процентиль расстояний (random %d): %.2f\n", int(Percentile*100), PercentileSampleSize, percentiles[i]/float64(EstimateTestCount))
@@ -154,6 +161,7 @@ func main() {
 		writef("%d процентиль расстояний (Snowball-%d): %.2f\n", int(Percentile*100), SnowballSize, snowballPercentiles[i]/float64(EstimateTestCount))
 	}
 	writef("Количество треугольников: %d\n", triangles)
+	writef("Кластерный коэффициент вершины номера команды (%d): %.2f\n", 5, teamNodeClustering)
 	writef("Средний коэффициент кластеризации: %.4f\n", avgCC)
 	writef("Глобальный коэффициент кластеризации: %.4f\n", globalCC)
 	writef("Средний коэффициент кластеризации (largest WCC): %.4f\n", avgCcWcc)

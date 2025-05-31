@@ -9,14 +9,13 @@ import (
 	"sync"
 )
 
-func (g *Graph) GetPreciseDiameter() int {
+func (g *Graph) GetPreciseRadiusAndDiameter() (int, int) {
 	wp := workerpool.NewWorkerPool(runtime.NumCPU(), len(g.Nodes))
 	defer wp.Shutdown()
 
 	var mu sync.Mutex
+	radius := math.MaxInt
 	diameter := -1
-	cnt := 0.
-	prevProcent := 0.
 
 	for node := range g.Nodes {
 		wp.Submit(func() error {
@@ -36,13 +35,7 @@ func (g *Graph) GetPreciseDiameter() int {
 			}
 			mu.Lock()
 			diameter = max(diameter, maxDist)
-			cnt++
-			procent := cnt / float64(len(g.Nodes)) * 100
-			log.Println(procent)
-			if procent-prevProcent > .01 {
-				log.Println(procent)
-				prevProcent = procent
-			}
+			radius = min(radius, maxDist)
 			mu.Unlock()
 			return nil
 		})
@@ -50,7 +43,7 @@ func (g *Graph) GetPreciseDiameter() int {
 
 	wp.Wait()
 
-	return diameter
+	return radius, diameter
 }
 
 func (g *Graph) GetDiameterDoubleSweep(randomNode Node) int {
