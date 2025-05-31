@@ -48,3 +48,6 @@ For Windows use `$env:PYTHONPATH="src";` instead of `PYTHONPATH=src`
 `PYTHONPATH=src pypy3 src/dist_between_vertices/landmarks_sc_hd.py`
 
 `PYTHONPATH=src pypy3 src/dist_between_vertices/landmarks_sc_bc.py`
+
+### Run tests
+`PYTHONPATH=src pypy3 src/process_graphs.py`

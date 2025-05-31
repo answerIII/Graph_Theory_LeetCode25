@@ -77,3 +77,28 @@ def createLWCUndirAdjList(input_file_path: str) -> Tuple[Set[int], ...]:
         return createUndirAdjListFromWeakComp(
             input_file_path, largest_weak_component_node_map
         )
+
+
+def createUndirAdjListNewSamples(
+    input_file_path: str,
+) -> Tuple[Tuple[Set[int], ...], int, int]:
+    with open(Path(input_file_path), mode="r") as input_file:
+        nodes, edges = map(int, input_file.readline().split())
+        adj_list: Tuple[Set[int], ...] = tuple(set() for _ in range(nodes))
+        for input_file_line in input_file:
+            out_node, in_node = map(int, input_file_line.split())
+            adj_list[out_node].add(in_node)
+            adj_list[in_node].add(out_node)
+    return (adj_list, nodes, edges)
+
+
+def createDirAdjListNewSamples(
+    input_file_path: str,
+) -> Tuple[Tuple[Set[int], ...], int, int]:
+    with open(Path(input_file_path), mode="r") as input_file:
+        nodes, edges = map(int, input_file.readline().split())
+        adj_list: Tuple[Set[int], ...] = tuple(set() for _ in range(nodes))
+        for input_file_line in input_file:
+            out_node, in_node = map(int, input_file_line.split())
+            adj_list[out_node].add(in_node)
+    return (adj_list, nodes, edges)

@@ -2,6 +2,9 @@
 
 datasets/
 reformatted_datasets/
+tests/
+ref_tests/
+nx_tests/
 
 **/__pycache__/
 

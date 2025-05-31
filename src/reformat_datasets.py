@@ -89,45 +89,93 @@ def reformatMTXGraphFile(input_file_path: str, output_file_path: str) -> None:
 
 
 txt_datasets_path_pairs = [
+    # [
+    #     DATASETS_DIRECTED_DIR + "Wiki-Vote.txt",
+    #     REF_DATASETS_DIRECTED_DIR + "Wiki-Vote.txt",
+    # ],
+    # [
+    #     DATASETS_DIRECTED_DIR + "web-Google.txt",
+    #     REF_DATASETS_DIRECTED_DIR + "web-Google.txt",
+    # ],
+    # [
+    #     DATASETS_DIRECTED_DIR + "web-NotreDame.txt",
+    #     REF_DATASETS_DIRECTED_DIR + "web-NotreDame.txt",
+    # ],
+    # [
+    #     DATASETS_DIRECTED_DIR + "web-Stanford.txt",
+    #     REF_DATASETS_DIRECTED_DIR + "web-Stanford.txt",
+    # ],
+    # [
+    #     DATASETS_UNDIRECTED_DIR + "CA-AstroPh.txt",
+    #     REF_DATASETS_UNDIRECTED_DIR + "CA-AstroPh.txt",
+    # ],
+    # [
+    #     DATASETS_UNDIRECTED_DIR + "CA-GrQc.txt",
+    #     REF_DATASETS_UNDIRECTED_DIR + "CA-GrQc.txt",
+    # ],
+    # [
+    #     DATASETS_UNDIRECTED_DIR + "Email-EuAll.txt",
+    #     REF_DATASETS_UNDIRECTED_DIR + "Email-EuAll.txt",
+    # ],
+    # [
+    #     DATASETS_UNDIRECTED_DIR + "ca-coauthors-dblp.txt",
+    #     REF_DATASETS_UNDIRECTED_DIR + "ca-coauthors-dblp.txt",
+    # ],
+    # [
+    #     DATASETS_LARGE_DIR + "com-orkut.ungraph.txt",
+    #     REF_DATASETS_LARGE_DIR + "com-orkut.ungraph.txt",
+    # ],
+    # [
+    #     DATASETS_LARGE_DIR + "com-youtube.ungraph.txt",
+    #     REF_DATASETS_LARGE_DIR + "com-youtube.ungraph.txt",
+    # ],
     [
-        DATASETS_DIRECTED_DIR + "Wiki-Vote.txt",
-        REF_DATASETS_DIRECTED_DIR + "Wiki-Vote.txt",
+        "tests/graph_0.txt",
+        "ref_tests/graph_0.txt",
     ],
     [
-        DATASETS_DIRECTED_DIR + "web-Google.txt",
-        REF_DATASETS_DIRECTED_DIR + "web-Google.txt",
+        "tests/graph_1.txt",
+        "ref_tests/graph_1.txt",
     ],
     [
-        DATASETS_DIRECTED_DIR + "web-NotreDame.txt",
-        REF_DATASETS_DIRECTED_DIR + "web-NotreDame.txt",
+        "tests/graph_2.txt",
+        "ref_tests/graph_2.txt",
     ],
     [
-        DATASETS_DIRECTED_DIR + "web-Stanford.txt",
-        REF_DATASETS_DIRECTED_DIR + "web-Stanford.txt",
+        "tests/graph_3.txt",
+        "ref_tests/graph_3.txt",
     ],
     [
-        DATASETS_UNDIRECTED_DIR + "CA-AstroPh.txt",
-        REF_DATASETS_UNDIRECTED_DIR + "CA-AstroPh.txt",
+        "tests/graph_4.txt",
+        "ref_tests/graph_4.txt",
     ],
     [
-        DATASETS_UNDIRECTED_DIR + "CA-GrQc.txt",
-        REF_DATASETS_UNDIRECTED_DIR + "CA-GrQc.txt",
+        "tests/graph_5.txt",
+        "ref_tests/graph_5.txt",
     ],
     [
-        DATASETS_UNDIRECTED_DIR + "Email-EuAll.txt",
-        REF_DATASETS_UNDIRECTED_DIR + "Email-EuAll.txt",
+        "tests/graph_6.txt",
+        "ref_tests/graph_6.txt",
     ],
     [
-        DATASETS_UNDIRECTED_DIR + "ca-coauthors-dblp.txt",
-        REF_DATASETS_UNDIRECTED_DIR + "ca-coauthors-dblp.txt",
+        "tests/graph_7.txt",
+        "ref_tests/graph_7.txt",
     ],
     [
-        DATASETS_LARGE_DIR + "com-orkut.ungraph.txt",
-        REF_DATASETS_LARGE_DIR + "com-orkut.ungraph.txt",
+        "tests/graph_8.txt",
+        "ref_tests/graph_8.txt",
     ],
     [
-        DATASETS_LARGE_DIR + "com-youtube.ungraph.txt",
-        REF_DATASETS_LARGE_DIR + "com-youtube.ungraph.txt",
+        "tests/digraph_1.txt",
+        "ref_tests/digraph_1.txt",
+    ],
+    [
+        "tests/digraph_2.txt",
+        "ref_tests/digraph_2.txt",
+    ],
+    [
+        "tests/digraph_3.txt",
+        "ref_tests/digraph_3.txt",
     ],
 ]
 
@@ -151,9 +199,9 @@ if __name__ == "__main__":
     for input_file_path, output_file_path in txt_datasets_path_pairs:
         print(f"Processing: {input_file_path}")
         reformatTXTGraphFile(input_file_path, output_file_path)
-    for input_file_path, output_file_path in csv_datasets_path_pairs:
-        print(f"Processing: {input_file_path}")
-        reformatCSVGraphFile(input_file_path, output_file_path)
-    for input_file_path, output_file_path in mtx_dataset_path_pairs:
-        print(f"Processing: {input_file_path}")
-        reformatMTXGraphFile(input_file_path, output_file_path)
+    # for input_file_path, output_file_path in csv_datasets_path_pairs:
+    #     print(f"Processing: {input_file_path}")
+    #     reformatCSVGraphFile(input_file_path, output_file_path)
+    # for input_file_path, output_file_path in mtx_dataset_path_pairs:
+    #     print(f"Processing: {input_file_path}")
+    #     reformatMTXGraphFile(input_file_path, output_file_path)
