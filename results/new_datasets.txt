@@ -1,0 +1,96 @@
+Processing ref_tests/graph_0.txt
+	Nodes: 34
+	Edges: 78
+	Diameter: 5
+	Radius: 3
+	Density: 0.13903743315508021
+	Largest weak component size: 34
+	triangles: 12
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 33: 1
+Processing ref_tests/graph_1.txt
+	Nodes: 962
+	Edges: 18812
+	Diameter: 6
+	Radius: 4
+	Density: 0.04069738513026754
+	Largest weak component size: 962
+	triangles: 32373
+	Node 9 cluster coefficient: 0.2598101265822785
+	Distance between 9 and 961: 2
+Processing ref_tests/graph_2.txt
+	Nodes: 3075
+	Edges: 124610
+	Diameter: 7
+	Radius: 1
+	Density: 0.02636537230694363
+	Largest weak component size: 3069
+	triangles: 373072
+	Node 9 cluster coefficient: 0.20463320463320464
+	Distance between 9 and 3074: 2
+Processing ref_tests/graph_3.txt
+	Nodes: 864
+	Edges: 995
+	Diameter: 20
+	Radius: 1
+	Density: 0.002668876872237243
+	Largest weak component size: 785
+	triangles: 0
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 863: 6
+Processing ref_tests/graph_4.txt
+	Nodes: 955
+	Edges: 1447
+	Diameter: 14
+	Radius: 1
+	Density: 0.0031764847926064954
+	Largest weak component size: 947
+	triangles: 1
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 954: 6
+Processing ref_tests/graph_5.txt
+	Nodes: 991
+	Edges: 2490
+	Diameter: 9
+	Radius: 6
+	Density: 0.005075986912515672
+	Largest weak component size: 991
+	triangles: 8
+	Node 9 cluster coefficient: 0.07142857142857142
+	Distance between 9 and 990: 4
+Processing ref_tests/graph_6.txt
+	Nodes: 999
+	Edges: 3737
+	Diameter: 7
+	Radius: 5
+	Density: 0.007496474430342166
+	Largest weak component size: 999
+	triangles: 24
+	Node 9 cluster coefficient: 0.0
+	Distance between 9 and 998: 4
+Processing ref_tests/graph_7.txt
+	Nodes: 1000
+	Edges: 5038
+	Diameter: 6
+	Radius: 4
+	Density: 0.010086086086086085
+	Largest weak component size: 1000
+	triangles: 54
+	Node 9 cluster coefficient: 0.01818181818181818
+	Distance between 9 and 999: 2
+Processing ref_tests/graph_8.txt
+	Nodes: 1000
+	Edges: 49852
+	Diameter: 3
+	Radius: 2
+	Density: 0.0998038038038038
+	Largest weak component size: 1000
+	triangles: 55113
+	Node 9 cluster coefficient: 0.0975031605562579
+	Distance between 9 and 999: 2
+Processing ref_tests/digraph_1.txt
+Number of strongly connected components: 17
+Processing ref_tests/digraph_2.txt
+Number of strongly connected components: 45
+Processing ref_tests/digraph_3.txt
+Number of strongly connected components: 106
