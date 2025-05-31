@@ -60,10 +60,10 @@ export const graphApi = {
   // 6. Анализ устойчивости
   getRobustness: async (
     datasetname: string,
-    xPercent: number[],
+    xPercentages: number[],
   ): Promise<RobustnessData[]> => {
     const response = await axiosInstance.post(`/graphs/${datasetname}/robustness`, {
-      xPercent,
+      xPercentages,
     });
     return response.data;
   },

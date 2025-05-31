@@ -44,3 +44,21 @@ export const datasetsVeryLargeGraphs = [
     'com-youtube',
     'vk',
 ];
+
+export const datasetsTestDi= [
+    'digraph_1',
+    'digraph_2',
+    'digraph_3',
+];
+
+export const datasetsTest= [
+    'graph_0',
+    'graph_1',
+    'graph_2',
+    'graph_3',
+    'graph_4',
+    'graph_5',
+    'graph_6',
+    'graph_7',
+    'graph_8',
+];

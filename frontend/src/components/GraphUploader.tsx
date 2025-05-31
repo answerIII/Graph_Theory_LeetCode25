@@ -28,7 +28,7 @@ import {
 import { styled } from '@mui/material/styles';
 import { useGraphWorker } from '../hooks/useGraphWorker';
 import { downloadGraph } from '../utils/downloadGraph';
-import { datasetsDirected, datasetsUndirected, datasetsVeryLargeGraphs, testGraph1 } from '../constants/graph';
+import { datasetsDirected, datasetsUndirected, datasetsVeryLargeGraphs, datasetsTestDi, datasetsTest, testGraph1 } from '../constants/graph';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -37,10 +37,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
   maxWidth: 800,
   margin: 'auto',
-  transition: 'transform 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-  },
+  
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
@@ -57,6 +54,7 @@ const GraphUploader: React.FC = () => {
   const [fileName, setFileName] = useState<string>('');
   const [directed, setDirected] = useState<string>('');
   const [isVeryLargeGraph, setIsVeryLargeGraph] = useState<boolean>(false);
+  const [removeLoops, setRemoveLoops] = useState<boolean>(false);
   const [downloadFormat, setDownloadFormat] = useState<'json' | 'csv' | 'msgpack'>('json');
   const [localError, setLocalError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -73,6 +71,7 @@ const GraphUploader: React.FC = () => {
       setSuccessMessage(null);
       setDirected('');
       setIsVeryLargeGraph(selectedFile.name.includes('orkut') || selectedFile.name.includes('vk'));
+      setRemoveLoops(false);
       setGraph(null);
     }
   };
@@ -84,6 +83,10 @@ const GraphUploader: React.FC = () => {
 
   const handleVeryLargeGraphChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsVeryLargeGraph(event.target.checked);
+  };
+
+  const handleRemoveLoopsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRemoveLoops(event.target.checked);
   };
 
   const handleFormatChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -102,7 +105,7 @@ const GraphUploader: React.FC = () => {
     setLocalError(null);
     setSuccessMessage(null);
     try {
-      await processFile(file, directed, isVeryLargeGraph);
+      await processFile(file, directed, isVeryLargeGraph, removeLoops);
       setSuccessMessage('Граф успешно обработан!');
     } catch (err: unknown) {
       setLocalError((err as Error).message || 'Ошибка обработки файла');
@@ -147,6 +150,7 @@ const GraphUploader: React.FC = () => {
     setFileName('test_graph');
     setDirected('false');
     setIsVeryLargeGraph(false);
+    setRemoveLoops(false);
     setLocalError(null);
     setSuccessMessage('Тестовый граф загружен!');
   };
@@ -159,6 +163,7 @@ const GraphUploader: React.FC = () => {
       setSuccessMessage(`Датасет ${datasetName} выбран!`);
       setFileName(datasetName);
       setIsVeryLargeGraph(datasetName.includes('orkut') || datasetName.includes('vk'));
+      setRemoveLoops(false);
       setGraph(null);
     } catch (err: unknown) {
       setLocalError((err as Error).message || `Ошибка обработки датасета ${datasetName}`);
@@ -265,6 +270,42 @@ const GraphUploader: React.FC = () => {
                 ))}
               </Box>
             </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Ориентированные тестовые графы
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {datasetsTestDi.map((dataset) => (
+                  <Chip
+                    key={dataset}
+                    label={dataset}
+                    onClick={() => handleDatasetSelect(dataset)}
+                    disabled={loading || backendLoading}
+                    clickable
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Тестовые графы
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                {datasetsTest.map((dataset) => (
+                  <Chip
+                    key={dataset}
+                    label={dataset}
+                    onClick={() => handleDatasetSelect(dataset)}
+                    disabled={loading || backendLoading}
+                    clickable
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
           </Box>
           <FormControl component="fieldset">
             <FormLabel component="legend" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -295,13 +336,20 @@ const GraphUploader: React.FC = () => {
               />
             </RadioGroup>
           </FormControl>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, margin: '0 auto' }}>
             <FormControlLabel
               control={<Checkbox checked={isVeryLargeGraph} onChange={handleVeryLargeGraphChange} />}
-              label="Режим больших графов"
+              label="Режим добавления обратных рёбер"
               disabled={(file === null && fileName === '') || loading || backendLoading}
             />
-            <FormControl sx={{ minWidth: 150 }}>
+            <FormControlLabel
+              control={<Checkbox checked={removeLoops} onChange={handleRemoveLoopsChange} />}
+              label="Режим удаление петель"
+              disabled={(file === null && fileName === '') || loading || backendLoading}
+            />
+            
+          </Box>
+          <FormControl sx={{ minWidth: 150, margin: '0 auto', textAlign: 'center'}}>
               <InputLabel>Формат</InputLabel>
               <Select
                 value={downloadFormat}
@@ -314,7 +362,6 @@ const GraphUploader: React.FC = () => {
                 <MenuItem value="msgpack">MessagePack</MenuItem>
               </Select>
             </FormControl>
-          </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
             <StyledButton
               variant="contained"

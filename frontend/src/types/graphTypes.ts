@@ -94,7 +94,7 @@ export interface RuntimeData {
 export interface DistanceResultAnalysis {
   algorithm: 'bfs' | 'landmarks-basic' | 'landmarks-bfs';
   distance: number | null;
-  execution_time_ms: number;
+  execution_time: number;
   landmarks: number[];
   start_node: number;
   end_node: number;
@@ -105,4 +105,5 @@ export interface AlgorithmParams {
   end_node: string;
   landmarks_count?: string;
   landmarks_selection?: 'random' | 'highest_degree' | 'max_coverage';
+
 }

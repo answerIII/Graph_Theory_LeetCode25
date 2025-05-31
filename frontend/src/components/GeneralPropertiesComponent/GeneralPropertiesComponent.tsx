@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import CytoscapeComponent from 'react-cytoscapejs';
 import type { Core as Cy } from 'cytoscape';
+import { saveAs } from 'file-saver';
 import { graphApi } from '../../api/graphApi';
 import type { GeneralPropertiesData, LogEntry } from './types';
 import { findMaxWCC, findMaxSCC } from './graphAlgorithms';
@@ -25,7 +26,6 @@ import { testGraph } from './testGraph';
 import { StyledTableCell, StyledTableRow, propertyDescriptions } from './styles';
 import { InfoOutlined } from '@mui/icons-material';
 
-// Основной компонент для отображения свойств графа и визуализации алгоритмов
 const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ datasetname }) => {
   const [properties, setProperties] = useState<GeneralPropertiesData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +34,6 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const cyRef = useRef<Cy | null>(null);
 
-  // Загрузка данных с бэкенда
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -50,12 +49,10 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
     fetchData();
   }, [datasetname]);
 
-  // Добавление лога
   const addLog = (message: string) => {
     setLogs(prev => [...prev, { message, timestamp: Date.now() }]);
   };
 
-  // Запуск алгоритма WCC
   const handleRunWCC = async () => {
     if (!cyRef.current) return;
     setLogs([]);
@@ -63,7 +60,6 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
     addLog(`Итог: найдено ${countWCC} WCC, наибольшая содержит ${maxWccSize} вершин`);
   };
 
-  // Запуск алгоритма SCC
   const handleRunSCC = async () => {
     if (!cyRef.current) return;
     setLogs([]);
@@ -71,7 +67,29 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
     addLog(`Итог: найдено ${countScc} SCC, наибольшая содержит ${maxSccSize} вершин`);
   };
 
-  // Элементы графа для Cytoscape
+  const handleDownloadCsv = () => {
+    if (!properties) return;
+    const csvContent = [
+      ['Характеристика', 'Значение'],
+      ['Ориентированный', properties.directed ? 'Да' : 'Нет'],
+      ['Число вершин', properties.nodeCount.toLocaleString()],
+      ['Число рёбер', properties.edgesCount.toLocaleString()],
+      ['Плотность', properties.density.toFixed(4)],
+      ['Компоненты слабой связности', properties.wccCount],
+      ['Доля вершин в max WCC', properties.proportionWCC.toFixed(2)],
+      ...(properties.directed
+        ? [
+            ['Компоненты сильной связности', properties.sccCount ?? 'N/A'],
+            ['Доля вершин в max SCC', properties.proportionSCC?.toFixed(2) ?? 'N/A'],
+          ]
+        : []),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_general_properties.csv`);
+  };
+
   const graphElements = [
     ...Array.from(testGraph.adjList.keys()).map(id => ({ data: { id } })),
     ...testGraph.edges.map(edge => ({
@@ -95,7 +113,7 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
         </Tabs>
 
         {tabValue === 0 && (
-          <Box>
+          <Box >
             <Typography variant="body2" color="text.secondary" mb={3}>
               Основные метрики графа, включая топологические характеристики и структуру связности.
             </Typography>
@@ -201,6 +219,9 @@ const GeneralPropertiesComponent: React.FC<{ datasetname: string }> = ({ dataset
                 )}
               </TableBody>
             </Table>
+            <Button variant="outlined" onClick={handleDownloadCsv} sx={{ mt: 2,}}>
+              Скачать CSV
+            </Button>
           </Box>
         )}
 

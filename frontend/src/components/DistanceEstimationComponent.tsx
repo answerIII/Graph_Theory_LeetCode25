@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -24,6 +24,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { saveAs } from 'file-saver';
 import { graphApi } from '../api/graphApi';
 import type { DistanceResultEstimation, MethodParams, DistanceEstimationComponentProps } from '../types/graphTypes';
 
@@ -56,7 +57,6 @@ const mockDistanceResults: DistanceResultEstimation[] = [
 
 const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = ({ datasetname }) => {
   const [data, setData] = useState<DistanceResultEstimation[]>(mockDistanceResults);
-  const [diameter, setDiameter] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [params, setParams] = useState<{
     [key: string]: MethodParams;
@@ -65,22 +65,6 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     snowball: { sampleSize: '1000' },
     random_sample_snowball: { sampleSize: '1000' },
   });
-
-  useEffect(() => {
-    if (!datasetname) return;
-    const fetchDiameter = async () => {
-      try {
-        const response = await graphApi.getDiameter(datasetname);
-        if (typeof response.diameter !== 'number') {
-          throw new Error('Некорректный формат ответа от API');
-        }
-        setDiameter(response.diameter);
-      } catch (err) {
-        setError(`Ошибка получения диаметра: ${(err as Error).message}`);
-      }
-    };
-    fetchDiameter();
-  }, [datasetname]);
 
   const handleSetSampleSize = (method: string, size: number) => {
     setParams((prev) => ({
@@ -103,21 +87,21 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     }
 
     // Имитация вычисления
-    const newResult: DistanceResultEstimation = {
-      method,
-      diameter: Math.floor(Math.random() * 5) + 8, // 8–12
-      percentile90: Math.floor(Math.random() * 4) + 6, // 6–9
-      meanDistance: Math.random() * 3 + 5, // 5–8
-      execution_time_ms: Math.floor(Math.random() * 1000) + 1000, // 1000–2000
-    };
+    // const newResult: DistanceResultEstimation = {
+    //   method,
+    //   diameter: Math.floor(Math.random() * 5) + 8, // 8–12
+    //   percentile90: Math.floor(Math.random() * 4) + 6, // 6–9
+    //   meanDistance: Math.random() * 3 + 5, // 5–8
+    //   execution_time_ms: Math.floor(Math.random() * 1000) + 1000, // 1000–2000
+    // };
 
-    setData((prev) =>
-      prev.map((r) => (r.method === newResult.method ? newResult : r))
-    );
-    setError(`Вычислено для ${method} (статические данные)`);
+    // setData((prev) =>
+    //   prev.map((r) => (r.method === newResult.method ? newResult : r))
+    // );
+    // setError(`Вычислено для ${method} (статические данные)`);
 
     // Реальный запрос
-    /*
+
     try {
       const response = await graphApi.getDistances(datasetname, method, sampleSize);
       if (!response.diameter || !response.percentile90 || !response.meanDistance || !response.execution_time_ms) {
@@ -130,8 +114,26 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
     } catch (err) {
       setError(`Ошибка вычисления (${method}): ${(err as Error).message}`);
     }
-    */
+
   };
+
+  const handleDownloadCsv = () => {
+    const csvContent = [
+      ['Метод', 'Диаметр', '90-й процентиль', 'Среднее расстояние', 'Время (мс)'],
+      ...data.map((result) => [
+        result.method === 'random_sample' ? 'Random Sample' : result.method === 'snowball' ? 'Snowball' : 'Random Sample & Snowball',
+        result.diameter,
+        result.percentile90.toFixed(2),
+        result.meanDistance.toFixed(2),
+        result.execution_time_ms,
+      ]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_distance_estimation.csv`);
+  };
+
 
   const metricsChartData = {
     labels: ['Random Sample', 'Snowball', 'Random Sample & Snowball'],
@@ -199,11 +201,6 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
 
   return (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body1">
-          Диаметр: {diameter !== null ? diameter : 'Загрузка...'}
-        </Typography>
-      </Box>
       <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
         Оценка расстояний
       </Typography>
@@ -253,8 +250,8 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
                 {method === 'random_sample'
                   ? 'Random Sample'
                   : method === 'snowball'
-                  ? 'Snowball'
-                  : 'Random Sample & Snowball'}
+                    ? 'Snowball'
+                    : 'Random Sample & Snowball'}
               </Typography>
               <Box
                 sx={{
@@ -302,6 +299,7 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
         ))}
       </Box>
       {data.length > 0 ? (
+        <>
         <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
           <TableHead>
             <TableRow>
@@ -319,8 +317,8 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
                   {result.method === 'random_sample'
                     ? 'Random Sample'
                     : result.method === 'snowball'
-                    ? 'Snowball'
-                    : 'Random Sample & Snowball'}
+                      ? 'Snowball'
+                      : 'Random Sample & Snowball'}
                 </TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>{result.diameter}</TableCell>
                 <TableCell sx={{ textAlign: 'center' }}>{result.percentile90.toFixed(2)}</TableCell>
@@ -330,6 +328,10 @@ const DistanceEstimationComponent: React.FC<DistanceEstimationComponentProps> = 
             ))}
           </TableBody>
         </Table>
+        <Button variant="outlined" onClick={handleDownloadCsv} sx={{ mt: 2 }}>
+            Скачать CSV
+        </Button>
+        </>
       ) : (
         <Alert severity="warning" sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
           Нет данных для отображения

@@ -24,7 +24,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-// import { graphApi } from '../api/graphApi';
+import { saveAs } from 'file-saver';
+import { graphApi } from '../api/graphApi';
 import type { DistanceResultAnalysis, AlgorithmParams } from '../types/graphTypes';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -33,7 +34,7 @@ const mockDistanceResults: DistanceResultAnalysis[] = [
   {
     algorithm: 'bfs',
     distance: 5,
-    execution_time_ms: 1185,
+    execution_time: 1185,
     landmarks: [],
     start_node: 100,
     end_node: 200,
@@ -41,7 +42,7 @@ const mockDistanceResults: DistanceResultAnalysis[] = [
   {
     algorithm: 'landmarks-basic',
     distance: 6,
-    execution_time_ms: 900,
+    execution_time: 900,
     landmarks: [123, 456, 789],
     start_node: 100,
     end_node: 200,
@@ -49,7 +50,7 @@ const mockDistanceResults: DistanceResultAnalysis[] = [
   {
     algorithm: 'landmarks-bfs',
     distance: 6,
-    execution_time_ms: 950,
+    execution_time: 950,
     landmarks: [123, 456, 789],
     start_node: 100,
     end_node: 200,
@@ -103,21 +104,6 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
       return;
     }
 
-    const newResult: DistanceResultAnalysis = {
-      algorithm,
-      distance: Math.floor(Math.random() * 10),
-      execution_time_ms: Math.floor(Math.random() * 1000) + 500,
-      landmarks: algorithm === 'bfs' ? [] : Array.from({ length: landmarksCount }, () => Math.floor(Math.random() * 1000)),
-      start_node: startNode,
-      end_node: endNode,
-    };
-
-    setData((prev) =>
-      prev.map((r) => (r.algorithm === newResult.algorithm ? newResult : r))
-    );
-    setError(`Вычислено для ${algorithm} (статические данные)`);
-
-    /*
     try {
       const payload: any = {
         start_node: startNode,
@@ -141,7 +127,24 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     } catch (err) {
       setError(`Ошибка вычисления (${algorithm}): ${(err as Error).message}`);
     }
-    */
+  };
+
+  const handleDownloadCsv = () => {
+    const csvContent = [
+      ['Алгоритм', 'Расстояние', 'Время (мс)', 'Ориентиры', 'Начальная вершина', 'Конечная вершина'],
+      ...data.map((result) => [
+        result.algorithm,
+        result.distance ?? 'N/A',
+        result.execution_time,
+        result.landmarks.join(';') || '-',
+        result.start_node,
+        result.end_node,
+      ]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_distance_analysis.csv`);
   };
 
   const distanceChartData = {
@@ -162,7 +165,7 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
     datasets: [
       {
         label: 'Время выполнения (мс)',
-        data: data.map((r) => r.execution_time_ms),
+        data: data.map((r) => r.execution_time),
         backgroundColor: '#f57c00',
         borderColor: '#ef6c00',
         borderWidth: 1,
@@ -365,30 +368,35 @@ const DistanceAnalysisComponent: React.FC<{ datasetname: string | undefined }> =
         ))}
       </Box>
       {data.length > 0 ? (
-        <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Алгоритм</TableCell>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Расстояние</TableCell>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Время (мс)</TableCell>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Ориентиры</TableCell>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Начальная вершина</TableCell>
-              <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Конечная вершина</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((result) => (
-              <TableRow key={result.algorithm}>
-                <TableCell sx={{ textAlign: 'center' }}>{result.algorithm}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{result.distance ?? 'N/A'}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{result.execution_time_ms}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{result.landmarks.join(', ') || '-'}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{result.start_node}</TableCell>
-                <TableCell sx={{ textAlign: 'center' }}>{result.end_node}</TableCell>
+        <>
+          <Table sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Алгоритм</TableCell>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Расстояние</TableCell>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Время (мс)</TableCell>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Ориентиры</TableCell>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Начальная вершина</TableCell>
+                <TableCell sx={{ textAlign: 'center', fontWeight: 'bold' }}>Конечная вершина</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {data.map((result) => (
+                <TableRow key={result.algorithm}>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.algorithm}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.distance ?? 'N/A'}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.execution_time}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.landmarks.join(', ') || '-'}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.start_node}</TableCell>
+                  <TableCell sx={{ textAlign: 'center' }}>{result.end_node}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Button variant="outlined" onClick={handleDownloadCsv} sx={{ mt: 2 }}>
+            Скачать CSV
+          </Button>
+        </>
       ) : (
         <Alert severity="warning" sx={{ mt: 3, maxWidth: 800, width: '100%' }}>
           Нет данных для отображения

@@ -1,7 +1,7 @@
 export interface Graph {
   is_directed: boolean;
   nodeCount: number;
-  edgeCount?: number;
+  edgeCount: number;
   edges: [number, number][];
 }
 
@@ -22,8 +22,9 @@ export interface MessagePackData {
 
 export interface WorkerMessage {
     file: File;
-    directed: string;
+    is_directed: string;
     isVeryLargeGraph?: boolean;
+    removeLoops?: boolean;
 }
 
 export interface WorkerResponse {

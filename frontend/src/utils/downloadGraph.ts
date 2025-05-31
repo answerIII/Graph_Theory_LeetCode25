@@ -27,7 +27,7 @@ export async function downloadGraph(
     const chunkSize = 100_000; // 100K рёбер за чанк
 
     if (downloadFormat === 'json') {
-        const header = `{\n  "is_directed": ${graphInfo.directed},\n  "nodeCount": ${graphInfo.numNodes},\n  "edgeCount": ${graphInfo.edgeCount},\n  "edges": [\n`;
+        const header = `{\n  "is_directed": ${graphInfo.is_directed},\n  "nodeCount": ${graphInfo.numNodes},\n  "edgeCount": ${graphInfo.edgeCount},\n  "edges": [\n`;
         await writable.write(header);
 
         for (let i = 0; i < graphInfo.edges.length; i += chunkSize) {
@@ -39,7 +39,7 @@ export async function downloadGraph(
 
         await writable.write('\n  ]\n}');
     } else if (downloadFormat === 'csv') {
-        const header = `is_directed,${graphInfo.directed}\nnodeCount,${graphInfo.numNodes}\nedgeCount,${graphInfo.edgeCount}\nsource,target\n`;
+        const header = `is_directed,${graphInfo.is_directed}\nnodeCount,${graphInfo.numNodes}\nedgeCount,${graphInfo.edgeCount}\nsource,target\n`;
         await writable.write(header);
 
         for (let i = 0; i < graphInfo.edges.length; i += chunkSize) {
@@ -49,7 +49,7 @@ export async function downloadGraph(
         }
     } else {
         const formattedGraph = {
-            is_directed: graphInfo.directed,
+            is_directed: graphInfo.is_directed,
             nodeCount: graphInfo.numNodes,
             edgeCount: graphInfo.edgeCount,
             edges: graphInfo.edges,

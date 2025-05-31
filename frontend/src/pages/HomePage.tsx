@@ -6,7 +6,7 @@ const HomePage: React.FC = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom align="center">
-        Анализ графов
+        Graph Theory project
       </Typography>
       <Box sx={{ mb: 4 }}>
         <GraphUploader />

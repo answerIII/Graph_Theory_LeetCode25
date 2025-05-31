@@ -9,6 +9,7 @@ import {
   TableRow,
   Alert,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import {
   ScatterChart,
@@ -19,6 +20,7 @@ import {
   Tooltip as ChartTooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { saveAs } from 'file-saver';
 import { graphApi } from '../api/graphApi';
 import type { DegreeDistributionData } from '../types/graphTypes';
 
@@ -60,35 +62,36 @@ const DegreeDistributionComponent: React.FC<DegreeDistributionComponentProps> = 
       } finally {
         setLoading(false);
       }
-
-      // Правдоподобные мок-данные (степенной закон, α ≈ 2.5)
-      setData({
-        minDegree: 1,
-        avgDegree: 5.8,
-        maxDegree: 50,
-        execution_time_ms: 1500,
-        probabilityDegree: {
-          '1': 0.35,
-          '2': 0.20,
-          '3': 0.12,
-          '4': 0.08,
-          '5': 0.06,
-          '6': 0.04,
-          '7': 0.03,
-          '8': 0.025,
-          '9': 0.02,
-          '10': 0.015,
-          '15': 0.008,
-          '20': 0.005,
-          '30': 0.003,
-          '40': 0.002,
-          '50': 0.001,
-        },
-      });
-      setLoading(false);
     };
     fetchData();
   }, [datasetname]);
+
+  const handleDownloadMetricsCsv = () => {
+    if (!data) return;
+    const csvContent = [
+      ['Метрика', 'Значение'],
+      ['Минимальная степень', data.minDegree],
+      ['Средняя степень', data.avgDegree.toFixed(2)],
+      ['Максимальная степень', data.maxDegree],
+      ['Время выполнения (мс)', data.execution_time_ms],
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_degree_metrics.csv`);
+  };
+
+  const handleDownloadDistributionCsv = () => {
+    if (!data) return;
+    const csvContent = [
+      ['Степень', 'Вероятность'],
+      ...Object.entries(data.probabilityDegree).map(([degree, probability]) => [degree, probability.toFixed(6)]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_degree_distribution.csv`);
+  };
 
   const chartData = data
     ? Object.entries(data.probabilityDegree)
@@ -120,32 +123,42 @@ const DegreeDistributionComponent: React.FC<DegreeDistributionComponentProps> = 
         </Alert>
       )}
       {data ? (
-        <Table sx={{ mt: 2, maxWidth: 600, width: '100%' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Метрика</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Значение</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <TableRow>
-              <TableCell sx={{ textAlign: 'center' }}>Минимальная степень</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{data.minDegree}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell sx={{ textAlign: 'center' }}>Средняя степень</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{data.avgDegree.toFixed(2)}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell sx={{ textAlign: 'center' }}>Максимальная степень</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{data.maxDegree}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell sx={{ textAlign: 'center' }}>Время выполнения (мс)</TableCell>
-              <TableCell sx={{ textAlign: 'center' }}>{data.execution_time_ms}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <>
+          <Table sx={{ mt: 2, maxWidth: 600, width: '100%' }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Метрика</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Значение</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ textAlign: 'center' }}>Минимальная степень</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{data.minDegree}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ textAlign: 'center' }}>Средняя степень</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{data.avgDegree.toFixed(2)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ textAlign: 'center' }}>Максимальная степень</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{data.maxDegree}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ textAlign: 'center' }}>Время выполнения (мс)</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>{data.execution_time_ms}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Button variant="outlined" onClick={handleDownloadMetricsCsv}>
+              Скачать метрики CSV
+            </Button>
+            <Button variant="outlined" onClick={handleDownloadDistributionCsv}>
+              Скачать распределение CSV
+            </Button>
+          </Box>
+        </>
       ) : (
         <Alert severity="warning" sx={{ mt: 2, maxWidth: 600, width: '100%' }}>
           Нет данных

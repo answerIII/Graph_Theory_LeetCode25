@@ -22,6 +22,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { saveAs } from 'file-saver';
 import { graphApi } from '../api/graphApi';
 import type { RobustnessData } from '../types/graphTypes';
 
@@ -79,24 +80,22 @@ const RobustnessComponent: React.FC<RobustnessComponentProps> = ({ datasetname }
     } finally {
       setLoading(false);
     }
+  };
 
-    // Моковые данные для тестирования
-    
-    setData([
-      { xPercent: 0, randomFraction: 1.0, targetedFraction: 1.0, execution_time_ms: 200 },
-      { xPercent: 10, randomFraction: 0.95, targetedFraction: 0.85, execution_time_ms: 210 },
-      { xPercent: 20, randomFraction: 0.90, targetedFraction: 0.70, execution_time_ms: 220 },
-      { xPercent: 30, randomFraction: 0.85, targetedFraction: 0.50, execution_time_ms: 230 },
-      { xPercent: 40, randomFraction: 0.80, targetedFraction: 0.30, execution_time_ms: 240 },
-      { xPercent: 50, randomFraction: 0.75, targetedFraction: 0.15, execution_time_ms: 250 },
-      { xPercent: 60, randomFraction: 0.70, targetedFraction: 0.10, execution_time_ms: 260 },
-      { xPercent: 70, randomFraction: 0.65, targetedFraction: 0.05, execution_time_ms: 270 },
-      { xPercent: 80, randomFraction: 0.60, targetedFraction: 0.03, execution_time_ms: 280 },
-      { xPercent: 90, randomFraction: 0.55, targetedFraction: 0.02, execution_time_ms: 290 },
-      { xPercent: 100, randomFraction: 0.0, targetedFraction: 0.0, execution_time_ms: 300 },
-    ]);
-    setLoading(false);
-    
+  const handleDownloadCsv = () => {
+    const csvContent = [
+      ['Удалено (%)', 'Случайное', 'По степени', 'Время (мс)'],
+      ...data.map((row) => [
+        row.xPercent,
+        row.randomFraction.toFixed(4),
+        row.targetedFraction.toFixed(4),
+        row.execution_time_ms,
+      ]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    saveAs(blob, `${datasetname}_robustness.csv`);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -172,6 +171,9 @@ const RobustnessComponent: React.FC<RobustnessComponentProps> = ({ datasetname }
               ))}
             </TableBody>
           </Table>
+          <Button variant="outlined" onClick={handleDownloadCsv} sx={{ mt: 2 }}>
+            Скачать CSV
+          </Button>
           <Box sx={{ mt: 3, width: '100%', maxWidth: 600, height: 400 }}>
             <Typography variant="subtitle1" sx={{ textAlign: 'center', mb: 1 }}>
               Доля вершин в наибольшей компоненте слабой связности
