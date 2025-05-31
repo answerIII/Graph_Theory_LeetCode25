@@ -165,16 +165,17 @@ func convert(pathIn, pathOut string, converter Converter) error {
 
 	slices.Sort(*nodes)
 
-	for u := range *nodes {
-		if _, has := (*Map)[u]; has {
-			_, err := mapperWriter.WriteString(strconv.Itoa(u) + " " + strconv.Itoa((*Map)[u]) + "\n")
-			if err != nil {
-				return err
-			}
-			if err := mapperWriter.Flush(); err != nil {
-				return err
-			}
+	for u, v := range *Map {
+		_, err := mapperWriter.WriteString(strconv.Itoa(u) + " " + strconv.Itoa(v) + "\n")
+		if err != nil {
+			return err
 		}
+		if err := mapperWriter.Flush(); err != nil {
+			return err
+		}
+	}
+
+	for u := range *nodes {
 		(*adj)[u] = removeDuplicate((*adj)[u])
 		slices.Sort((*adj)[u])
 		for v := range (*adj)[u] {
