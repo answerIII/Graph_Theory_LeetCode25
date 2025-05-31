@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Instant;
 
 #[derive(argh::FromArgs)]
-/// NATS - ClickHouse. Microservice is designed to save data coming from NATS JetStream to ClickHouse.
+/// . . .
 struct Args {
     /// graph file name
     #[argh(option)]
