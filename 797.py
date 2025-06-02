@@ -4,29 +4,16 @@ class Solution(object):
         :type graph: List[List[int]]
         :rtype: List[List[int]]
         """
-        n = len(graph)
-        target = n - 1
+        target = len(graph) - 1
         result = []
         
-        path = [0] * n
-        path_size = [1]
-        
-        def dfs(node):
+        def DFS(node,path):
             if node == target:
-                result.append(path[:path_size[0]])
-                return
-            
-            neighbors = graph[node]
-            current_size = path_size[0]
-            
-            for neighbor in neighbors:
-                path[current_size] = neighbor
-                path_size[0] = current_size + 1
-                dfs(neighbor)
-            
-            path_size[0] = current_size
-
-        dfs(0)
+                result.append(path)
+            for i in graph[node]:
+                DFS(i,path+[i])
+        
+        DFS(0,[0])
         return result
     
 """
