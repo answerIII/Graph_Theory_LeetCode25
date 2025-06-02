@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 
 class Solution(object):
     def minimumTotalPrice(self, n, edges, price, trips):
@@ -16,40 +16,55 @@ class Solution(object):
 
         node_counts = [0] * n
 
-        def find_path(start, end):
-            visited = [False] * n
-            stack = [(start, [])]
-            while stack:
-                curr, path = stack.pop()
+        def count_path(start, end):
+            parent = [-1] * n
+            q = deque([start])
+            parent[start] = start
+            while q:
+                curr = q.popleft()
                 if curr == end:
-                    for node in path + [end]:
-                        node_counts[node] += 1
-                    return
-                if not visited[curr]:
-                    visited[curr] = True
-                    for neighbor in graph[curr]:
-                        if not visited[neighbor]:
-                            stack.append((neighbor, path + [curr]))
+                    break
+                for neighbor in graph[curr]:
+                    if parent[neighbor] == -1:
+                        parent[neighbor] = curr
+                        q.append(neighbor)
+            node = end
+            while node != parent[node]:
+                node_counts[node] += 1
+                node = parent[node]
+            node_counts[start] += 1
 
         for start, end in trips:
-            find_path(start, end)
+            count_path(start, end)
 
-        dp = [[-1, -1] for _ in range(n)] 
+        dp = [[0, 0] for _ in range(n)]
+        visited = [False] * n
+        stack = [(0, -1, False)]
 
-        def dfs(node, parent):
-            full = price[node] * node_counts[node]
-            half = (price[node] // 2) * node_counts[node]
-            for neighbor in graph[node]:
-                if neighbor == parent:
-                    continue
-                f, h = dfs(neighbor, node)
-                full += min(f, h)
-                half += f 
-            dp[node][0] = full
-            dp[node][1] = half
-            return full, half
+        while stack:
+            node, parent, visited_children = stack.pop()
+            if visited_children:
+                base = price[node] * node_counts[node]
+                half = (price[node] // 2) * node_counts[node]
 
-        return min(dfs(0, -1))
+                total_full = base
+                total_half = half
+
+                for neighbor in graph[node]:
+                    if neighbor == parent:
+                        continue
+                    total_full += min(dp[neighbor][0], dp[neighbor][1])
+                    total_half += dp[neighbor][0]
+
+                dp[node][0] = total_full
+                dp[node][1] = total_half
+            else:
+                stack.append((node, parent, True))
+                for neighbor in graph[node]:
+                    if neighbor != parent:
+                        stack.append((neighbor, node, False))
+
+        return min(dp[0][0], dp[0][1])
 
 """
 n = 4
