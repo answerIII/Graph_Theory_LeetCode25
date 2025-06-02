@@ -7,14 +7,21 @@ class Solution(object):
         n = len(graph)
         target = n - 1
         result = []
+        stack = [(0,[0])]
 
-        def dfs(node, path):
+        while stack:
+            node, path = stack.pop()
             if node == target:
-                result.append(path + [node])
-                return
-            
-            for neighbor in graph[node]:
-                dfs(neighbor, path + [node])
+                result.append(path)
+                continue
+            for neighbor in reversed(graph[node]):
+                stack.append((neighbor,path + [neighbor]))
 
-        dfs(0, [])
         return result
+
+"""
+graph = [[4,3,1],[3,2,4],[3],[4],[]]
+solution = Solution()
+result = solution.allPathsSourceTarget(graph)
+print(result)
+"""
