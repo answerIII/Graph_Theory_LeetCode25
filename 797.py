@@ -5,18 +5,20 @@ class Solution(object):
         :rtype: List[List[int]]
         """
         target = len(graph) - 1
+        result = []
 
         def dfs(node, path):
             if node == target:
-                yield list(path)
+                # Копируем только в случае успеха
+                result.append(list(path))
                 return
             for neighbor in graph[node]:
                 path.append(neighbor)
-                for p in dfs(neighbor, path):
-                    yield p
+                dfs(neighbor, path)
                 path.pop()
 
-        return list(dfs(0, [0]))
+        dfs(0, [0])
+        return result
     
 """
 graph = [[4,3,1],[3,2,4],[3],[4],[]]
