@@ -6,14 +6,19 @@ class Solution(object):
         """
         target = len(graph) - 1
         result = []
+        path = [0]
         
-        def DFS(node,path):
+        def DFS(node):
             if node == target:
-                result.append(path)
-            for i in graph[node]:
-                DFS(i,path+[i])
+                result.append(path[:])
+                return
+            
+            for neighbor in graph[node]:
+                path.append(neighbor)
+                DFS(neighbor)
+                path.pop()
         
-        DFS(0,[0])
+        DFS(0)
         return result
     
 """
