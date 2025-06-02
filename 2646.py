@@ -14,52 +14,42 @@ class Solution(object):
             graph[u].append(v)
             graph[v].append(u)
 
-        # Оптимизированный подсчет посещений узлов
         node_counts = [0] * n
-        for start, end in trips:
-            # BFS с отслеживанием пути через parent-указатели
-            parent = [-1] * n
-            q = deque([start])
-            parent[start] = start  # Маркер для корня
-            
-            while q:
-                curr = q.popleft()
+
+        def find_path(start, end):
+            visited = [False] * n
+            stack = [(start, [])]
+            while stack:
+                curr, path = stack.pop()
                 if curr == end:
-                    break
-                for neighbor in graph[curr]:
-                    if parent[neighbor] == -1:
-                        parent[neighbor] = curr
-                        q.append(neighbor)
-            
-            # Восстанавливаем путь и считаем узлы
-            node = end
-            while node != parent[node]:
-                node_counts[node] += 1
-                node = parent[node]
-            node_counts[start] += 1  # Не забываем стартовый узел
+                    for node in path + [end]:
+                        node_counts[node] += 1
+                    return
+                if not visited[curr]:
+                    visited[curr] = True
+                    for neighbor in graph[curr]:
+                        if not visited[neighbor]:
+                            stack.append((neighbor, path + [curr]))
 
-        # Оптимизированная DFS с мемоизацией
-        memo = {}
-        def dfs(node, parent, can_halve):
-            key = (node, can_halve)
-            if key in memo:
-                return memo[key]
-            
-            full_price = price[node] * node_counts[node]
-            half_price = (price[node] // 2) * node_counts[node] if can_halve else float('inf')
-            
+        for start, end in trips:
+            find_path(start, end)
+
+        dp = [[-1, -1] for _ in range(n)] 
+
+        def dfs(node, parent):
+            full = price[node] * node_counts[node]
+            half = (price[node] // 2) * node_counts[node]
             for neighbor in graph[node]:
-                if neighbor != parent:
-                    neighbor_full, neighbor_half = dfs(neighbor, node, True)
-                    full_price += min(neighbor_full, neighbor_half)
-                    if can_halve:
-                        half_price += dfs(neighbor, node, False)[0]
-            
-            memo[key] = (full_price, half_price)
-            return memo[key]
+                if neighbor == parent:
+                    continue
+                f, h = dfs(neighbor, node)
+                full += min(f, h)
+                half += f 
+            dp[node][0] = full
+            dp[node][1] = half
+            return full, half
 
-        full, half = dfs(0, -1, True)
-        return min(full, half)
+        return min(dfs(0, -1))
 
 """
 n = 4
