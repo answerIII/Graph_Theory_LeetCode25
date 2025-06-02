@@ -26,15 +26,7 @@ class Solution(object):
                         return value * result
             return -1.
 
-        results = []
-
-        for C,D in queries:
-            if C not in graph or D not in graph:
-                results.append(-1.)
-            else:
-                results.append(DFS(C,D,set()))
-
-        return results
+        return [DFS(C,D,set()) if C in graph and D in graph else -1. for C, D in queries]
 
 """
 equations = [["a","b"],["b","c"]]
