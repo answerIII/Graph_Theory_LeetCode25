@@ -7,24 +7,28 @@ class Solution(object):
         n = len(graph)
         target = n - 1
         result = []
-
-        node_stack = [0]
-        path_stack = [[0]]
         
-        while node_stack:
-            node = node_stack.pop()
-            path = path_stack.pop()
-            
+        path = [0] * n
+        path_size = [1]
+        
+        def dfs(node):
             if node == target:
-                result.append(path)
-                continue
-                
-            for neighbor in reversed(graph[node]):
-                node_stack.append(neighbor)
-                path_stack.append(path + [neighbor])
-                
-        return result
+                result.append(path[:path_size[0]])
+                return
+            
+            neighbors = graph[node]
+            current_size = path_size[0]
+            
+            for neighbor in neighbors:
+                path[current_size] = neighbor
+                path_size[0] = current_size + 1
+                dfs(neighbor)
+            
+            path_size[0] = current_size
 
+        dfs(0)
+        return result
+    
 """
 graph = [[4,3,1],[3,2,4],[3],[4],[]]
 solution = Solution()
