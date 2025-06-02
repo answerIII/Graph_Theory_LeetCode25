@@ -4,21 +4,15 @@ class Solution(object):
         :type graph: List[List[int]]
         :rtype: List[List[int]]
         """
-        target = len(graph) - 1
         result = []
-        path = [0]
-        
-        def dfs(node):
-            if node == target:
-                result.append(path[:]) 
-                return
-            
-            for neighbor in graph[node]:
-                path.append(neighbor)
-                dfs(neighbor)
-                path.pop()
-
-        dfs(0)
+        stack = [(0,)]
+        while stack:
+            cur_path = stack.pop()
+            node = cur_path[-1]
+            if node == len(graph) - 1:
+                result.append(cur_path)
+            for i in graph[node]:
+                stack.append(cur_path + (i,))
         return result
     
 """
