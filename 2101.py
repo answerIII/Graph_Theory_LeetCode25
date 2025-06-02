@@ -7,35 +7,42 @@ class Solution(object):
         :rtype: int
         """
         n = len(bombs)
-        result = 0
-        graph = defaultdict(list)
+        max_bombs = 0
+        graph = [[] for _ in range (n)]
+
+        bomb_sqrt = [i[2]**2 for i in bombs]
+
         for i in range (n):
+            x,y,r = bombs[i][0], bombs[i][1], bomb_sqrt[i]
             for j in range (n):
                 if i != j:
-                    if bombs[i][2] ** 2 >= (bombs[i][0] - bombs[j][0]) ** 2 + (bombs[i][1] - bombs[j][1]) ** 2:
-                        graph[i] += [j]
-        """
-        def DFS(node,visited):
-            for child in graph[node].items():
-                visited.add(child)
-                DFS(child,visited)
-        """
-        def DFS(node,visited):
-            visited.add(node)
-            for neighbor in graph[node]:
-                if neighbor not in visited:
-                    result = DFS(neighbor,visited)
-                    if result != -1.:
-                        return result
-            return -1.
+                    dx = bombs[j][0] - x
+                    dy = bombs[j][1] - y
+                    if r >= dx**2 + dy**2:
+                        graph[i].append(j)
 
+        def DFS(start):
+            visited = [False] * n
+            stack = [start]
+            visited[start] = True
+            count = 1
+            while stack:
+                node = stack.pop()
+                for neighbor in graph[node]:
+                    if not visited[neighbor]:
+                        visited[neighbor] = True
+                        stack.append(neighbor)
+                        count+=1
+            return count
+        
         for i in range(n):
-            visited = set([i])
-            DFS(i,visited)
-            result = max(result, len(visited))
+            current = DFS(i)
+            if current > max_bombs:
+                max_bombs = current
+                if max_bombs == n:
+                    break
 
-        return result
-
+        return max_bombs
 
 """
 bombs = [[2,1,3],[6,1,4]]
