@@ -17,26 +17,22 @@ class Solution(object):
                 graph[B] = {}
             graph[B][A] = 1./value
 
-        def DFS(start,stop,visited):
-            if start == stop:
-                return 1.
-            visited.add(start)
-            neighbors = graph[start]
-            for neighbor in neighbors:
-                if neighbor not in visited:
-                    res = DFS(neighbor, stop, visited)
-                    if res != -1.0:
-                        return neighbors[neighbor] * res
+        def DFS(start,stop):
+            if start not in graph or stop not in graph:
+                return -1.
+            visited=set()
+            s = [(start, 1.)]
+            while s:
+                neighbor,result = s.pop()
+                if neighbor == stop:
+                    return result
+                visited.add(neighbor)
+                for i in graph[neighbor]:
+                    if i not in visited:
+                        s.append((i,result*graph[neighbor][i]))
             return -1.0
 
-        result = []
-        append_result = result.append
-        for C, D in queries:
-            if C in graph and D in graph:
-                append_result(DFS(C, D, set()))
-            else:
-                append_result(-1.0)
-        return result
+        return [DFS(A,B) for A,B in queries]
 
 
 equations = [["a","b"],["b","c"]]
