@@ -7,16 +7,22 @@ class Solution(object):
         n = len(graph)
         target = n - 1
         result = []
-        stack = [(0,[0])]
 
-        while stack:
-            node, path = stack.pop()
+        node_stack = [0]
+        path_stack = [[0]]
+        
+        while node_stack:
+            node = node_stack.pop()
+            path = path_stack.pop()
+            
             if node == target:
                 result.append(path)
                 continue
+                
             for neighbor in reversed(graph[node]):
-                stack.append((neighbor,path + [neighbor]))
-
+                node_stack.append(neighbor)
+                path_stack.append(path + [neighbor])
+                
         return result
 
 """
