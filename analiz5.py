@@ -1,36 +1,54 @@
-import networkx as nx
 import matplotlib.pyplot as plt
-from collections import Counter
-import numpy as np
+from collections import defaultdict, Counter
+import os
+import glob
 
-def plot_degree_distribution(G):
-    degrees = [deg for _, deg in G.degree()]
+def read_graph(path):
+    graph = defaultdict(set)
+    with open(path, 'r') as f:
+        for line in f:
+            u, v = map(int, line.strip().split())
+            if u == v:
+                continue
+            graph[u].add(v)
+            graph[v].add(u)
+    return graph
+
+def degree_stats(graph):
+    degrees = [len(neighbors) for neighbors in graph.values()]
     min_deg = min(degrees)
     max_deg = max(degrees)
     avg_deg = sum(degrees) / len(degrees)
-    print(f"Минимальная степень: {min_deg}")
-    print(f"Максимальная степень: {max_deg}")
-    print(f"Средняя степень: {avg_deg}")
-    degree_counts = Counter(degrees)
-    total_nodes = G.number_of_nodes()
-    x = np.array(sorted(degree_counts.keys()))
-    y = np.array([degree_counts[d] / total_nodes for d in x])
-    plt.plot(x, y, marker='o', linestyle='-', color='blue')
-    plt.title("Распределение степеней узлов, обычная шкала")
-    plt.xlabel("Степень узла")
-    plt.ylabel("Вероятность")
-    plt.show()
-    plt.loglog(x, y, marker='o', linestyle='-', color='red')
-    plt.title("Распределение степеней узлов, log-log шкала")
-    plt.xlabel("log(Степень узла)")
-    plt.ylabel("log(Вероятность)")
+    return degrees, min_deg, max_deg, avg_deg
+
+def degree_distribution(degrees):
+    counter = Counter(degrees)
+    total = sum(counter.values())
+    pdf = {deg: count / total for deg, count in counter.items()}
+    return pdf
+
+def plot_degree_distribution(pdf):
+    x = sorted(pdf.keys())
+    y = [pdf[d] for d in x]
+    plt.subplot(1, 2, 1)
+    plt.plot(x, y, marker='o')
+    plt.title("Распределение степеней")
+    plt.xlabel("Степень")
+    plt.ylabel("P(k)")
+    plt.subplot(1, 2, 2)
+    plt.loglog(x, y, marker='o', linestyle='None')
+    plt.title("Log-Log распределение")
+    plt.xlabel("log(Степень)")
+    plt.ylabel("log(P(k))")
     plt.show()
 
-file_path = 'Email-EuAll.txt'
-G = nx.Graph()
-with open(file_path, 'r') as f:
-    for line in f:
-        u, v = map(int, line.strip().split())
-        G.add_edge(u, v)
-G_lcc = G.subgraph(max(nx.connected_components(G), key=len)).copy()
-plot_degree_distribution(G_lcc)
+txt_files = sorted(glob.glob(os.path.join("*.txt")))
+for i, file in enumerate(txt_files, 1):
+    print(f"\n[{i}/{len(txt_files)}] Файл: {os.path.basename(file)}")
+    graph = read_graph(os.path.basename(file))
+    degrees, dmin, dmax, davg = degree_stats(graph)
+    print(f"Мин. степень: {dmin}")
+    print(f"Макс. степень: {dmax}")
+    print(f"Средняя степень: {davg}")
+    pdf = degree_distribution(degrees)
+    plot_degree_distribution(pdf)

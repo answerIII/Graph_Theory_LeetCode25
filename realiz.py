@@ -1,99 +1,155 @@
-import networkx as nx
 import random
-from collections import Counter
-def select_landmarks_random(G, k):
-    return random.sample(list(G.nodes()), k)
+import time
+from collections import defaultdict, deque
+import numpy as np
+import os
+import glob
 
-def select_landmarks_best_coverage(G, k, M):
+def read_graph(file_path):
+    graph = defaultdict(set)
+    with open(file_path, 'r') as f:
+        for line in f:
+            u, v = map(int, line.strip().split())
+            if u != v:
+                graph[u].add(v)
+                graph[v].add(u)
+    return graph
+
+def bfs_distances(graph, source):
+    dist = {source: 0}
+    queue = deque([source])
+    while queue:
+        node = queue.popleft()
+        for neighbor in graph[node]:
+            if neighbor not in dist:
+                dist[neighbor] = dist[node] + 1
+                queue.append(neighbor)
+    return dist
+
+def select_highest_degree(graph, k):
+    degree_list = sorted(graph.items(), key=lambda item: len(item[1]), reverse=True)
+    return [node for node, _ in degree_list[:k]]
+
+def select_random(graph, k):
+    return random.sample(list(graph.keys()), k)
+
+def select_best_coverage(graph, k, M=100):
     P = []
-    nodes = list(G.nodes())
-    while len(P) < M:
+    nodes = list(graph.keys())
+    for _ in range(M):
         s, t = random.sample(nodes, 2)
-        try:
-            path = nx.shortest_path(G, s, t)
-            P.append(path)
-        except nx.NetworkXNoPath:
-            continue
-    all_nodes_in_paths = [v for path in P for v in path]
-    counter = Counter(all_nodes_in_paths)
-    selected_landmarks = []
-    used_nodes = set()
+        dist = bfs_distances(graph, s)
+        path = []
+        if t in dist:
+            current = t
+            while current != s:
+                for neighbor in graph[current]:
+                    if dist.get(neighbor, float('inf')) == dist[current] - 1:
+                        path.append(current)
+                        current = neighbor
+                        break
+            path.append(s)
+            P.append(set(path))
+    Vp = set.union(*P) if P else set()
+    c = defaultdict(int)
+    for v in Vp:
+        c[v] = sum(1 for path in P if v in path)
+    landmarks = []
     for _ in range(k):
-        best_node = None
-        best_count = -1
-        for node, count in counter.items():
-            if node not in used_nodes and count > best_count:
-                best_node = node
-                best_count = count
-        if best_node is None:
+        if not c:
             break
-        selected_landmarks.append(best_node)
-        used_nodes.add(best_node)
-    return selected_landmarks
+        u = max(c, key=c.get)
+        landmarks.append(u)
+        c.pop(u)
+    return landmarks
 
-def select_landmarks_highest_degree(G, k):
-    degrees = dict(G.degree())
-    sorted_nodes = sorted(degrees, key=degrees.get, reverse=True)
-    return sorted_nodes[:k]
+def precompute_landmarks(graph, landmark_nodes):
+    landmark_dists = {}
+    for lm in landmark_nodes:
+        landmark_dists[lm] = bfs_distances(graph, lm)
+    return landmark_dists
 
-def precompute_distances(G, landmarks):
-    dist_from_landmarks = {}
-    for u in landmarks:
-        dist_from_landmarks[u] = nx.single_source_shortest_path_length(G, u)
-    return dist_from_landmarks
+def landmark_distance(s, t, landmark_dists):
+    approx = float('inf')
+    for lm, dist_map in landmark_dists.items():
+        if s in dist_map and t in dist_map:
+            approx = min(approx, dist_map[s] + dist_map[t])
+    return approx if approx != float('inf') else None
 
-def landmarks_basic_estimate(s, t, landmark_distances):
-    estimates = []
-    for l in landmark_distances:
-        d_l = landmark_distances[l]
-        if s in d_l and t in d_l:
-            estimates.append(d_l[s] + d_l[t])
-    return min(estimates)
-
-def run_landmarks_basic(G, k, sample_pairs):
-    landmarks = select_landmarks_highest_degree(G, k)
-    print(f"Выбранные ландмарки (высшая степень): {landmarks}")
-    landmark_distances = precompute_distances(G, landmarks)
-    nodes = list(G.nodes())
-    for _ in range(sample_pairs):
+def evaluate(graph, landmark_nodes, landmark_dists, num_pairs=100):
+    nodes = list(graph.keys())
+    errors = []
+    exact_times = []
+    approx_times = []
+    for _ in range(num_pairs):
         s, t = random.sample(nodes, 2)
-        try:
-            true_distance = nx.shortest_path_length(G, s, t)
-        except nx.NetworkXNoPath:
-            continue
-        est_distance = landmarks_basic_estimate(s, t, landmark_distances)
-        print(f"{s}–{t} | Истинное расстояние: {true_distance}, оценка (высшая степень): {est_distance}")
-    
-    landmarks = select_landmarks_best_coverage(G, k, sample_pairs)
-    print(f"Выбранные ландмарки (наилучшее покрытие): {landmarks}")
-    landmark_distances = precompute_distances(G, landmarks)
-    nodes = list(G.nodes())
-    for _ in range(sample_pairs):
-        s, t = random.sample(nodes, 2)
-        try:
-            true_distance = nx.shortest_path_length(G, s, t)
-        except nx.NetworkXNoPath:
-            continue
-        est_distance = landmarks_basic_estimate(s, t, landmark_distances)
-        print(f"{s}–{t} | Истинное расстояние: {true_distance}, оценка (наилучшее покрытие): {est_distance}")
+        t0 = time.perf_counter()
+        d_exact_map = bfs_distances(graph, s)
+        d_exact = d_exact_map.get(t, None)
+        t1 = time.perf_counter()
+        t2 = time.perf_counter()
+        d_approx = landmark_distance(s, t, landmark_dists)
+        t3 = time.perf_counter()
+        if d_exact is not None and d_approx is not None:
+            errors.append(abs(d_exact - d_approx))
+            exact_times.append(t1 - t0)
+            approx_times.append(t3 - t2)
+    return {
+        'avg_error': np.mean(errors),
+        'max_error': np.max(errors),
+        'avg_exact_time': np.mean(exact_times),
+        'avg_approx_time': np.mean(approx_times)
+    }
 
-    landmarks = select_landmarks_random(G, k)
-    print(f"Выбранные ландмарки (случайно): {landmarks}")
-    landmark_distances = precompute_distances(G, landmarks)
-    nodes = list(G.nodes())
-    for _ in range(sample_pairs):
-        s, t = random.sample(nodes, 2)
-        try:
-            true_distance = nx.shortest_path_length(G, s, t)
-        except nx.NetworkXNoPath:
-            continue
-        est_distance = landmarks_basic_estimate(s, t, landmark_distances)
-        print(f"{s}–{t} | Истинное расстояние: {true_distance}, оценка (случайно): {est_distance}")
+def print_results(*results):
+    print("\nСравнение стратегий выбора ландмарок:\n")
+    headers = ["Стратегия", "Средн. ошибка", "Макс. ошибка", "Точное (ср)", "Приближ. (ср)", "Время выбора", "Общее время"]
+    row_format = "{:<16} {:<14} {:<12} {:<14} {:<14} {:<14} {:<14}"
+    print(row_format.format(*headers))
+    print("-" * 100)
+    for res in results:
+        print(row_format.format(
+            res["selection"],
+            f"{res['avg_error']}",
+            f"{res['max_error']}",
+            f"{res['avg_exact_time']}",
+            f"{res['avg_approx_time']}",
+            f"{res['precompute_time']} секунд",
+            f"{res['total_time']} секунд"
+        ))
 
-file_path = 'Email-EuAll.txt'
-G = nx.Graph()
-with open(file_path, 'r') as f:
-    for line in f:
-        u, v = map(int, line.strip().split())
-        G.add_edge(u, v)
-run_landmarks_basic(G, k=10, sample_pairs=10)
+txt_files = sorted(glob.glob(os.path.join("*.txt")))
+for i, file in enumerate(txt_files, 1):
+    print(f"\n[{i}/{len(txt_files)}] Файл: {os.path.basename(file)}")
+    landmark_count = [10, 20, 30, 40, 50]
+    graph = read_graph(os.path.basename(file))
+    for k in landmark_count:
+        print(f"\n Количество ландмарок: {k}")
+        start_time = time.perf_counter()
+        landmarks_high = select_highest_degree(graph, k)
+        pre_time = time.perf_counter()
+        dists_high = precompute_landmarks(graph, landmarks_high)
+        eval_high = evaluate(graph, landmarks_high, dists_high, num_pairs=100)
+        end_time = time.perf_counter()
+        eval_high["selection"] = "highest_degree"
+        eval_high["total_time"] = end_time - start_time
+        eval_high["precompute_time"] = pre_time - start_time
+        start_time = time.perf_counter()
+        landmarks_rand = select_random(graph, k)
+        pre_time = time.perf_counter()
+        dists_rand = precompute_landmarks(graph, landmarks_rand)
+        eval_rand = evaluate(graph, landmarks_rand, dists_rand, num_pairs=100)
+        end_time = time.perf_counter()
+        eval_rand["selection"] = "random"
+        eval_rand["total_time"] = end_time - start_time
+        eval_rand["precompute_time"] = pre_time - start_time
+        start_time = time.perf_counter()
+        landmarks_best = select_best_coverage(graph, k, M=100)
+        pre_time = time.perf_counter()
+        dists_best = precompute_landmarks(graph, landmarks_best)
+        eval_best = evaluate(graph, landmarks_best, dists_best, num_pairs=100)
+        end_time = time.perf_counter()
+        eval_best["selection"] = "best_coverage"
+        eval_best["total_time"] = end_time - start_time
+        eval_best["precompute_time"] = pre_time - start_time
+        print_results(eval_high, eval_rand, eval_best)
