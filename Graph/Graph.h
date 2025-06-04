@@ -32,10 +32,12 @@ struct ComponentInfo {
     std::vector<int> vertices; 
 };
 
-struct Ordering { 
-    std::vector<int> rank; 
-    std::vector<std::vector<int>> fwd; 
+struct Ordering {
+    std::vector<int> order;             // вершины в порядке удаления
+    std::vector<int> rank;              // rank[v] = индекс в порядке
+    std::vector<std::vector<int>> fwd;  // fwd[u] = соседи u с более высоким рангом
 };
+
 
 class Graph {
     int numVertices;
@@ -55,6 +57,9 @@ class Graph {
     std::vector<std::vector<int>> Ldist;
     bool landmarksReady = false;
     DegreeStats dStats{};  
+    mutable long long triangleCount = -1;
+    mutable Ordering ord;
+    mutable ComponentInfo comp;
 
     //1A1
     int bfsComponent(int start, std::vector<bool>& visited);
@@ -69,11 +74,8 @@ class Graph {
     //1A2    
     ComponentInfo buildLargestWCCConst() const;
 
-    //1A3
-    void buildUndirectedAdj(std::vector<std::vector<int>>&) const;
-
-    //1A4
-    Ordering degeneracyOrder(const std::vector<std::vector<int>>&) const;    
+    //1A3   
+    void degeneracyOrder() const;
 public:
     //Utils
     Graph();
@@ -83,6 +85,7 @@ public:
     double getWCCRatio() const { return wccRatio; }
     double getLargestSCCRatio() const { return sccRatio; }
     bool getDirected() const { return isDirected; }
+    long long getTriangles() const { return triangleCount; }
     const std::vector<int>& degreeHistogram() const;
 
     //1A1
@@ -92,12 +95,12 @@ public:
 
     //1A2
     int exactDistance(int s, int t) const;
-    int estimateDiameterDoubleSweep() const;
-    std::pair<int,double> distanceStatsRandomPairs(int numPairs = 500) const;
+    DiamP90 estimateDiameterDoubleSweep() const;
+    DiamP90 distanceStatsRandomPairs(int numPairs = 500) const;
     DiamP90 snowballDiameterAndP90(int sampleSize = 500, int iterations = 5) const;
 
     //1A3
-    long long countTriangles() const;
+    void countTriangles() const;
     double averageClusteringCoefficient() const;
     double globalClusteringCoefficient() const;
 

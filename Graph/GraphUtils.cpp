@@ -1,4 +1,5 @@
 #include "Graph.h"
+#include <set>
 
 Graph::Graph()
     : numVertices(0)
@@ -82,14 +83,25 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
         }
     }
 
+    // Сортировка списков смежности
+    for (int u = 0; u < numVertices; ++u) {
+        std::sort(edges[u].begin(), edges[u].end());
+        edges[u].erase(std::unique(edges[u].begin(), edges[u].end()), edges[u].end());
+
+        std::sort(reverseEdges[u].begin(), reverseEdges[u].end());
+        reverseEdges[u].erase(std::unique(reverseEdges[u].begin(), reverseEdges[u].end()), reverseEdges[u].end());
+    }
+
     localEdges.clear();
     localReverseEdges.clear();
 
     degrees.resize(numVertices, 0);
     for (int u = 0; u < numVertices; ++u) {
-        std::unordered_set<int> neigh(edges[u].begin(), edges[u].end());
-        neigh.insert(reverseEdges[u].begin(), reverseEdges[u].end());
-        degrees[u] = neigh.size();
+        degrees[u] = std::set<int>(
+            edges[u].begin(), edges[u].end()
+        ).size() + std::set<int>(
+            reverseEdges[u].begin(), reverseEdges[u].end()
+        ).size(); 
     }
 
     dStats.minDeg = *std::min_element(degrees.begin(), degrees.end());
@@ -114,8 +126,9 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
 
     const size_t LARGE_THRESHOLD = 10000;
     isLargeGraph = (numEdges > LARGE_THRESHOLD);
-    isDirected = (path.find("directed") != std::string::npos && path.find("undirected") == std::string::npos);
+    isDirected = (path.find("directed") != std::string::npos && path.find("undirected") == std::string::npos || path.find("digraph") == 0 && path.size() > 8);
 }
+
 
 int Graph::getVertexCount() const {
     return numVertices;

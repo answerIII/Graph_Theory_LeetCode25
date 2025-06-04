@@ -59,7 +59,7 @@ ComponentInfo Graph::buildLargestWCCConst() const {
     return info;
 }
 
-int Graph::estimateDiameterDoubleSweep() const {
+DiamP90 Graph::estimateDiameterDoubleSweep() const {
     std::mt19937_64 rng(12345);
     std::uniform_int_distribution<int> vid(0, numVertices - 1);
     int r = vid(rng);
@@ -99,10 +99,10 @@ int Graph::estimateDiameterDoubleSweep() const {
             }
         }
     }
-    return diam;
+    return {diam, -1};
 }
 
-std::pair<int,double> Graph::distanceStatsRandomPairs(int numPairs) const {
+DiamP90 Graph::distanceStatsRandomPairs(int numPairs) const {
     std::mt19937_64 rng(12345);
     std::uniform_int_distribution<int> vid(0, numVertices - 1);
 
@@ -115,18 +115,18 @@ std::pair<int,double> Graph::distanceStatsRandomPairs(int numPairs) const {
         int d = exactDistance(s, t);
         if (d > 0) distList.push_back(d);
     }
-    if (distList.empty()) return {0, 0.0};
+    if (distList.empty()) return {0, 0};
 
     std::sort(distList.begin(), distList.end());
     int diam = distList.back();
     int idx90 = std::min(int(distList.size()) - 1,
                          int(0.9 * distList.size()));
-    double p90 = distList[idx90];
+    int p90 = distList[idx90];
     return {diam, p90};
 }
 
 DiamP90 Graph::snowballDiameterAndP90(int sampleSize, int iterations) const {
-    ComponentInfo comp = buildLargestWCCConst();
+    comp = buildLargestWCCConst();
     const auto& compV = comp.vertices;
     int compN = compV.size();
     if (compN == 0) return {0,0};

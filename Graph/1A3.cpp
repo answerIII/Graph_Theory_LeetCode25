@@ -1,78 +1,107 @@
 #include "Graph.h"
 
-void Graph::buildUndirectedAdj(std::vector<std::vector<int>>& adj) const {
-    adj.assign(numVertices,{});
-    for (int u = 0; u < numVertices; ++u){
-        for (int v : edges[u]) if (u != v) { adj[u].push_back(v); adj[v].push_back(u); }
-        for (int v : reverseEdges[u]) if (u != v) { adj[u].push_back(v); adj[v].push_back(u); }
-    }
-    for (auto &vec:adj){
-        std::sort(vec.begin(),vec.end());
-        vec.erase(std::unique(vec.begin(),vec.end()),vec.end());
-    }
-}
-
-long long Graph::countTriangles() const {
-    std::vector<std::vector<int>> adj;
-    buildUndirectedAdj(adj);
-
-    long long triangles = 0;
+void Graph::degeneracyOrder() const {
     int n = numVertices;
+    std::vector<int> degree(n);
+    std::vector<bool> removed(n, false);
+    std::vector<std::vector<int>> undirected(n);
 
-    for(int u = 0; u < n; ++u){
-        for(int v: adj[u]){
-            if(v <= u) continue;
-            for(int w: adj[v]){
-                if(w <= v) continue;
-
-                if(std::binary_search(adj[u].begin(), adj[u].end(), w)){
-                    ++triangles;
-                }
+    for (int u = 0; u < n; ++u) {
+        auto it1 = edges[u].begin(), it2 = reverseEdges[u].begin();
+        while (it1 != edges[u].end() || it2 != reverseEdges[u].end()) {
+            if (it2 == reverseEdges[u].end() || (it1 != edges[u].end() && *it1 < *it2))
+                undirected[u].push_back(*it1++);
+            else if (it1 == edges[u].end() || *it2 < *it1)
+                undirected[u].push_back(*it2++);
+            else {
+                undirected[u].push_back(*it1);
+                ++it1; ++it2;
             }
         }
+        std::sort(undirected[u].begin(), undirected[u].end());
+        undirected[u].erase(std::unique(undirected[u].begin(), undirected[u].end()), undirected[u].end());
+        degree[u] = undirected[u].size();
     }
-    return triangles;
+
+    ord.rank.resize(n);
+    ord.fwd.resize(n);
+    std::vector<int> bin(n + 1), pos(n), vert(n), order;
+
+    for (int d : degree) ++bin[d];
+    for (int i = 1; i <= n; ++i) bin[i] += bin[i - 1];
+
+    for (int u = 0; u < n; ++u) {
+        pos[u] = --bin[degree[u]];
+        vert[pos[u]] = u;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        int u = vert[i];
+        removed[u] = true;
+        ord.rank[u] = i;
+        order.push_back(u);
+        for (int v : undirected[u]) {
+            if (removed[v]) continue;
+            ord.fwd[u].push_back(v);
+        }
+    }
+
+    ord.order = std::move(order);
+}
+
+void Graph::countTriangles() const {
+    degeneracyOrder(); 
+    std::vector<bool> mark(numVertices, false);
+
+    for (int u : ord.order) {
+        for (int v : ord.fwd[u]) mark[v] = true;
+        for (int v : ord.fwd[u]) {
+            for (int w : ord.fwd[v]) {
+                if (mark[w]) ++triangleCount;
+            }
+        }
+        for (int v : ord.fwd[u]) mark[v] = false;
+    }
 }
 
 double Graph::averageClusteringCoefficient() const {
-    std::vector<std::vector<int>> adj;
-    buildUndirectedAdj(adj);
+    std::vector<int> tri(numVertices, 0);
 
-    double sumC = 0.0;
-    int n = numVertices;
-
-    for(int u = 0; u < n; ++u){
-        int k = adj[u].size();
-        if(k < 2) continue;
-
-        int links = 0;
-        for(int i = 0; i < k; ++i){
-            int v = adj[u][i];
-            for(int j = i+1; j < k; ++j){
-                int w = adj[u][j];
-                if(std::binary_search(adj[v].begin(), adj[v].end(), w))
-                    ++links;
+    std::vector<bool> mark(numVertices, false);
+    for (int u : ord.order) {
+        for (int v : ord.fwd[u]) mark[v] = true;
+        for (int v : ord.fwd[u]) {
+            for (int w : ord.fwd[v]) {
+                if (mark[w]) {
+                    ++tri[u]; ++tri[v]; ++tri[w];
+                }
             }
         }
-
-        double Cu = (2.0 * links) / (double(k) * double(k-1));
-        sumC += Cu;
+        for (int v : ord.fwd[u]) mark[v] = false;
     }
 
-    return sumC / n;
+    double sumC = 0.0;
+    int count = 0;
+
+    for (int u = 0; u < numVertices; ++u) {
+        int k = edges[u].size() + reverseEdges[u].size();
+        if (k < 2) continue;
+        double cu = (2.0 * tri[u]) / (k * (k - 1));
+        sumC += cu;
+        ++count;
+    }
+
+    return (count == 0) ? 0.0 : sumC / count;
 }
 
 double Graph::globalClusteringCoefficient() const {
-    long long T = countTriangles();
-    std::vector<std::vector<int>> adj;
-    buildUndirectedAdj(adj);
-
     long long triplets = 0;
-    for(auto &nbrs : adj){
-        long long k = nbrs.size();
-        triplets += k * (k - 1) / 2;
-    }
-    if(triplets == 0) return 0.0;
 
-    return double(3LL * T) / double(triplets);
+    for (int u = 0; u < numVertices; ++u) {
+        int k = edges[u].size() + reverseEdges[u].size();
+        triplets += 1LL * k * (k - 1) / 2;
+    }
+
+    return (triplets == 0) ? 0.0 : (3.0 * triangleCount) / triplets;
 }
+

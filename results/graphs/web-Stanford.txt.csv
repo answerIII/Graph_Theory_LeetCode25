@@ -1,0 +1,75 @@
+время загрузки графа,5.275036 s
+количество вершин,281903
+время подсчета количества вершин,0 ms
+количество ребер,2312497
+время подсчета количества ребер,0 ms
+плотность графа,0.000029
+время подсчета плотности,0 ms
+кол-во слабосвязных компонент,365
+время подсчета WCC,274 ms
+кол-во сильно связанных компонент,29914
+время подсчета SCC,314 ms
+доля вершин в самой большой WCC,0.905507
+время подсчета доли WCC,0 ms
+доля вершин в самой большой SCC,0.533985
+время подсчета доли SCC,0 ms
+оценка диаметра (double sweep),2
+время оценки double sweep,0 ms
+оценка диаметра (рандомные пары - 500),30
+90 процентиль (рандомные пары - 500),10
+время подсчета дистанций (рандомные пары - 500),25.644141 s
+оценка диаметра (snowball),5
+90 процентиль расстояний (snowball),4
+время подсчета дистанций (snowball),479 ms
+число треугольников,11329472
+время подсчета треугольников,1.827850 s
+средний коэфф. кластеризации,0.394637
+время среднего кластеризации,819 ms
+глобальный коэфф. кластеризации,0.008543
+время глобального кластеризации,1 ms
+средний коэфф. кластеризации в WCC,0.618891
+время кластеризации в WCC,1.798847 s
+мин. степень,1
+макс. степень,38626
+средняя степень,16.406331
+время подсчета степеней,0 ms
+random removal ratio 10%,0.905451
+random time 10%,278 ms
+targeted removal ratio 10%,0.840527
+targeted time 10%,235 ms
+random removal ratio 20%,0.905178
+random time 20%,254 ms
+targeted removal ratio 20%,0.814622
+targeted time 20%,227 ms
+random removal ratio 30%,0.904973
+random time 30%,256 ms
+targeted removal ratio 30%,0.800258
+targeted time 30%,232 ms
+random removal ratio 40%,0.904539
+random time 40%,271 ms
+targeted removal ratio 40%,0.791014
+targeted time 40%,229 ms
+random removal ratio 50%,0.904390
+random time 50%,270 ms
+targeted removal ratio 50%,0.759994
+targeted time 50%,225 ms
+random removal ratio 60%,0.904212
+random time 60%,269 ms
+targeted removal ratio 60%,0.751338
+targeted time 60%,226 ms
+random removal ratio 70%,0.903487
+random time 70%,253 ms
+targeted removal ratio 70%,0.739764
+targeted time 70%,218 ms
+random removal ratio 80%,0.903257
+random time 80%,262 ms
+targeted removal ratio 80%,0.727157
+targeted time 80%,224 ms
+random removal ratio 90%,0.903088
+random time 90%,269 ms
+targeted removal ratio 90%,0.711414
+targeted time 90%,216 ms
+время препроцессинга landmarks,8.372750 s
+количество допустимых пар,89
+среднее расстояние по landmarks,8.292135
+время подсчета по landmarks,0 ms

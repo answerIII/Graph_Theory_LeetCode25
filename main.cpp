@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <random>
+#include <ctime>
+#include <iomanip>
 
 namespace fs = std::filesystem;
 using Clock = std::chrono::high_resolution_clock;
@@ -80,6 +82,13 @@ void appendTaskMetric(const std::string& task, const std::string& graphPath, con
 }
 
 int main() {
+     auto start_time = std::chrono::system_clock::now();
+    std::time_t start_time_t = std::chrono::system_clock::to_time_t(start_time);
+    
+    // Выводим время начала в удобочитаемом формате
+    std::cout << "Программа начала работу: " 
+              << std::put_time(std::localtime(&start_time_t), "%Y-%m-%d %H:%M:%S") 
+              << std::endl;
     ensureResultsFolder();
     auto graphFiles = collectGraphFiles("datasets");
 
@@ -131,28 +140,33 @@ int main() {
         appendTaskMetric("1A1", path, vals1A1, heads1A1);
         std::cout << "[1A1]" << std::endl;      
 
-        // === Задание 1A2 ===
-        auto t_d1 = Clock::now(); int d1 = g.estimateDiameterDoubleSweep(); std::string td1 = formatDuration(Clock::now() - t_d1);
-        appendGraphMetric(path, "оценка диаметра double sweep", std::to_string(d1));
+        // // === Задание 1A2 ===
+        auto t_d1 = Clock::now(); int d1 = g.estimateDiameterDoubleSweep().diameter; std::string td1 = formatDuration(Clock::now() - t_d1);
+        appendGraphMetric(path, "оценка диаметра (double sweep)", std::to_string(d1));
         appendGraphMetric(path, "время оценки double sweep", td1);
 
-        auto t_dist = Clock::now(); auto [avgDist, maxDist] = g.distanceStatsRandomPairs(); std::string tdist = formatDuration(Clock::now() - t_dist);
-        appendGraphMetric(path, "среднее расстояние (рандомные пары)", std::to_string(avgDist));
-        appendGraphMetric(path, "максимальное расстояние (рандомные пары)", std::to_string(maxDist));
-        appendGraphMetric(path, "время подсчета дистанций (рандом)", tdist);
+        auto t_dist = Clock::now(); auto [diam, p90_1] = g.distanceStatsRandomPairs(); std::string tdist = formatDuration(Clock::now() - t_dist);
+        appendGraphMetric(path, "оценка диаметра (рандомные пары - 500)", std::to_string(diam));
+        appendGraphMetric(path, "90 процентиль (рандомные пары - 500)", std::to_string(p90_1));
+        appendGraphMetric(path, "время подсчета дистанций (рандомные пары - 500)", tdist);
+
+        // auto t_dist_2 = Clock::now(); auto [diam_1, p90_2] = g.distanceStatsRandomPairs(1000); std::string tdist2 = formatDuration(Clock::now() - t_dist_2);
+        // appendGraphMetric(path, "оценка диаметра (рандомные пары - 1000)", std::to_string(diam));
+        // appendGraphMetric(path, "90 процентиль (рандомные пары - 1000)", std::to_string(p90_1));
+        // appendGraphMetric(path, "время подсчета дистанций (рандомные пары - 1000)", tdist);
 
         auto t_snow = Clock::now(); auto [d2, p90] = g.snowballDiameterAndP90(); std::string tsnow = formatDuration(Clock::now() - t_snow);
-        appendGraphMetric(path, "оценка диаметра snowball", std::to_string(d2));
-        appendGraphMetric(path, "P90 расстояний snowball", std::to_string(p90));
-        appendGraphMetric(path, "время snowball оценки", tsnow);
+        appendGraphMetric(path, "оценка диаметра (snowball)", std::to_string(d2));
+        appendGraphMetric(path, "90 процентиль расстояний (snowball)", std::to_string(p90));
+        appendGraphMetric(path, "время подсчета дистанций (snowball)", tsnow);
 
-        std::vector<std::string> vals1A2 = {path, loadTime, std::to_string(d1), td1, std::to_string(avgDist), tdist, std::to_string(maxDist), tdist, std::to_string(d2), tsnow, std::to_string(p90), tsnow};
-        std::vector<std::string> heads1A2 = {"file", "load time", "diameter1", "diameter1 time", "avgDist", "avgDist time", "maxDist", "maxDist time", "diameter2", "diameter2 time", "p90_2", "p90_2 time"};
+        std::vector<std::string> vals1A2 = {path, loadTime, std::to_string(d1), td1, std::to_string(diam), tdist, std::to_string(p90_1), tdist, std::to_string(d2), tsnow, std::to_string(p90), tsnow};
+        std::vector<std::string> heads1A2 = {"file", "load time", "diameter1", "diameter1 time", "diameter2(500)", "diameter2(500) time", "p90(500)", "p90(500) time", "diameter_snowball", "diameter_snowball time", "p90_snowball", "p90_snowball time"};
         appendTaskMetric("1A2", path, vals1A2, heads1A2);
         std::cout << "[1A2]" << std::endl;
 
         // === Задание 1A3 ===
-        auto t_tri = Clock::now(); int tri = g.countTriangles(); std::string ttri = formatDuration(Clock::now() - t_tri);
+        auto t_tri = Clock::now(); g.countTriangles(); long long tri = g.getTriangles(); std::string ttri = formatDuration(Clock::now() - t_tri);
         appendGraphMetric(path, "число треугольников", std::to_string(tri));
         appendGraphMetric(path, "время подсчета треугольников", ttri);
 
@@ -192,17 +206,57 @@ int main() {
         appendTaskMetric("1A5", path, vals1A5, heads1A5);
         std::cout << "[1A5]" << std::endl;     
 
+        // Save in CSV (k,count,P(k)) for images
+        fs::path outDir = "GraphsCSVTables";
+        if (!fs::exists(outDir))
+            fs::create_directory(outDir);
+
+        std::string base = path.substr(path.find_last_of('/') + 1);
+        fs::path csvPath = outDir / (base + "_deg_dist.csv");
+
+        {
+            std::ofstream csv(csvPath);
+            csv << "k,count,prob\n";
+            const auto& hist = g.degreeHistogram();
+            for (size_t k = 0; k < hist.size(); ++k)
+                if (hist[k])
+                    csv << k << ',' << hist[k] << ','
+                        << double(hist[k]) / g.getVertexCount() << '\n';
+        }
+        std::cout << "Гистограмма степеней сохранена в " << csvPath.string() << '\n';
+
         // === Задание 1B ===
-        auto t_rnd = Clock::now(); double r1 = g.ratioAfterRemoval(0.05, false); std::string tr1 = formatDuration(Clock::now() - t_rnd);
-        appendGraphMetric(path, "доля вершин после случайного удаления", std::to_string(r1));
-        appendGraphMetric(path, "время случайного удаления", tr1);
+        std::vector<std::string> vals1B = {path, loadTime};
+        std::vector<std::string> heads1B = {"file", "load time"};
 
-        auto t_tar = Clock::now(); double r2 = g.ratioAfterRemoval(0.05, true); std::string tr2 = formatDuration(Clock::now() - t_tar);
-        appendGraphMetric(path, "доля вершин после целевого удаления", std::to_string(r2));
-        appendGraphMetric(path, "время целевого удаления", tr2);
+        for (int perc = 10; perc <= 90; perc += 10) {
+            double frac = perc / 100.0;
 
-        std::vector<std::string> vals1B = {path, loadTime, std::to_string(r1), tr1, std::to_string(r2), tr2};
-        std::vector<std::string> heads1B = {"file", "load time", "random removal ratio", "random time", "targeted removal ratio", "targeted time"};
+            auto t_rnd = Clock::now();
+            double r_rnd = g.ratioAfterRemoval(frac, false);
+            std::string tr_rnd = formatDuration(Clock::now() - t_rnd);
+
+            appendGraphMetric(path, "random removal ratio " + std::to_string(perc) + "%", std::to_string(r_rnd));
+            appendGraphMetric(path, "random time " + std::to_string(perc) + "%", tr_rnd);
+
+            auto t_tar = Clock::now();
+            double r_tar = g.ratioAfterRemoval(frac, true);
+            std::string tr_tar = formatDuration(Clock::now() - t_tar);
+
+            appendGraphMetric(path, "targeted removal ratio " + std::to_string(perc) + "%", std::to_string(r_tar));
+            appendGraphMetric(path, "targeted time " + std::to_string(perc) + "%", tr_tar);
+
+            vals1B.push_back(std::to_string(r_rnd));
+            vals1B.push_back(tr_rnd);
+            vals1B.push_back(std::to_string(r_tar));
+            vals1B.push_back(tr_tar);
+
+            heads1B.push_back("random removal ratio " + std::to_string(perc) + "%");
+            heads1B.push_back("random time " + std::to_string(perc) + "%");
+            heads1B.push_back("targeted removal ratio " + std::to_string(perc) + "%");
+            heads1B.push_back("targeted time " + std::to_string(perc) + "%");
+        }
+
         appendTaskMetric("1B", path, vals1B, heads1B);
         std::cout << "[1B]" << std::endl;
 
@@ -238,6 +292,15 @@ int main() {
 
         std::cout << "Граф " << ++current << " из " << graphFiles.size() << " обработан." << std::endl;
     }
+
+      auto end_time = std::chrono::system_clock::now();
+    std::time_t end_time_t = std::chrono::system_clock::to_time_t(end_time);
+    std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+    
+    std::cout << "Программа завершила работу: " 
+              << std::put_time(std::localtime(&end_time_t), "%Y-%m-%d %H:%M:%S") 
+              << std::endl;
+    std::cout << "Общее время выполнения: " << elapsed_seconds.count() << " секунд" << std::endl;
 
     return 0;
 }

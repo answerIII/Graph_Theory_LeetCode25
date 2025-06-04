@@ -1,0 +1,26 @@
+file,load time,avg clustering in WCC,time
+datasets/com-youtube.ungraph.txt,9.002033 s,0.080802,4.186249 s
+datasets/directed/web-Google.txt,14.078533 s,0.519032,4.378198 s
+datasets/directed/soc-wiki-Vote.mtx,6 ms,0.152847,2 ms
+datasets/directed/web-NotreDame.txt,2.893573 s,0.224937,1.141503 s
+datasets/directed/web-Stanford.txt,5.275036 s,0.618891,1.798847 s
+datasets/directed/Wiki-Vote.txt,157 ms,0.141875,178 ms
+datasets/tests/graph_5.txt,6 ms,0.005462,2 ms
+datasets/tests/graph_1.txt,29 ms,0.318360,24 ms
+datasets/tests/graph_4.txt,3 ms,0.002218,1 ms
+datasets/tests/graph_8.txt,69 ms,0.099915,81 ms
+datasets/tests/graph_3.txt,2 ms,0.002001,1 ms
+datasets/tests/digraph_3.txt,6 ms,0.006030,2 ms
+datasets/tests/graph_6.txt,7 ms,0.007902,2 ms
+datasets/tests/graph_7.txt,9 ms,0.009602,3 ms
+datasets/tests/graph_0.txt,0 ms,0.570638,0 ms
+datasets/tests/digraph_2.txt,8 ms,0.009050,3 ms
+datasets/tests/digraph_1.txt,9 ms,0.010362,3 ms
+datasets/tests/graph_2.txt,184 ms,0.282180,248 ms
+datasets/very_large_graphs/vk.csv,76.404415 s,0.049862,41.300058 s
+datasets/very_large_graphs/com-orkut.ungraph.txt,269.200489 s,0.166607,394.975727 s
+datasets/undirected/musae_git_edges.csv,576 ms,0.167537,351 ms
+datasets/undirected/CA-GrQc.txt,54 ms,0.556677,12 ms
+datasets/undirected/ca-coauthors-dblp.txt,25.540250 s,0.801877,31.635290 s
+datasets/undirected/Email-EuAll.txt,1.217075 s,0.079096,443 ms
+datasets/undirected/CA-AstroPh.txt,665 ms,0.632552,251 ms
