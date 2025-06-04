@@ -1,0 +1,13 @@
+file,is_test,vertex count,edge count,density,largest WCC size,diameter1,triangle count,distanceFromMaxVertex(t),localClustering(u),t_param,u_param
+datasets/tests/digraph_1.txt,1,1000,5062,0.005067,1000,5,169,3,0.000000,6,6
+datasets/tests/digraph_2.txt,1,1000,4053,0.004057,1000,6,86,4,0.000000,6,6
+datasets/tests/digraph_3.txt,1,1000,2947,0.002950,1000,8,34,5,0.027778,6,6
+datasets/tests/graph_0.txt,1,34,78,0.139037,34,5,45,3,0.500000,6,6
+datasets/tests/graph_1.txt,1,962,18812,0.040697,962,6,97137,2,0.210526,6,6
+datasets/tests/graph_2.txt,1,3075,124610,0.026365,3069,7,1119231,3,0.196825,6,6
+datasets/tests/graph_3.txt,1,864,995,0.002669,783,19,2,8,0.333333,6,6
+datasets/tests/graph_4.txt,1,955,1447,0.003176,947,12,3,6,0.000000,6,6
+datasets/tests/graph_5.txt,1,991,2490,0.005076,991,8,24,2,0.000000,6,6
+datasets/tests/graph_6.txt,1,999,3737,0.007496,999,6,71,4,0.000000,6,6
+datasets/tests/graph_7.txt,1,1000,5038,0.010086,1000,5,163,4,0.047619,6,6
+datasets/tests/graph_8.txt,1,1000,49852,0.099804,1000,2,165334,2,0.089703,6,6

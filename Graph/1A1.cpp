@@ -114,17 +114,41 @@ int Graph::countWeaklyConnectedComponentsDSU() {
 }
 
 void Graph::dfs1(int u, std::vector<bool>& vis, std::vector<int>& ord) {
-    vis[u] = true;
-    for (int v : edges[u])
-        if (!vis[v]) dfs1(v, vis, ord);
-    ord.push_back(u);
+    std::stack<std::pair<int,bool>> st;
+    st.push({u, false});
+    while (!st.empty()) {
+        auto [x, processed] = st.top();
+        st.pop();
+        if (processed) {
+            ord.push_back(x);
+            continue;
+        }
+        if (vis[x]) continue;
+        vis[x] = true;
+        st.push({x, true});
+        for (auto v_long : edges[x]) {
+            int v = static_cast<int>(v_long);
+            if (!vis[v]) st.push({v, false});
+        }
+    }
 }
 
 void Graph::dfs2(int u, std::vector<bool>& vis, int& sz) {
+    std::stack<int> st;
+    st.push(u);
     vis[u] = true;
-    sz++;
-    for (int v : reverseEdges[u])
-        if (!vis[v]) dfs2(v, vis, sz);
+    while (!st.empty()) {
+        int x = st.top();
+        st.pop();
+        ++sz;
+        for (auto v_long : reverseEdges[x]) {
+            int v = static_cast<int>(v_long);
+            if (!vis[v]) {
+                vis[v] = true;
+                st.push(v);
+            }
+        }
+    }
 }
 
 int Graph::countWeaklyConnectedComponents() {

@@ -1,5 +1,12 @@
 #include "Graph.h"
 #include <set>
+#include <fstream>
+#include <sstream>
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <stdexcept>
 
 Graph::Graph()
     : numVertices(0)
@@ -21,9 +28,9 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
     int skipFirst = (format == "csv") ? 1 : (format == "mtx") ? 2 : 0;
     char commentPrefix = (format == "txt") ? '#' : '%';
 
-    std::unordered_set<int> vertexSet;
-    std::unordered_map<int, std::vector<int>> localEdges;
-    std::unordered_map<int, std::vector<int>> localReverseEdges;
+    std::unordered_set<long int> vertexSet;
+    std::unordered_map<long int, std::vector<long int>> localEdges;
+    std::unordered_map<long int, std::vector<long int>> localReverseEdges;
 
     std::string line;
     int lineCount = 0;
@@ -32,23 +39,27 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
         if (++lineCount <= skipFirst) continue;
         if (line.empty() || line[0] == commentPrefix) continue;
 
-        int u = -1, v = -1;
+        long int u = -1, v = -1;
 
         if (format == "csv") {
             size_t commaPos = line.find(',');
-            if (commaPos == std::string::npos) continue;
+            if (commaPos == std::string::npos) {
+                continue;
+            }
             try {
-                u = std::stoi(line.substr(0, commaPos));
-                v = std::stoi(line.substr(commaPos + 1));
+                u = std::stol(line.substr(0, commaPos));
+                v = std::stol(line.substr(commaPos + 1));
             } catch (...) {
                 continue;
             }
         } else {
             std::istringstream iss(line);
-            if (!(iss >> u >> v)) continue;
+            if (!(iss >> u >> v)) {
+                continue;
+            }
         }
 
-        if (u < 0 || v < 0) continue;
+        if (u < 0 || v < 0) { continue; }
 
         vertexSet.insert(u);
         vertexSet.insert(v);
@@ -57,13 +68,27 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
         localReverseEdges[v].push_back(u);
     }
 
-    std::vector<int> vertList(vertexSet.begin(), vertexSet.end());
+    std::vector<long int> vertList(vertexSet.begin(), vertexSet.end());
     vertexSet.clear(); vertexSet.reserve(0);
 
     std::sort(vertList.begin(), vertList.end());
     numVertices = vertList.size();
 
-    std::unordered_map<int, int> idToIndex;
+    if (numVertices == 0) {
+        edges.clear();
+        reverseEdges.clear();
+        degrees.clear();
+        dStats.minDeg = 0;
+        dStats.maxDeg = 0;
+        dStats.avgDeg = 0.0;
+        degHist.clear();
+        maxDegreeVertex = -1;
+        isLargeGraph = false;
+        isDirected = false;
+        return;
+    }
+
+    std::unordered_map<long int, int> idToIndex;
     idToIndex.reserve(numVertices);
     for (int i = 0; i < static_cast<int>(numVertices); ++i) {
         idToIndex[vertList[i]] = i;
@@ -75,8 +100,12 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
 
     for (const auto& [u0, neigh] : localEdges) {
         int u = idToIndex[u0];
-        for (int v0 : neigh) {
-            int v = idToIndex[v0];
+        if (u < 0 || u >= static_cast<int>(numVertices)) { continue; }
+        for (long int v0 : neigh) {
+            auto it = idToIndex.find(v0);
+            if (it == idToIndex.end()) { continue; }
+            int v = it->second;
+            if (v < 0 || v >= static_cast<int>(numVertices)) { continue; }
             edges[u].push_back(v);
             reverseEdges[v].push_back(u);
             ++numEdges;
@@ -84,7 +113,7 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
     }
 
     // Сортировка списков смежности
-    for (int u = 0; u < numVertices; ++u) {
+    for (size_t u = 0; u < numVertices; ++u) {
         std::sort(edges[u].begin(), edges[u].end());
         edges[u].erase(std::unique(edges[u].begin(), edges[u].end()), edges[u].end());
 
@@ -95,13 +124,9 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
     localEdges.clear();
     localReverseEdges.clear();
 
-    degrees.resize(numVertices, 0);
-    for (int u = 0; u < numVertices; ++u) {
-        degrees[u] = std::set<int>(
-            edges[u].begin(), edges[u].end()
-        ).size() + std::set<int>(
-            reverseEdges[u].begin(), reverseEdges[u].end()
-        ).size(); 
+    degrees.assign(numVertices, 0);
+    for (size_t u = 0; u < numVertices; ++u) {
+        degrees[u] = static_cast<int>(edges[u].size() + reverseEdges[u].size());
     }
 
     dStats.minDeg = *std::min_element(degrees.begin(), degrees.end());
@@ -111,22 +136,24 @@ void Graph::loadFromFile(const std::string& path, const std::string& format) {
     for (int k : degrees) sumDeg += k;
     dStats.avgDeg = numVertices ? double(sumDeg) / numVertices : 0.0;
 
-    degHist.assign(dStats.maxDeg + 1, 0);
-    for (int k : degrees) ++degHist[k];
+    degHist.assign(static_cast<size_t>(dStats.maxDeg + 1), 0);
+    for (int k : degrees) {
+        if (k >= 0 && k <= dStats.maxDeg) ++degHist[static_cast<size_t>(k)];
+    }
 
     maxDegreeVertex = -1;
     int maxDeg = -1;
-    for (int u = 0; u < static_cast<int>(numVertices); ++u) {
-        int deg = edges[u].size() + reverseEdges[u].size();
+    for (size_t u = 0; u < numVertices; ++u) {
+        int deg = static_cast<int>(edges[u].size() + reverseEdges[u].size());
         if (deg > maxDeg) {
             maxDeg = deg;
-            maxDegreeVertex = u;
+            maxDegreeVertex = static_cast<long int>(u);
         }
     }
 
     const size_t LARGE_THRESHOLD = 10000;
     isLargeGraph = (numEdges > LARGE_THRESHOLD);
-    isDirected = (path.find("directed") != std::string::npos && path.find("undirected") == std::string::npos || path.find("digraph") == 0 && path.size() > 8);
+    isDirected = (path.find("directed") != std::string::npos && path.find("undirected") == std::string::npos || path.find("digraph") != std::string::npos && path.size() > 8);
 }
 
 

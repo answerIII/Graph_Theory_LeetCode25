@@ -62,3 +62,41 @@ int Graph::landmarkBasicDistance(int s, int t) const
     }
     return best == std::numeric_limits<int>::max() ? -1 : best;
 }
+
+int Graph::landmarkBFSDistance(int s, int t) const {
+    if (s == t) return 0;
+    std::vector<int> dist(numVertices, -1);
+    std::queue<int> q;
+    dist[s] = 0;
+    q.push(s);
+
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        int d = dist[u];
+
+        for (int v : edges[u]) {
+            if (dist[v] == -1) {
+                dist[v] = d + 1;
+                if (v == t) return dist[v];
+                q.push(v);
+            }
+        }
+
+        for (int v : reverseEdges[u]) {
+            if (dist[v] == -1) {
+                dist[v] = d + 1;
+                if (v == t) return dist[v];
+                q.push(v);
+            }
+        }
+    }
+    return -1;
+}
+
+int Graph::distanceFromMaxVertex(int t) const {
+    if (numVertices <= 0) return -1;
+    if (t < 0 || t >= numVertices) return -1;
+    int s = numVertices - 1;
+    if (s == t) return 0;
+    return landmarkBFSDistance(s, t);
+}

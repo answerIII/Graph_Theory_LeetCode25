@@ -105,3 +105,48 @@ double Graph::globalClusteringCoefficient() const {
     return (triplets == 0) ? 0.0 : (3.0 * triangleCount) / triplets;
 }
 
+double Graph::localClusteringCoefficient(int u) const {
+    if (u < 0 || u >= numVertices) return 0.0;
+
+    std::vector<int> nbr;
+    auto it1 = edges[u].begin(), it2 = reverseEdges[u].begin();
+    while (it1 != edges[u].end() || it2 != reverseEdges[u].end()) {
+        if (it2 == reverseEdges[u].end() || (it1 != edges[u].end() && *it1 < *it2)) {
+            nbr.push_back(*it1++);
+        } else if (it1 == edges[u].end() || *it2 < *it1) {
+            nbr.push_back(*it2++);
+        } else {
+            nbr.push_back(*it1);
+            ++it1; ++it2;
+        }
+    }
+    std::sort(nbr.begin(), nbr.end());
+    nbr.erase(std::unique(nbr.begin(), nbr.end()), nbr.end());
+
+    int k = static_cast<int>(nbr.size());
+    if (k < 2) return 0.0;
+
+    std::vector<char> mark(numVertices, 0);
+    for (int v : nbr) mark[v] = 1;
+
+    long long links = 0;
+
+    for (int v : nbr) {
+        auto a = edges[v].begin();
+        auto b = reverseEdges[v].begin();
+        while (a != edges[v].end() || b != reverseEdges[v].end()) {
+            int w;
+            if (b == reverseEdges[v].end() || (a != edges[v].end() && *a < *b)) {
+                w = *a++;
+            } else if (a == edges[v].end() || *b < *a) {
+                w = *b++;
+            } else {
+                w = *a; ++a; ++b;
+            }
+            if (w == u) continue;
+            if (w > v && mark[w]) ++links;
+        }
+    }
+
+    return (2.0 * links) / (k * (k - 1));
+}

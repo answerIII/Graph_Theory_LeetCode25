@@ -1,4 +1,4 @@
-время загрузки графа,1.217075 s
+время загрузки графа,760 ms
 количество вершин,265214
 время подсчета количества вершин,0 ms
 количество ребер,420045
@@ -6,7 +6,7 @@
 плотность графа,0.000012
 время подсчета плотности,0 ms
 кол-во слабосвязных компонент,15836
-время подсчета WCC,57 ms
+время подсчета WCC,39 ms
 кол-во сильно связанных компонент,-1
 время подсчета SCC,0 ms
 доля вершин в самой большой WCC,0.847738
@@ -14,62 +14,66 @@
 доля вершин в самой большой SCC,0.000000
 время подсчета доли SCC,0 ms
 оценка диаметра (double sweep),14
-время оценки double sweep,155 ms
-оценка диаметра (рандомные пары - 500),6
+время оценки double sweep,59 ms
+оценка диаметра (рандомные пары - 500),7
 90 процентиль (рандомные пары - 500),5
-время подсчета дистанций (рандомные пары - 500),7.298221 s
+время подсчета дистанций (рандомные пары - 500),4.719670 s
+оценка диаметра (рандомные пары - 1000),7
+90 процентиль (рандомные пары - 1000),5
+время подсчета дистанций (рандомные пары - 1000),4.719670 s
 оценка диаметра (snowball),4
 90 процентиль расстояний (snowball),4
-время подсчета дистанций (snowball),349 ms
-число треугольников,267312
-время подсчета треугольников,463 ms
+время подсчета дистанций (snowball),213 ms
+число треугольников,267313
+время подсчета треугольников,308 ms
 средний коэфф. кластеризации,0.223214
-время среднего кластеризации,199 ms
-глобальный коэфф. кластеризации,0.003327
-время глобального кластеризации,1 ms
+время среднего кластеризации,76 ms
+глобальный коэфф. кластеризации,0.003328
+время глобального кластеризации,0 ms
 средний коэфф. кластеризации в WCC,0.079096
-время кластеризации в WCC,443 ms
+время кластеризации в WCC,298 ms
 мин. степень,1
 макс. степень,7636
 средняя степень,3.167593
 время подсчета степеней,0 ms
-random removal ratio 10%,0.844608
-random time 10%,65 ms
+random removal ratio 10%,0.847574
+random time 10%,44 ms
 targeted removal ratio 10%,0.309682
-targeted time 10%,74 ms
-random removal ratio 20%,0.844520
-random time 20%,58 ms
-targeted removal ratio 20%,0.162919
-targeted time 20%,74 ms
-random removal ratio 30%,0.844458
-random time 30%,62 ms
-targeted removal ratio 30%,0.079265
-targeted time 30%,73 ms
-random removal ratio 40%,0.844370
-random time 40%,59 ms
+targeted time 10%,59 ms
+random removal ratio 20%,0.847395
+random time 20%,44 ms
+targeted removal ratio 20%,0.162896
+targeted time 20%,59 ms
+random removal ratio 30%,0.847401
+random time 30%,43 ms
+targeted removal ratio 30%,0.079442
+targeted time 30%,59 ms
+random removal ratio 40%,0.847039
+random time 40%,45 ms
 targeted removal ratio 40%,0.037766
-targeted time 40%,74 ms
-random removal ratio 50%,0.844298
-random time 50%,60 ms
-targeted removal ratio 50%,0.015124
-targeted time 50%,74 ms
-random removal ratio 60%,0.842688
-random time 60%,59 ms
+targeted time 40%,60 ms
+random removal ratio 50%,0.846890
+random time 50%,45 ms
+targeted removal ratio 50%,0.015328
+targeted time 50%,60 ms
+random removal ratio 60%,0.846736
+random time 60%,45 ms
 targeted removal ratio 60%,0.006138
-targeted time 60%,73 ms
-random removal ratio 70%,0.842629
-random time 70%,60 ms
+targeted time 60%,60 ms
+random removal ratio 70%,0.846684
+random time 70%,45 ms
 targeted removal ratio 70%,0.000729
-targeted time 70%,75 ms
-random removal ratio 80%,0.840558
-random time 80%,59 ms
+targeted time 70%,62 ms
+random removal ratio 80%,0.846670
+random time 80%,45 ms
 targeted removal ratio 80%,0.000532
-targeted time 80%,75 ms
-random removal ratio 90%,0.840378
-random time 90%,61 ms
+targeted time 80%,61 ms
+random removal ratio 90%,0.842790
+random time 90%,44 ms
 targeted removal ratio 90%,0.000384
-targeted time 90%,75 ms
-время препроцессинга landmarks,3.524589 s
-количество допустимых пар,74
-среднее расстояние по landmarks,6.405405
-время подсчета по landmarks,0 ms
+targeted time 90%,60 ms
+время препроцессинга landmarks,1.317923 s
+количество допустимых пар,69
+среднее расстояние по landmarks,6.333333
+время подсчета по landmarks,981 ms
+средняя погрешность landmarks vs BFS,2.275362

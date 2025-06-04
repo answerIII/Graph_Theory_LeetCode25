@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.16)
+project(GraphApp CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+file(GLOB CONFIGURE_DEPENDS GRAPH_SOURCES
+  "${CMAKE_SOURCE_DIR}/Graph/*.cpp"
+)
+
+add_executable(app
+  main.cpp
+  Graph/GraphUtils.cpp
+  Graph/1A1.cpp
+  Graph/1A2.cpp
+  Graph/1A3.cpp
+  Graph/1A4.cpp
+  Graph/1A5.cpp
+  Graph/1B.cpp
+  Graph/2.cpp
+)
+
+target_include_directories(app PRIVATE ${CMAKE_SOURCE_DIR})

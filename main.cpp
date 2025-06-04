@@ -8,9 +8,13 @@
 #include <random>
 #include <ctime>
 #include <iomanip>
+#include <cstdlib>
+#include <string>
 
 namespace fs = std::filesystem;
 using Clock = std::chrono::high_resolution_clock;
+int GLOBAL_TU_PARAM = 6;
+bool isTestGraphPath(const std::string& graphPath);
 
 std::vector<std::string> collectGraphFiles(const std::string& folder) {
     std::vector<std::string> files;
@@ -29,17 +33,39 @@ std::string detectFormat(const std::string& path) {
     return "txt";
 }
 
-void ensureResultsFolder() {
-    fs::create_directories("results/graphs");
-    fs::create_directories("results/tasks");
-    for (const auto& entry : fs::directory_iterator("results/graphs")) {
-        if (entry.path().extension() == ".csv") {
-            fs::remove(entry);
+fs::path findRootWithDatasets() {
+    fs::path p = fs::current_path();
+    fs::path start = p;
+    while (true) {
+        if (fs::exists(p / "datasets") && fs::is_directory(p / "datasets")) {
+            return p;
         }
+        if (!p.has_parent_path() || p.parent_path() == p) {
+            return start;
+        }
+        p = p.parent_path();
     }
-    for (const auto& entry : fs::directory_iterator("results/tasks")) {
-        if (entry.path().extension() == ".csv") {
-            fs::remove(entry);
+}
+
+void ensureOutputsForMode(bool testsMode) {
+    if (testsMode) {
+        fs::create_directories("testsResults");
+        fs::path unifiedCsv = fs::path("testsResults") / "all_metrics.csv";
+        if (fs::exists(unifiedCsv)) {
+            fs::remove(unifiedCsv);
+        }
+    } else {
+        fs::create_directories("results/graphs");
+        fs::create_directories("results/tasks");
+        for (const auto& entry : fs::directory_iterator("results/graphs")) {
+            if (entry.path().extension() == ".csv") {
+                fs::remove(entry);
+            }
+        }
+        for (const auto& entry : fs::directory_iterator("results/tasks")) {
+            if (entry.path().extension() == ".csv") {
+                fs::remove(entry);
+            }
         }
     }
 }
@@ -56,6 +82,7 @@ std::string formatDuration(std::chrono::duration<double> dur) {
 }
 
 void appendGraphMetric(const std::string& graphPath, const std::string& metric, const std::string& value) {
+    if (isTestGraphPath(graphPath)) return; // do not create per-graph CSVs for tests
     std::string graphName = fs::path(graphPath).filename().string();
     std::ofstream outGraph("results/graphs/" + graphName + ".csv", std::ios::app);
     outGraph << metric << "," << value << "\n";
@@ -63,6 +90,7 @@ void appendGraphMetric(const std::string& graphPath, const std::string& metric, 
 }
 
 void appendTaskMetric(const std::string& task, const std::string& graphPath, const std::vector<std::string>& values, const std::vector<std::string>& headers) {
+    if (isTestGraphPath(graphPath)) return; // do not create per-task CSVs for tests
     std::ofstream out("results/tasks/" + task + ".csv", std::ios::app);
     static std::unordered_set<std::string> initialized;
     if (!initialized.count(task)) {
@@ -81,19 +109,89 @@ void appendTaskMetric(const std::string& task, const std::string& graphPath, con
     out.close();
 }
 
+bool isTestGraphPath(const std::string& graphPath) {
+    return graphPath.find("/tests/") != std::string::npos || graphPath.find("\\tests\\") != std::string::npos;
+}
+
+void appendUnifiedRow(const std::string& graphPath,
+                      const std::unordered_map<std::string, std::string>& m) {
+    if (!isTestGraphPath(graphPath)) return;
+    fs::create_directories("testsResults");
+    std::string outPath = "testsResults/all_metrics.csv";
+    static bool headerWritten = false;
+    static std::vector<std::string> headers = {
+        "file","is_test",
+        "vertex count","edge count",
+        "density",
+        "largest WCC size",
+        "diameter1",
+        "triangle count",
+        "distanceFromMaxVertex(t)","localClustering(u)","t_param","u_param"
+    };
+    std::ofstream out(outPath, std::ios::app);
+    if (!headerWritten) {
+        for (size_t i = 0; i < headers.size(); ++i) {
+            out << headers[i];
+            if (i + 1 < headers.size()) out << ",";
+        }
+        out << "\n";
+        headerWritten = true;
+    }
+    for (size_t i = 0; i < headers.size(); ++i) {
+        if (i == 0) {
+            out << graphPath;
+        } else if (i == 1) {
+            out << (isTestGraphPath(graphPath) ? "1" : "0");
+        } else {
+            auto it = m.find(headers[i]);
+            if (it != m.end()) out << it->second;
+        }
+        if (i + 1 < headers.size()) out << ",";
+    }
+    out << "\n";
+    out.close();
+}
+
 int main() {
      auto start_time = std::chrono::system_clock::now();
     std::time_t start_time_t = std::chrono::system_clock::to_time_t(start_time);
-    
-    // Выводим время начала в удобочитаемом формате
+
+    fs::path projectRoot = findRootWithDatasets();
+    try {
+        fs::current_path(projectRoot);
+        std::cout << "Рабочая директория установлена: " << fs::current_path() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Не удалось установить рабочую директорию: " << e.what() << std::endl;
+    }
     std::cout << "Программа начала работу: " 
               << std::put_time(std::localtime(&start_time_t), "%Y-%m-%d %H:%M:%S") 
               << std::endl;
-    ensureResultsFolder();
     auto graphFiles = collectGraphFiles("datasets");
 
+    std::cout << "Какие графы считать? tests(t)/обычные(o) [o]: ";
+    std::string ans;
+    std::getline(std::cin, ans);
+    bool testsMode = !ans.empty() && (ans[0] == 't' || ans[0] == 'T');
+    ensureOutputsForMode(testsMode);
+
+    std::vector<std::string> processFiles;
+    processFiles.reserve(graphFiles.size());
+    for (const auto& pth : graphFiles) {
+        bool isTest = isTestGraphPath(pth);
+        if (testsMode ? isTest : !isTest) processFiles.push_back(pth);
+    }
+    if (testsMode) {
+        std::sort(processFiles.begin(), processFiles.end());
+    }
+    const size_t total = processFiles.size();
+    if (total == 0) {
+        std::cout << (testsMode ? "Нет тестовых графов." : "Нет обычных графов.") << std::endl;
+        return 0;
+    }
+
+
     int current = 0;
-    for (const auto& path : graphFiles) {
+    for (const auto& path : processFiles) {
         std::cout << "Загружается граф: " << path << std::endl;
         Graph g;
         auto loadStart = Clock::now();
@@ -105,6 +203,47 @@ int main() {
         auto loadEnd = Clock::now();
         std::string loadTime = formatDuration(loadEnd - loadStart);
         appendGraphMetric(path, "время загрузки графа", loadTime);
+
+        bool isTest = isTestGraphPath(path);
+
+        std::unordered_map<std::string, std::string> UM;
+        UM["load time"] = loadTime;
+
+        if (isTest) {
+            int vc = g.getVertexCount();
+            UM["vertex count"] = std::to_string(vc);
+            int ec = g.getEdgeCount();
+            UM["edge count"] = std::to_string(ec);
+
+            double dens = g.getDensity();
+            UM["density"] = std::to_string(dens);
+
+            int vc_int = vc;
+            int wcc = g.countWeaklyConnectedComponents(); (void)wcc;
+            double wccr = g.getWCCRatio();
+            int largestWCC = static_cast<int>(wccr * vc_int);
+            UM["largest WCC size"] = std::to_string(largestWCC);
+
+            int d1 = g.estimateDiameterDoubleSweep().diameter;
+            UM["diameter1"] = std::to_string(d1);
+
+            g.countTriangles(); long long tri = g.getTriangles();
+            UM["triangle count"] = std::to_string(tri);
+
+            int nverts = g.getVertexCount();
+            int tParam = std::min(GLOBAL_TU_PARAM, std::max(0, nverts - 1));
+            int distMax = g.distanceFromMaxVertex(tParam);
+            double lccu = g.localClusteringCoefficient(tParam);
+            UM["distanceFromMaxVertex(t)"] = std::to_string(distMax);
+            UM["localClustering(u)"] = std::to_string(lccu);
+            UM["t_param"] = std::to_string(tParam);
+            UM["u_param"] = std::to_string(tParam);
+
+            appendUnifiedRow(path, UM);
+            std::cout << "[tests subset done]" << std::endl;
+            std::cout << "Граф " << ++current << " из " << total << " обработан." << std::endl;
+            continue;
+        }
 
         // === Задание 1A1 ===
         auto t_vc = Clock::now(); int vc = g.getVertexCount(); std::string tvc = formatDuration(Clock::now() - t_vc);
@@ -150,10 +289,10 @@ int main() {
         appendGraphMetric(path, "90 процентиль (рандомные пары - 500)", std::to_string(p90_1));
         appendGraphMetric(path, "время подсчета дистанций (рандомные пары - 500)", tdist);
 
-        // auto t_dist_2 = Clock::now(); auto [diam_1, p90_2] = g.distanceStatsRandomPairs(1000); std::string tdist2 = formatDuration(Clock::now() - t_dist_2);
-        // appendGraphMetric(path, "оценка диаметра (рандомные пары - 1000)", std::to_string(diam));
-        // appendGraphMetric(path, "90 процентиль (рандомные пары - 1000)", std::to_string(p90_1));
-        // appendGraphMetric(path, "время подсчета дистанций (рандомные пары - 1000)", tdist);
+        auto t_dist_2 = Clock::now(); auto [diam_1, p90_2] = g.distanceStatsRandomPairs(1000); std::string tdist2 = formatDuration(Clock::now() - t_dist_2);
+        appendGraphMetric(path, "оценка диаметра (рандомные пары - 1000)", std::to_string(diam));
+        appendGraphMetric(path, "90 процентиль (рандомные пары - 1000)", std::to_string(p90_1));
+        appendGraphMetric(path, "время подсчета дистанций (рандомные пары - 1000)", tdist);
 
         auto t_snow = Clock::now(); auto [d2, p90] = g.snowballDiameterAndP90(); std::string tsnow = formatDuration(Clock::now() - t_snow);
         appendGraphMetric(path, "оценка диаметра (snowball)", std::to_string(d2));
@@ -205,8 +344,6 @@ int main() {
         std::vector<std::string> heads1A5 = {"file", "load time", "min deg", "min deg time", "max deg", "max deg time", "avg deg", "avg deg time"};
         appendTaskMetric("1A5", path, vals1A5, heads1A5);
         std::cout << "[1A5]" << std::endl;     
-
-        // Save in CSV (k,count,P(k)) for images
         fs::path outDir = "GraphsCSVTables";
         if (!fs::exists(outDir))
             fs::create_directory(outDir);
@@ -268,35 +405,79 @@ int main() {
         std::mt19937 rng(123);
         std::uniform_int_distribution<int> dist(0, n - 1);
         int numPairs = 100, sumDist = 0, validPairs = 0;
+        int absDiff = 0, measuredPairs = 0;
 
         auto t_appr = Clock::now();
         for (int j = 0; j < numPairs; ++j) {
             int s = dist(rng), t = dist(rng);
             while (s == t) t = dist(rng);
+
             int approx = g.landmarkBasicDistance(s, t);
-            if (approx >= 0) {
+            int exact  = g.landmarkBFSDistance(s, t);
+
+            if (approx >= 0 && exact >= 0) {
                 sumDist += approx;
                 ++validPairs;
+                absDiff += std::abs(approx - exact);
+                ++measuredPairs;
             }
         }
         std::string tappr = formatDuration(Clock::now() - t_appr);
         double avg = validPairs > 0 ? static_cast<double>(sumDist) / validPairs : -1.0;
+        double avgError = measuredPairs > 0 ? static_cast<double>(absDiff) / measuredPairs : -1.0;
+
         appendGraphMetric(path, "количество допустимых пар", std::to_string(validPairs));
         appendGraphMetric(path, "среднее расстояние по landmarks", std::to_string(avg));
         appendGraphMetric(path, "время подсчета по landmarks", tappr);
+        appendGraphMetric(path, "средняя погрешность landmarks vs BFS", std::to_string(avgError));
 
-        std::vector<std::string> vals2 = {path, loadTime, std::to_string(validPairs), tappr, std::to_string(avg), tappr, tlm};
-        std::vector<std::string> heads2 = {"file", "load time", "valid pairs", "pairs time", "avg landmark dist", "avg dist time", "landmark preprocess time"};
+        std::vector<std::string> vals2 = {path, loadTime, std::to_string(validPairs), tappr, std::to_string(avg), tappr, tlm, std::to_string(avgError)};
+        std::vector<std::string> heads2 = {"file", "load time", "valid pairs", "pairs time", "avg landmark dist", "avg dist time", "landmark preprocess time", "avg error (landmarks vs bfs)"};
         appendTaskMetric("2", path, vals2, heads2);
         std::cout << "[2]" << std::endl;
 
-        std::cout << "Граф " << ++current << " из " << graphFiles.size() << " обработан." << std::endl;
+        {
+            std::unordered_map<std::string, std::string> UM;
+            UM["load time"] = loadTime;
+            UM["vertex count"] = std::to_string(vc); UM["vertex time"] = tvc;
+            UM["edge count"] = std::to_string(ec); UM["edge time"] = tec;
+            UM["density"] = std::to_string(dens); UM["density time"] = tdens;
+            UM["WCC count"] = std::to_string(wcc); UM["WCC time"] = twcc;
+            UM["SCC count"] = std::to_string(scc); UM["SCC time"] = tscc;
+            UM["WCC ratio"] = std::to_string(wccr); UM["WCC ratio time"] = twccr;
+            UM["SCC ratio"] = std::to_string(sccr); UM["SCC ratio time"] = tsccr;
+            UM["diameter1"] = std::to_string(d1); UM["diameter1 time"] = td1;
+            UM["diameter2(500)"] = std::to_string(diam); UM["diameter2(500) time"] = tdist; UM["p90(500)"] = std::to_string(p90_1); UM["p90(500) time"] = tdist;
+            UM["diameter_snowball"] = std::to_string(d2); UM["diameter_snowball time"] = tsnow; UM["p90_snowball"] = std::to_string(p90); UM["p90_snowball time"] = tsnow;
+            UM["triangle count"] = std::to_string(tri); UM["triangle time"] = ttri;
+            UM["avg clustering"] = std::to_string(acc); UM["avg clustering time"] = tacc;
+            UM["global clustering"] = std::to_string(gcc); UM["global clustering time"] = tgcc;
+            UM["avg clustering in WCC"] = std::to_string(awcc); UM["avg clustering in WCC time"] = tawcc;
+            UM["min deg"] = std::to_string(mindeg); UM["min deg time"] = tdeg;
+            UM["max deg"] = std::to_string(maxdeg); UM["max deg time"] = tdeg;
+            UM["avg deg"] = std::to_string(avgdeg); UM["avg deg time"] = tdeg;
+            UM["valid pairs"] = std::to_string(validPairs); UM["pairs time"] = tappr;
+            UM["avg landmark dist"] = std::to_string(avg); UM["avg dist time"] = tappr;
+            UM["landmark preprocess time"] = tlm; UM["avg error (landmarks vs bfs)"] = std::to_string(avgError);
+
+            int nverts = g.getVertexCount();
+            int tParam = std::min(GLOBAL_TU_PARAM, std::max(0, nverts - 1));
+            int distMax = g.distanceFromMaxVertex(tParam);
+            double lccu = g.localClusteringCoefficient(tParam);
+            UM["distanceFromMaxVertex(t)"] = std::to_string(distMax);
+            UM["localClustering(u)"] = std::to_string(lccu);
+            UM["t_param"] = std::to_string(tParam);
+            UM["u_param"] = std::to_string(tParam);
+
+            appendUnifiedRow(path, UM);
+        }
+        std::cout << "Граф " << ++current << " из " << total << " обработан." << std::endl;
     }
 
       auto end_time = std::chrono::system_clock::now();
     std::time_t end_time_t = std::chrono::system_clock::to_time_t(end_time);
     std::chrono::duration<double> elapsed_seconds = end_time - start_time;
-    
+        
     std::cout << "Программа завершила работу: " 
               << std::put_time(std::localtime(&end_time_t), "%Y-%m-%d %H:%M:%S") 
               << std::endl;

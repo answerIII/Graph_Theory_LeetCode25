@@ -57,7 +57,7 @@ class Graph {
     std::vector<std::vector<int>> Ldist;
     bool landmarksReady = false;
     DegreeStats dStats{};  
-    mutable long long triangleCount = -1;
+    mutable long long triangleCount = 0;
     mutable Ordering ord;
     mutable ComponentInfo comp;
 
@@ -103,6 +103,7 @@ public:
     void countTriangles() const;
     double averageClusteringCoefficient() const;
     double globalClusteringCoefficient() const;
+    double localClusteringCoefficient(int u) const;
 
     //1A4
     double averageClusteringLargestWCC();
@@ -116,5 +117,7 @@ public:
     //2
     enum class LandmarkSelect { Random, HighestDegree };
     void precomputeLandmarks(int k, LandmarkSelect sel = LandmarkSelect::Random, uint32_t seed = 42);
-    int landmarkBasicDistance(int s, int t) const;    
+    int landmarkBasicDistance(int s, int t) const;   
+    int landmarkBFSDistance(int s, int t) const;
+    int distanceFromMaxVertex(int t) const;
 };
