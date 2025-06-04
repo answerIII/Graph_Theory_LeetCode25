@@ -56,7 +56,7 @@ def landmarks_sc(graph, s, t, landmark_parents, landmark_dists):
                     best = min(best, d)
     return best if best != float('inf') else None
 
-def select_landmarks(graph, k, strategy='degree', M=100):
+def select_landmarks(graph, k, strategy, M=100):
     if strategy == 'random':
         return random.sample(list(graph.keys()), k)
     elif strategy == 'degree':
@@ -118,6 +118,9 @@ for i, file in enumerate(txt_files, 1):
     graph = read_graph(os.path.basename(file))
     for strategy in ['random', 'degree', 'coverage']:
         for k in [10, 20, 30, 40, 50]:
+            start_time = time.perf_counter()
             landmarks = select_landmarks(graph, k, strategy=strategy)
             res = evaluate(graph, landmarks, sample_size=100)
-            print(f"Strategy: {strategy}, k={k}, Avg error: {res['avg_error']}, Max error: {res['max_error']}, Approx time: {res['avg_approx_time']}s")
+            end_time = time.perf_counter()
+            total_time = end_time - start_time
+            print(f"Strategy: {strategy}, k={k}, Avg error: {res['avg_error']}, Max error: {res['max_error']}, Total time: {total_time}s, Approx time: {res['avg_approx_time']}s")
