@@ -367,17 +367,15 @@ int main() {
         std::vector<std::string> heads1B = {"file", "load time"};
 
         for (int perc = 10; perc <= 90; perc += 10) {
-            double frac = perc / 100.0;
-
             auto t_rnd = Clock::now();
-            double r_rnd = g.ratioAfterRemoval(frac, false);
+            double r_rnd = g.ratioAfterRemoval(perc, false);
             std::string tr_rnd = formatDuration(Clock::now() - t_rnd);
 
             appendGraphMetric(path, "random removal ratio " + std::to_string(perc) + "%", std::to_string(r_rnd));
             appendGraphMetric(path, "random time " + std::to_string(perc) + "%", tr_rnd);
 
             auto t_tar = Clock::now();
-            double r_tar = g.ratioAfterRemoval(frac, true);
+            double r_tar = g.ratioAfterRemoval(perc, true);
             std::string tr_tar = formatDuration(Clock::now() - t_tar);
 
             appendGraphMetric(path, "targeted removal ratio " + std::to_string(perc) + "%", std::to_string(r_tar));

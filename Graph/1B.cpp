@@ -32,7 +32,7 @@ static int largestWCC_ignore(const std::vector<std::vector<long int>>& E, const 
 }
 
 double Graph::ratioAfterRemoval(double perc, bool targetedByDeg, uint32_t seed) const {
-    if(perc<=0.0) return wccRatio;
+    if(perc<=0.0) return wccRatio;    
     if(perc>=100.0) return 0.0;
 
     int k = std::lround(numVertices * perc / 100.0);
@@ -59,7 +59,7 @@ double Graph::ratioAfterRemoval(double perc, bool targetedByDeg, uint32_t seed) 
     for(int v: victims) removed[v]=1;
 
     int lcc = largestWCC_ignore(edges, reverseEdges, removed);
-    int left = numVertices - k;
+    int left = numVertices;
 
     return left ? double(lcc) / left : 0.0;
 }
