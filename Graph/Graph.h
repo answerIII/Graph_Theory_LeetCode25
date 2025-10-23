@@ -60,6 +60,7 @@ class Graph {
     mutable long long triangleCount = 0;
     mutable Ordering ord;
     mutable ComponentInfo comp;
+    mutable std::vector<int> undirected_degrees;
 
     //1A1
     int bfsComponent(int start, std::vector<bool>& visited);

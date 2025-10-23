@@ -1,4 +1,4 @@
-время загрузки графа,16.509655 s
+время загрузки графа,13.070536 s
 количество вершин,540486
 время подсчета количества вершин,0 ms
 количество ребер,15245729
@@ -6,7 +6,7 @@
 плотность графа,0.000104
 время подсчета плотности,0 ms
 кол-во слабосвязных компонент,1
-время подсчета WCC,552 ms
+время подсчета WCC,464 ms
 кол-во сильно связанных компонент,-1
 время подсчета SCC,0 ms
 доля вершин в самой большой WCC,1.000000
@@ -14,66 +14,66 @@
 доля вершин в самой большой SCC,0.000000
 время подсчета доли SCC,0 ms
 оценка диаметра (double sweep),23
-время оценки double sweep,464 ms
+время оценки double sweep,339 ms
 оценка диаметра (рандомные пары - 500),12
 90 процентиль (рандомные пары - 500),7
-время подсчета дистанций (рандомные пары - 500),34.677037 s
+время подсчета дистанций (рандомные пары - 500),22.758404 s
 оценка диаметра (рандомные пары - 1000),12
 90 процентиль (рандомные пары - 1000),7
-время подсчета дистанций (рандомные пары - 1000),34.677037 s
+время подсчета дистанций (рандомные пары - 1000),22.758404 s
 оценка диаметра (snowball),4
 90 процентиль расстояний (snowball),4
-время подсчета дистанций (snowball),1.254451 s
+время подсчета дистанций (snowball),700 ms
 число треугольников,444095058
-время подсчета треугольников,11.706721 s
-средний коэфф. кластеризации,0.815247
-время среднего кластеризации,8.818022 s
+время подсчета треугольников,2.873611 s
+средний коэфф. кластеризации,0.801877
+время среднего кластеризации,1.999563 s
 глобальный коэфф. кластеризации,0.656150
-время глобального кластеризации,1 ms
+время глобального кластеризации,0 ms
 средний коэфф. кластеризации в WCC,0.801877
-время кластеризации в WCC,13.256976 s
+время кластеризации в WCC,3.221466 s
 мин. степень,1
 макс. степень,3299
 средняя степень,56.414890
 время подсчета степеней,0 ms
-random removal ratio 10%,0.999972
-random time 10%,582 ms
-targeted removal ratio 10%,0.999930
-targeted time 10%,588 ms
-random removal ratio 20%,0.999911
-random time 20%,579 ms
-targeted removal ratio 20%,0.999868
-targeted time 20%,584 ms
-random removal ratio 30%,0.999870
-random time 30%,579 ms
-targeted removal ratio 30%,0.999868
-targeted time 30%,579 ms
-random removal ratio 40%,0.999786
-random time 40%,582 ms
-targeted removal ratio 40%,0.999857
-targeted time 40%,578 ms
-random removal ratio 50%,0.999691
-random time 50%,580 ms
-targeted removal ratio 50%,0.999838
-targeted time 50%,568 ms
-random removal ratio 60%,0.999635
-random time 60%,581 ms
-targeted removal ratio 60%,0.999767
-targeted time 60%,566 ms
-random removal ratio 70%,0.999529
-random time 70%,580 ms
-targeted removal ratio 70%,0.999691
-targeted time 70%,564 ms
-random removal ratio 80%,0.999470
-random time 80%,580 ms
-targeted removal ratio 80%,0.999646
-targeted time 80%,561 ms
-random removal ratio 90%,0.999354
-random time 90%,578 ms
-targeted removal ratio 90%,0.999688
-targeted time 90%,557 ms
-время препроцессинга landmarks,14.263889 s
+random removal ratio 10%,0.892106
+random time 10%,463 ms
+targeted removal ratio 10%,0.895154
+targeted time 10%,346 ms
+random removal ratio 20%,0.784363
+random time 20%,436 ms
+targeted removal ratio 20%,0.784636
+targeted time 20%,271 ms
+random removal ratio 30%,0.677340
+random time 30%,398 ms
+targeted removal ratio 30%,0.665723
+targeted time 30%,218 ms
+random removal ratio 40%,0.571086
+random time 40%,387 ms
+targeted removal ratio 40%,0.531276
+targeted time 40%,185 ms
+random removal ratio 50%,0.465648
+random time 50%,368 ms
+targeted removal ratio 50%,0.373680
+targeted time 50%,156 ms
+random removal ratio 60%,0.360675
+random time 60%,343 ms
+targeted removal ratio 60%,0.191237
+targeted time 60%,127 ms
+random removal ratio 70%,0.256880
+random time 70%,332 ms
+targeted removal ratio 70%,0.018124
+targeted time 70%,109 ms
+random removal ratio 80%,0.155123
+random time 80%,358 ms
+targeted removal ratio 80%,0.000165
+targeted time 80%,96 ms
+random removal ratio 90%,0.058503
+random time 90%,412 ms
+targeted removal ratio 90%,0.000030
+targeted time 90%,91 ms
+время препроцессинга landmarks,11.225327 s
 количество допустимых пар,100
 среднее расстояние по landmarks,8.050000
-время подсчета по landmarks,7.041889 s
+время подсчета по landmarks,4.761839 s
 средняя погрешность landmarks vs BFS,2.500000

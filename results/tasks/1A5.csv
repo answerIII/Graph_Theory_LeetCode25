@@ -1,14 +1,14 @@
 file,load time,min deg,min deg time,max deg,max deg time,avg deg,avg deg time
-datasets/very_large_graphs/com-orkut.ungraph.txt,163.972648 s,1,0 ms,33313,0 ms,76.281421,0 ms
-datasets/very_large_graphs/com-youtube.ungraph.txt,5.363279 s,1,0 ms,28754,0 ms,5.265046,0 ms
-datasets/very_large_graphs/vk.csv,50.031578 s,1,0 ms,6503,0 ms,10.830862,0 ms
-datasets/undirected/Email-EuAll.txt,760 ms,1,0 ms,7636,0 ms,3.167593,0 ms
-datasets/undirected/CA-GrQc.txt,45 ms,2,0 ms,162,0 ms,11.056849,0 ms
-datasets/undirected/CA-AstroPh.txt,462 ms,2,0 ms,1008,0 ms,42.207543,0 ms
-datasets/undirected/ca-coauthors-dblp.txt,16.509655 s,1,0 ms,3299,0 ms,56.414890,0 ms
-datasets/undirected/musae_git_edges.csv,330 ms,1,0 ms,9458,0 ms,15.331724,0 ms
-datasets/directed/Wiki-Vote.txt,105 ms,1,0 ms,1167,0 ms,29.146592,0 ms
+datasets/very_large_graphs/com-orkut.ungraph.txt,149.410756 s,1,0 ms,33313,0 ms,76.281421,0 ms
+datasets/very_large_graphs/com-youtube.ungraph.txt,5.462204 s,1,0 ms,28754,0 ms,5.265046,0 ms
+datasets/very_large_graphs/vk.csv,50.995475 s,1,0 ms,6503,0 ms,10.830862,0 ms
+datasets/undirected/Email-EuAll.txt,702 ms,1,0 ms,7636,0 ms,3.167593,0 ms
+datasets/undirected/CA-GrQc.txt,37 ms,2,0 ms,162,0 ms,11.056849,0 ms
+datasets/undirected/CA-AstroPh.txt,427 ms,2,0 ms,1008,0 ms,42.207543,0 ms
+datasets/undirected/ca-coauthors-dblp.txt,13.070536 s,1,0 ms,3299,0 ms,56.414890,0 ms
+datasets/undirected/musae_git_edges.csv,216 ms,1,0 ms,9458,0 ms,15.331724,0 ms
+datasets/directed/Wiki-Vote.txt,82 ms,1,0 ms,1167,0 ms,29.146592,0 ms
 datasets/directed/soc-wiki-Vote.mtx,4 ms,1,0 ms,102,0 ms,6.555681,0 ms
-datasets/directed/web-Stanford.txt,3.475032 s,1,0 ms,38626,0 ms,16.406331,0 ms
-datasets/directed/web-Google.txt,9.210362 s,1,0 ms,6353,0 ms,11.659160,0 ms
-datasets/directed/web-NotreDame.txt,2.074297 s,1,0 ms,10721,0 ms,9.192513,0 ms
+datasets/directed/web-Stanford.txt,3.272448 s,1,0 ms,38626,0 ms,16.406331,0 ms
+datasets/directed/web-Google.txt,9.364484 s,1,0 ms,6353,0 ms,11.659160,0 ms
+datasets/directed/web-NotreDame.txt,2.181871 s,1,0 ms,10721,0 ms,9.192513,0 ms

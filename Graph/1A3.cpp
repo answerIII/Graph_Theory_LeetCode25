@@ -2,7 +2,7 @@
 
 void Graph::degeneracyOrder() const {
     int n = numVertices;
-    std::vector<int> degree(n);
+    undirected_degrees.assign(n, 0);
     std::vector<bool> removed(n, false);
     std::vector<std::vector<int>> undirected(n);
 
@@ -20,18 +20,18 @@ void Graph::degeneracyOrder() const {
         }
         std::sort(undirected[u].begin(), undirected[u].end());
         undirected[u].erase(std::unique(undirected[u].begin(), undirected[u].end()), undirected[u].end());
-        degree[u] = undirected[u].size();
+        undirected_degrees[u] = undirected[u].size();
     }
 
     ord.rank.resize(n);
     ord.fwd.resize(n);
     std::vector<int> bin(n + 1), pos(n), vert(n), order;
 
-    for (int d : degree) ++bin[d];
+    for (int d : undirected_degrees) ++bin[d];
     for (int i = 1; i <= n; ++i) bin[i] += bin[i - 1];
 
     for (int u = 0; u < n; ++u) {
-        pos[u] = --bin[degree[u]];
+        pos[u] = --bin[undirected_degrees[u]];
         vert[pos[u]] = u;
     }
 
@@ -84,21 +84,21 @@ double Graph::averageClusteringCoefficient() const {
     int count = 0;
 
     for (int u = 0; u < numVertices; ++u) {
-        int k = edges[u].size() + reverseEdges[u].size();
+        int k = undirected_degrees[u];
         if (k < 2) continue;
         double cu = (2.0 * tri[u]) / (k * (k - 1));
         sumC += cu;
         ++count;
     }
 
-    return (count == 0) ? 0.0 : sumC / count;
+    return (numVertices == 0) ? 0.0 : sumC / numVertices;
 }
 
 double Graph::globalClusteringCoefficient() const {
     long long triplets = 0;
 
     for (int u = 0; u < numVertices; ++u) {
-        int k = edges[u].size() + reverseEdges[u].size();
+        int k = undirected_degrees[u];
         triplets += 1LL * k * (k - 1) / 2;
     }
 

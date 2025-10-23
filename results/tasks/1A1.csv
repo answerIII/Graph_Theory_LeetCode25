@@ -1,14 +1,14 @@
 file,load time,vertex count,vertex time,edge count,edge time,density,density time,WCC count,WCC time,SCC count,SCC time,WCC ratio,WCC ratio time,SCC ratio,SCC ratio time
-datasets/very_large_graphs/com-orkut.ungraph.txt,163.972648 s,3072441,0 ms,117185083,0 ms,0.000025,0 ms,1,5.239283 s,-1,0 ms,1.000000,0 ms,0.000000,0 ms
-datasets/very_large_graphs/com-youtube.ungraph.txt,5.363279 s,1134890,0 ms,2987624,0 ms,0.000005,0 ms,1,218 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
-datasets/very_large_graphs/vk.csv,50.031578 s,3215720,0 ms,17414510,0 ms,0.000003,0 ms,24337,1.263421 s,-1,0 ms,0.983362,0 ms,0.000000,0 ms
-datasets/undirected/Email-EuAll.txt,760 ms,265214,0 ms,420045,0 ms,0.000012,0 ms,15836,39 ms,-1,0 ms,0.847738,0 ms,0.000000,0 ms
-datasets/undirected/CA-GrQc.txt,45 ms,5242,0 ms,28980,0 ms,0.002110,0 ms,355,1 ms,-1,0 ms,0.793209,0 ms,0.000000,0 ms
-datasets/undirected/CA-AstroPh.txt,462 ms,18772,0 ms,396160,0 ms,0.002249,0 ms,290,15 ms,-1,0 ms,0.953708,0 ms,0.000000,0 ms
-datasets/undirected/ca-coauthors-dblp.txt,16.509655 s,540486,0 ms,15245729,0 ms,0.000104,0 ms,1,552 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
-datasets/undirected/musae_git_edges.csv,330 ms,37700,0 ms,289003,0 ms,0.000407,0 ms,1,13 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
-datasets/directed/Wiki-Vote.txt,105 ms,7115,0 ms,103689,0 ms,0.002049,0 ms,24,4 ms,5816,7 ms,0.993113,0 ms,0.182713,0 ms
+datasets/very_large_graphs/com-orkut.ungraph.txt,149.410756 s,3072441,0 ms,117185083,0 ms,0.000025,0 ms,1,4.305129 s,-1,0 ms,1.000000,0 ms,0.000000,0 ms
+datasets/very_large_graphs/com-youtube.ungraph.txt,5.462204 s,1134890,0 ms,2987624,0 ms,0.000005,0 ms,1,218 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
+datasets/very_large_graphs/vk.csv,50.995475 s,3215720,0 ms,17414510,0 ms,0.000003,0 ms,24337,2.250565 s,-1,0 ms,0.983362,0 ms,0.000000,0 ms
+datasets/undirected/Email-EuAll.txt,702 ms,265214,0 ms,420045,0 ms,0.000012,0 ms,15836,27 ms,-1,0 ms,0.847738,0 ms,0.000000,0 ms
+datasets/undirected/CA-GrQc.txt,37 ms,5242,0 ms,28980,0 ms,0.002110,0 ms,355,1 ms,-1,0 ms,0.793209,0 ms,0.000000,0 ms
+datasets/undirected/CA-AstroPh.txt,427 ms,18772,0 ms,396160,0 ms,0.002249,0 ms,290,14 ms,-1,0 ms,0.953708,0 ms,0.000000,0 ms
+datasets/undirected/ca-coauthors-dblp.txt,13.070536 s,540486,0 ms,15245729,0 ms,0.000104,0 ms,1,464 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
+datasets/undirected/musae_git_edges.csv,216 ms,37700,0 ms,289003,0 ms,0.000407,0 ms,1,13 ms,-1,0 ms,1.000000,0 ms,0.000000,0 ms
+datasets/directed/Wiki-Vote.txt,82 ms,7115,0 ms,103689,0 ms,0.002049,0 ms,24,2 ms,5816,2 ms,0.993113,0 ms,0.182713,0 ms
 datasets/directed/soc-wiki-Vote.mtx,4 ms,889,0 ms,2914,0 ms,0.003691,0 ms,1,0 ms,889,0 ms,1.000000,0 ms,0.001125,0 ms
-datasets/directed/web-Stanford.txt,3.475032 s,281903,0 ms,2312497,0 ms,0.000029,0 ms,365,119 ms,29914,207 ms,0.905507,0 ms,0.533985,0 ms
-datasets/directed/web-Google.txt,9.210362 s,875713,0 ms,5105039,0 ms,0.000007,0 ms,2746,365 ms,371764,725 ms,0.977263,0 ms,0.496530,0 ms
-datasets/directed/web-NotreDame.txt,2.074297 s,325729,0 ms,1497134,0 ms,0.000014,0 ms,1,78 ms,203609,196 ms,1.000000,0 ms,0.165684,0 ms
+datasets/directed/web-Stanford.txt,3.272448 s,281903,0 ms,2312497,0 ms,0.000029,0 ms,365,136 ms,29914,105 ms,0.905507,0 ms,0.533985,0 ms
+datasets/directed/web-Google.txt,9.364484 s,875713,0 ms,5105039,0 ms,0.000007,0 ms,2746,544 ms,371764,400 ms,0.977263,0 ms,0.496530,0 ms
+datasets/directed/web-NotreDame.txt,2.181871 s,325729,0 ms,1497134,0 ms,0.000014,0 ms,1,66 ms,203609,84 ms,1.000000,0 ms,0.165684,0 ms

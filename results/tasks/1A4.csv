@@ -1,14 +1,14 @@
 file,load time,avg clustering in WCC,time
-datasets/very_large_graphs/com-orkut.ungraph.txt,163.972648 s,0.166607,142.661847 s
-datasets/very_large_graphs/com-youtube.ungraph.txt,5.363279 s,0.080802,2.526317 s
-datasets/very_large_graphs/vk.csv,50.031578 s,0.049862,20.296242 s
-datasets/undirected/Email-EuAll.txt,760 ms,0.079096,298 ms
-datasets/undirected/CA-GrQc.txt,45 ms,0.556677,10 ms
-datasets/undirected/CA-AstroPh.txt,462 ms,0.632552,146 ms
-datasets/undirected/ca-coauthors-dblp.txt,16.509655 s,0.801877,13.256976 s
-datasets/undirected/musae_git_edges.csv,330 ms,0.167537,195 ms
-datasets/directed/Wiki-Vote.txt,105 ms,0.141875,80 ms
-datasets/directed/soc-wiki-Vote.mtx,4 ms,0.152847,2 ms
-datasets/directed/web-Stanford.txt,3.475032 s,0.618891,1.214911 s
-datasets/directed/web-Google.txt,9.210362 s,0.519032,3.149248 s
-datasets/directed/web-NotreDame.txt,2.074297 s,0.224937,788 ms
+datasets/very_large_graphs/com-orkut.ungraph.txt,149.410756 s,0.166607,48.571935 s
+datasets/very_large_graphs/com-youtube.ungraph.txt,5.462204 s,0.080802,1.028595 s
+datasets/very_large_graphs/vk.csv,50.995475 s,0.049862,6.492204 s
+datasets/undirected/Email-EuAll.txt,702 ms,0.079096,91 ms
+datasets/undirected/CA-GrQc.txt,37 ms,0.556677,3 ms
+datasets/undirected/CA-AstroPh.txt,427 ms,0.632552,44 ms
+datasets/undirected/ca-coauthors-dblp.txt,13.070536 s,0.801877,3.221466 s
+datasets/undirected/musae_git_edges.csv,216 ms,0.167537,65 ms
+datasets/directed/Wiki-Vote.txt,82 ms,0.141875,18 ms
+datasets/directed/soc-wiki-Vote.mtx,4 ms,0.152847,0 ms
+datasets/directed/web-Stanford.txt,3.272448 s,0.618891,423 ms
+datasets/directed/web-Google.txt,9.364484 s,0.519032,2.347888 s
+datasets/directed/web-NotreDame.txt,2.181871 s,0.224937,278 ms
